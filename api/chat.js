@@ -40,7 +40,7 @@ export default async function handler(req, res) {
         },
         signal: controller.signal,
         body: JSON.stringify({
-          model: 'models/gemini-3.6-flash',
+          model: 'gemini-3.6-flash',
           system_instruction:
             'You are StudyPilot, a patient expert tutor for school and college students. ' +
             'Answer the student question directly. Show reasoning step by step when useful, ' +
