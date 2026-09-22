@@ -6,18 +6,29 @@ export default async function handler(req, res) {
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ message: 'Message is required.' });
     }
+
     const key = process.env.GEMINI_API_KEY;
     if (!key) {
       return res.status(503).json({ message: 'AI key is not configured on the server yet.' });
     }
 
-    const contents = Array.isArray(history)
-      ? history.filter(x => x && (x.role === 'user' || x.role === 'model') && Array.isArray(x.parts))
-      : [];
-    contents.push({ role: 'user', parts: [{ text: message.slice(0, 10000) }] });
+    const prior = Array.isArray(history)
+      ? history
+          .filter(x => x && (x.role === 'user' || x.role === 'model') && Array.isArray(x.parts))
+          .slice(-10)
+          .map(x => {
+            const who = x.role === 'user' ? 'Student' : 'Tutor';
+            const txt = x.parts.map(p => p?.text || '').join(' ').slice(0, 6000);
+            return who + ': ' + txt;
+          })
+          .join('\n')
+      : '';
+
+    const input = (prior ? 'Conversation so far:\n' + prior + '\n\n' : '') +
+      'Student: ' + message.slice(0, 10000);
 
     const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/interactions',
       {
         method: 'POST',
         headers: {
@@ -25,32 +36,47 @@ export default async function handler(req, res) {
           'x-goog-api-key': key
         },
         body: JSON.stringify({
-          contents,
-          systemInstruction: {
-            parts: [{
-              text: 'You are StudyPilot, a patient expert tutor for school and college students. Answer the student question directly. Show reasoning step by step when useful, use simple language, and never invent an answer. For math and physics, show formulas and calculations. For study requests, teach the student rather than only giving the final answer.'
-            }]
-          },
-          generationConfig: {
+          model: 'gemini-3.8-flash',
+          system_instruction:
+            'You are StudyPilot, a patient expert tutor for school and college students. ' +
+            'Answer the student question directly. Show reasoning step by step when useful, ' +
+            'use simple language, and never invent an answer. For math and physics, show formulas ' +
+            'and calculations. For study requests, teach the student rather than only giving the final answer.',
+          input,
+          generation_config: {
             temperature: 0.25,
-            maxOutputTokens: 1400
+            max_output_tokens: 1400
           }
         })
       }
     );
 
     const data = await response.json();
+
     if (!response.ok) {
-      return res.status(response.status).json({
-        message: data?.error?.message || 'Gemini request failed.'
-      });
+      const googleMessage = data?.error?.message || 'Gemini request failed.';
+      if (data?.error?.details?.some?.(d => d?.reason === 'API_KEY_INVALID')) {
+        return res.status(502).json({
+          message: 'Google rejected the Gemini API key. Please create a fresh AI Studio key and replace GEMINI_API_KEY in Vercel.'
+        });
+      }
+      return res.status(response.status).json({ message: googleMessage });
     }
 
-    const answer = data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('').trim();
-    if (!answer) return res.status(502).json({ message: 'Gemini returned an empty answer.' });
+    const answer = data?.steps
+      ?.filter(step => step?.type === 'model_output')
+      ?.flatMap(step => step?.content || [])
+      ?.filter(block => block?.type === 'text')
+      ?.map(block => block.text || '')
+      ?.join('')
+      ?.trim();
+
+    if (!answer) {
+      return res.status(502).json({ message: 'Gemini returned an empty answer.' });
+    }
 
     return res.status(200).json({ answer });
   } catch (error) {
-    return res.status(500).json({ message: 'Server error. Please try again.' });
+    return res.status(500).json({ message: 'Server error while contacting Gemini.' });
   }
 }
