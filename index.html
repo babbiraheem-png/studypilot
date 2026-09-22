@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StudyPilot — AI Student Workspace</title>
+<style>
+:root{
+  --bg:#07111f;--panel:#0d1a2d;--panel2:#111f35;--text:#edf5ff;--muted:#8fa3bd;
+  --line:#20334d;--primary:#6d7cff;--primary2:#8c6dff;--green:#35d39a;--orange:#ffb454;
+  --red:#ff6b7a;--shadow:0 20px 60px rgba(0,0,0,.28);--radius:18px;
+}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:
+radial-gradient(circle at 75% -10%,rgba(109,124,255,.20),transparent 32%),var(--bg);color:var(--text)}
+button,input,textarea,select{font:inherit}button{cursor:pointer}
+.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+.sidebar{position:sticky;top:0;height:100vh;padding:22px 16px;border-right:1px solid var(--line);background:rgba(7,17,31,.88);backdrop-filter:blur(18px)}
+.logo{display:flex;align-items:center;gap:11px;font-weight:800;font-size:19px;padding:5px 10px 25px}
+.logo-mark{width:35px;height:35px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 10px 25px #5965ff33}
+.nav{display:grid;gap:7px}.nav button{border:0;background:transparent;color:var(--muted);padding:12px 13px;border-radius:12px;text-align:left;display:flex;gap:12px;align-items:center;font-weight:650}
+.nav button:hover,.nav button.active{background:#162640;color:white}.nav button.active{box-shadow:inset 3px 0 var(--primary)}
+.side-bottom{position:absolute;bottom:20px;left:16px;right:16px}.profile{padding:13px;border:1px solid var(--line);background:var(--panel);border-radius:15px;display:flex;gap:10px;align-items:center}
+.avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#30b8ff,#7c62ff);font-weight:800}.small{font-size:12px;color:var(--muted)}
+main{min-width:0;padding:28px;max-width:1500px;width:100%;margin:auto}
+.topbar{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:24px}.topbar h1{margin:0;font-size:28px}.topbar p{margin:5px 0 0;color:var(--muted)}
+.actions{display:flex;gap:9px}.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:10px 14px;border-radius:11px;font-weight:700}.btn.primary{border:0;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 10px 25px #6572ff22}.btn:hover{transform:translateY(-1px)}
+.view{display:none}.view.active{display:block}
+.grid{display:grid;gap:16px}.stats{grid-template-columns:repeat(4,1fr)}.card{background:linear-gradient(180deg,rgba(17,31,53,.95),rgba(10,23,40,.95));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+.stat{display:flex;justify-content:space-between;align-items:flex-start}.stat .num{font-size:29px;font-weight:850;margin-top:7px}.badge{padding:5px 8px;border-radius:8px;background:#182a43;color:#9fb2cc;font-size:11px;font-weight:800}
+.green{color:var(--green)}.orange{color:var(--orange)}.red{color:var(--red)}.purple{color:#a99aff}
+.two{grid-template-columns:1.5fr 1fr;margin-top:16px}.three{grid-template-columns:repeat(3,1fr)}
+.card-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:17px}.card-title h2{font-size:17px;margin:0}.card-title span{color:var(--muted);font-size:12px}
+.progress{height:8px;background:#1a2a42;border-radius:99px;overflow:hidden}.progress i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--primary),#aa72ff)}
+.subject{padding:14px;border:1px solid var(--line);border-radius:13px;margin-bottom:10px}.subject-row{display:flex;justify-content:space-between;margin-bottom:9px}.subject-row b{font-size:14px}
+.task{display:flex;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}.task:last-child{border-bottom:0}.task-icon{width:38px;height:38px;border-radius:10px;background:#182942;display:grid;place-items:center}.task b{font-size:13px}.task .small{margin-top:3px}
+.streak{font-size:44px;font-weight:900;margin:8px 0}.heat{display:grid;grid-template-columns:repeat(14,1fr);gap:5px;margin-top:14px}.heat i{aspect-ratio:1;border-radius:4px;background:#17283f}.heat i.l1{background:#30458c}.heat i.l2{background:#5366c9}.heat i.l3{background:#7b78f4}.heat i.l4{background:#a77bff}
+.hero{padding:28px;background:linear-gradient(135deg,#151f50,#18213d 55%,#111c31);border:1px solid #303e75;border-radius:22px;position:relative;overflow:hidden}.hero:after{content:"";position:absolute;width:230px;height:230px;right:-80px;top:-90px;background:#7d6dff55;filter:blur(40px);border-radius:50%}.hero h2{font-size:27px;margin:0 0 8px}.hero p{color:#aebbd3;max-width:650px}.hero-actions{display:flex;gap:10px;margin-top:20px}
+.chat-layout{display:grid;grid-template-columns:270px 1fr;gap:16px;height:calc(100vh - 145px);min-height:600px}.chat-list,.chat-window{min-height:0}.chat-list{overflow:auto}.chat-item{padding:13px;border:1px solid transparent;border-radius:12px;cursor:pointer;margin-bottom:5px}.chat-item:hover,.chat-item.active{background:#162640;border-color:var(--line)}.chat-item b{font-size:13px}.chat-item p{margin:4px 0 0;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-window{display:flex;flex-direction:column;padding:0;overflow:hidden}.chat-head{padding:16px 19px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.bot{display:flex;gap:11px;align-items:center}.bot-icon{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#6e7aff,#9d6cff);display:grid;place-items:center}
+.messages{flex:1;overflow:auto;padding:22px;background:radial-gradient(circle at 50% 0,#16284b66,transparent 45%)}.msg{display:flex;gap:10px;margin:14px 0;max-width:80%}.msg.user{margin-left:auto;flex-direction:row-reverse}.bubble{padding:13px 15px;border-radius:15px;background:#15243a;border:1px solid var(--line);line-height:1.5;font-size:14px}.user .bubble{background:linear-gradient(135deg,#515ed6,#7458c9);border:0}.quick{display:flex;gap:7px;flex-wrap:wrap;padding:12px 18px 0}.quick button{font-size:11px;padding:7px 9px;background:#15243a;border:1px solid var(--line);color:#bac9dc;border-radius:8px}
+.chat-input{padding:13px 18px 18px;border-top:1px solid var(--line);display:flex;gap:9px}.chat-input input{flex:1;background:#101f34;border:1px solid var(--line);color:white;border-radius:12px;padding:13px;outline:none}.chat-input input:focus{border-color:#6674ff}
+.practice-top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:15px}.filters{display:flex;gap:8px;flex-wrap:wrap}.select{background:var(--panel);border:1px solid var(--line);color:var(--text);padding:9px 11px;border-radius:10px}
+.question{max-width:850px;margin:auto}.q-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-bottom:12px}.q-text{font-size:22px;font-weight:750;line-height:1.4}.options{display:grid;gap:10px;margin-top:24px}.option{padding:15px;border:1px solid var(--line);border-radius:13px;background:#101e32;text-align:left;color:white}.option:hover{border-color:#6572ff}.option.correct{border-color:var(--green);background:#113629}.option.wrong{border-color:var(--red);background:#351924}
+.explain{margin-top:18px;padding:14px;border-left:3px solid var(--primary);background:#121f34;border-radius:9px;color:#b9c8dc;display:none}.explain.show{display:block}
+.flashcard{min-height:300px;display:grid;place-items:center;text-align:center;cursor:pointer}.flash-inner{max-width:650px}.flash-inner .term{font-size:38px;font-weight:900}.flash-inner .definition{font-size:17px;color:#b4c3d8;margin-top:18px}.hidden{display:none!important}
+.revision-grid{grid-template-columns:repeat(3,1fr)}.chapter{cursor:pointer;transition:.2s}.chapter:hover{transform:translateY(-2px);border-color:#5263c9}.chapter h3{margin:7px 0;font-size:15px}.chapter p{font-size:12px;color:var(--muted)}.meter{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;margin-top:12px}
+.modal{position:fixed;inset:0;background:#020817aa;backdrop-filter:blur(7px);display:none;place-items:center;padding:20px;z-index:20}.modal.open{display:grid}.modal-box{width:min(600px,100%);background:#0e1b2e;border:1px solid var(--line);border-radius:20px;padding:22px}.modal-box h2{margin-top:0}.field{display:grid;gap:7px;margin:13px 0}.field input,.field textarea,.field select{background:#101f34;border:1px solid var(--line);color:white;padding:11px;border-radius:10px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.toast{position:fixed;right:22px;bottom:22px;background:#172940;border:1px solid var(--line);padding:12px 15px;border-radius:11px;display:none;z-index:30;box-shadow:var(--shadow)}
+@media(max-width:1000px){.app{grid-template-columns:78px 1fr}.sidebar{padding:15px 10px}.logo span,.nav button span,.profile div:not(.avatar),.side-bottom .small{display:none}.nav button{justify-content:center}.side-bottom{left:10px;right:10px}.stats{grid-template-columns:repeat(2,1fr)}.two,.revision-grid{grid-template-columns:1fr}.chat-layout{grid-template-columns:210px 1fr}}
+@media(max-width:680px){.app{display:block}.sidebar{position:fixed;z-index:15;bottom:0;top:auto;width:100%;height:66px;border-right:0;border-top:1px solid var(--line);padding:6px}.logo,.side-bottom{display:none}.nav{display:flex;justify-content:space-around}.nav button{padding:9px}.nav button span{display:none}.nav button:first-child{display:none}main{padding:18px 14px 85px}.topbar{align-items:flex-start}.topbar h1{font-size:22px}.actions .btn:not(.primary){display:none}.stats{grid-template-columns:1fr 1fr}.three{grid-template-columns:1fr}.chat-layout{grid-template-columns:1fr;height:calc(100vh - 130px);min-height:550px}.chat-list{display:none}.hero h2{font-size:22px}.q-text{font-size:18px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="logo"><div class="logo-mark">✦</div><span>StudyPilot</span></div>
+  <nav class="nav">
+    <button class="active" data-view="dashboard">⌂ <span>Dashboard</span></button>
+    <button data-view="chat">◉ <span>AI Tutor</span></button>
+    <button data-view="revision">↻ <span>Revision</span></button>
+    <button data-view="practice">✓ <span>Practice</span></button>
+    <button data-view="flashcards">▣ <span>Flashcards</span></button>
+    <button data-view="progress">◈ <span>Progress</span></button>
+  </nav>
+  <div class="side-bottom"><div class="profile"><div class="avatar">S</div><div><b>Student</b><div class="small">Focus mode on</div></div></div></div>
+</aside>
+
+<main>
+  <section id="dashboard" class="view active">
+    <div class="topbar"><div><h1>Good evening, student 👋</h1><p>Your learning workspace is ready for today's session.</p></div><div class="actions"><button class="btn" onclick="openModal()">＋ Add task</button><button class="btn primary" onclick="showView('practice')">Start practice</button></div></div>
+    <div class="grid stats">
+      <div class="card stat"><div><div class="small">Study streak</div><div class="num">12 <span class="small">days</span></div></div><span class="badge green">+2 this week</span></div>
+      <div class="card stat"><div><div class="small">Questions solved</div><div class="num" id="qCount">148</div></div><span class="badge">This month</span></div>
+      <div class="card stat"><div><div class="small">Accuracy</div><div class="num">84%</div></div><span class="badge green">↑ 6%</span></div>
+      <div class="card stat"><div><div class="small">Study time</div><div class="num">18.4h</div></div><span class="badge purple">Goal 25h</span></div>
+    </div>
+    <div class="grid two">
+      <div class="card">
+        <div class="card-title"><h2>Continue learning</h2><span>Personalized</span></div>
+        <div class="hero"><h2>Physics: Current Electricity</h2><p>You're 68% through this chapter. Continue from Kirchhoff's laws or ask your AI tutor for a simpler explanation.</p><div class="hero-actions"><button class="btn primary" onclick="showView('revision')">Continue chapter</button><button class="btn" onclick="showView('chat')">Ask tutor</button></div></div>
+        <div style="margin-top:18px"><div class="subject-row"><b>Chapter progress</b><span class="small">68%</span></div><div class="progress"><i style="width:68%"></i></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><h2>Today's plan</h2><span id="today"></span></div>
+        <div class="task"><div class="task-icon">⚡</div><div><b>Physics revision</b><div class="small">25 min · Current Electricity</div></div></div>
+        <div class="task"><div class="task-icon">∑</div><div><b>Math practice</b><div class="small">15 questions · Calculus</div></div></div>
+        <div class="task"><div class="task-icon">🧠</div><div><b>Flashcard recall</b><div class="small">20 cards · Biology</div></div></div>
+      </div>
+    </div>
+    <div class="grid two">
+      <div class="card"><div class="card-title"><h2>Subject mastery</h2><span>Last 30 days</span></div>
+        <div class="subject"><div class="subject-row"><b>Physics</b><span class="small">78%</span></div><div class="progress"><i style="width:78%"></i></div></div>
+        <div class="subject"><div class="subject-row"><b>Mathematics</b><span class="small">86%</span></div><div class="progress"><i style="width:86%"></i></div></div>
+        <div class="subject"><div class="subject-row"><b>Biology</b><span class="small">71%</span></div><div class="progress"><i style="width:71%"></i></div></div>
+      </div>
+      <div class="card"><div class="card-title"><h2>Study activity</h2><span>84 sessions</span></div><div class="streak">12 🔥</div><div class="small">day streak — keep it going!</div><div class="heat" id="heat"></div></div>
+    </div>
+  </section>
+
+  <section id="chat" class="view">
+    <div class="topbar"><div><h1>AI Tutor</h1><p>Ask questions, get hints, simplify concepts, or generate study plans.</p></div></div>
+    <div class="chat-layout">
+      <div class="card chat-list"><div class="card-title"><h2>Conversations</h2><button class="btn" onclick="newChat()">＋</button></div>
+        <div class="chat-item active"><b>Physics — Kirchhoff's laws</b><p>Can you explain the loop rule?</p></div>
+        <div class="chat-item"><b>Calculus practice</b><p>Help me understand integration...</p></div>
+        <div class="chat-item"><b>Biology revision</b><p>Quiz me on cell biology.</p></div>
+      </div>
+      <div class="card chat-window">
+        <div class="chat-head"><div class="bot"><div class="bot-icon">✦</div><div><b>StudyPilot Tutor</b><div class="small">Adaptive student assistant · Online</div></div></div><button class="btn" onclick="clearChat()">Clear</button></div>
+        <div class="messages" id="messages">
+          <div class="msg"><div class="bot-icon">✦</div><div class="bubble">Hi! I'm your study tutor. I can <b>explain</b> concepts, give <b>hints</b>, create quizzes, make revision plans, or check your answer. What are you studying?</div></div>
+          <div class="msg user"><div class="avatar">S</div><div class="bubble">Explain Kirchhoff's loop rule in simple words.</div></div>
+          <div class="msg"><div class="bot-icon">✦</div><div class="bubble"><b>Think of a circuit like a hiking trail.</b><br><br>When you walk around a complete loop and return to where you started, your total change in electrical energy must be zero. In a circuit, the voltage gains and voltage drops around the loop therefore add up to zero.<br><br><span class="small">Tip: First choose a direction around the loop, then assign signs consistently.</span></div></div>
+        </div>
+        <div class="quick"><button onclick="quickAsk('Give me a hint')">💡 Give me a hint</button><button onclick="quickAsk('Quiz me on this')">🧠 Quiz me</button><button onclick="quickAsk('Explain it simpler')">✨ Simpler</button><button onclick="quickAsk('Make revision notes')">📝 Notes</button></div>
+        <div class="chat-input"><input id="chatInput" placeholder="Ask your tutor anything..." onkeydown="if(event.key==='Enter')sendChat()"/><button class="btn primary" onclick="sendChat()">Send ↑</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="revision" class="view">
+    <div class="topbar"><div><h1>Revision Center</h1><p>Review weak areas using active recall and spaced repetition.</p></div><button class="btn primary" onclick="showView('flashcards')">Review flashcards</button></div>
+    <div class="grid revision-grid">
+      <div class="card chapter"><span class="badge green">68% mastered</span><h3>⚡ Current Electricity</h3><p>Ohm's law · Kirchhoff · circuits · resistance</p><div class="meter"><span>Progress</span><b>68%</b></div><div class="progress"><i style="width:68%"></i></div></div>
+      <div class="card chapter"><span class="badge orange">Needs review</span><h3>∫ Integration</h3><p>Definite integrals · substitution · area</p><div class="meter"><span>Confidence</span><b>54%</b></div><div class="progress"><i style="width:54%"></i></div></div>
+      <div class="card chapter"><span class="badge green">82% mastered</span><h3>🧬 Cell Biology</h3><p>Organelles · membranes · transport · enzymes</p><div class="meter"><span>Progress</span><b>82%</b></div><div class="progress"><i style="width:82%"></i></div></div>
+      <div class="card chapter"><span class="badge orange">Review today</span><h3>🧪 Organic Chemistry</h3><p>Functional groups · reactions · nomenclature</p><div class="meter"><span>Confidence</span><b>61%</b></div><div class="progress"><i style="width:61%"></i></div></div>
+      <div class="card chapter"><span class="badge green">91% mastered</span><h3>📐 Coordinate Geometry</h3><p>Lines · circles · parabola · distance</p><div class="meter"><span>Progress</span><b>91%</b></div><div class="progress"><i style="width:91%"></i></div></div>
+      <div class="card chapter"><span class="badge">Not started</span><h3>🌊 Waves & Oscillations</h3><p>SHM · wave equation · resonance</p><div class="meter"><span>Progress</span><b>12%</b></div><div class="progress"><i style="width:12%"></i></div></div>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="card-title"><h2>Smart review queue</h2><span>12 items due</span></div><div class="task"><div class="task-icon">1</div><div><b>Kirchhoff's junction rule</b><div class="small">Due now · Last seen 4 days ago</div></div><button class="btn" style="margin-left:auto" onclick="showView('flashcards')">Review</button></div><div class="task"><div class="task-icon">2</div><div><b>Integration by substitution</b><div class="small">Due today · Confidence 54%</div></div><button class="btn" style="margin-left:auto" onclick="showView('practice')">Practice</button></div></div>
+  </section>
+
+  <section id="practice" class="view">
+    <div class="topbar"><div><h1>Practice Arena</h1><p>Adaptive questions that respond to your performance.</p></div><div class="filters"><select class="select"><option>Physics</option><option>Mathematics</option><option>Biology</option></select><select class="select"><option>Medium</option><option>Easy</option><option>Hard</option></select></div></div>
+    <div class="card question">
+      <div class="q-meta"><span id="questionNo">Question 1 of 5</span><span>⚡ Current Electricity · Medium</span></div>
+      <div class="progress"><i id="qProgress" style="width:20%"></i></div>
+      <p class="q-text" id="questionText">Two resistors of 4 Ω and 6 Ω are connected in series. What is their equivalent resistance?</p>
+      <div class="options" id="options">
+        <button class="option" onclick="answer(this,false)">2 Ω</button><button class="option" onclick="answer(this,false)">5 Ω</button><button class="option" onclick="answer(this,true)">10 Ω</button><button class="option" onclick="answer(this,false)">24 Ω</button>
+      </div>
+      <div class="explain" id="explain"><b>Why:</b> In a series circuit, resistances add: <b>R = 4 + 6 = 10 Ω.</b></div>
+      <div style="display:flex;justify-content:space-between;margin-top:20px"><span class="small">Accuracy adapts the next question.</span><button class="btn primary" id="nextBtn" onclick="nextQuestion()" disabled>Next question →</button></div>
+    </div>
+  </section>
+
+  <section id="flashcards" class="view">
+    <div class="topbar"><div><h1>Flashcards</h1><p>Active recall mode — tap a card to reveal the answer.</p></div><span class="badge">12 due today</span></div>
+    <div class="card flashcard" onclick="flipCard()"><div class="flash-inner"><div class="small" id="flashLabel">QUESTION · CARD 1 / 12</div><div class="term" id="flashTerm">What is Ohm's Law?</div><div class="definition hidden" id="flashDefinition">Ohm's Law states that V = IR, where V is voltage, I is current, and R is resistance.</div><div class="small" style="margin-top:25px">Click to flip ↻</div></div></div>
+    <div style="display:flex;justify-content:center;gap:9px;margin-top:16px"><button class="btn" onclick="flashRate('again')">↻ Again</button><button class="btn" onclick="flashRate('hard')">⚡ Hard</button><button class="btn primary" onclick="flashRate('easy')">✓ Easy</button></div>
+  </section>
+
+  <section id="progress" class="view">
+    <div class="topbar"><div><h1>Progress & Analytics</h1><p>Understand how you learn and where to focus next.</p></div></div>
+    <div class="grid stats"><div class="card"><div class="small">Weekly study</div><div class="num">6.8h</div><div class="small green">+18% vs last week</div></div><div class="card"><div class="small">Avg. session</div><div class="num">42m</div><div class="small">Target 45m</div></div><div class="card"><div class="small">Accuracy</div><div class="num">84%</div><div class="small green">Improving</div></div><div class="card"><div class="small">Mastered</div><div class="num">37</div><div class="small">topics</div></div></div>
+    <div class="grid two" style="margin-top:16px"><div class="card"><div class="card-title"><h2>Mastery by subject</h2><span>Current</span></div><div class="subject"><div class="subject-row"><b>Mathematics</b><span>86%</span></div><div class="progress"><i style="width:86%"></i></div></div><div class="subject"><div class="subject-row"><b>Physics</b><span>78%</span></div><div class="progress"><i style="width:78%"></i></div></div><div class="subject"><div class="subject-row"><b>Biology</b><span>71%</span></div><div class="progress"><i style="width:71%"></i></div></div></div><div class="card"><div class="card-title"><h2>Learning insights</h2><span>AI analysis</span></div><div class="task"><div class="task-icon">🎯</div><div><b>Best focus area</b><div class="small">Integration questions have the most mistakes.</div></div></div><div class="task"><div class="task-icon">⏱</div><div><b>Best study time</b><div class="small">Your strongest sessions are 6–8 PM.</div></div></div><div class="task"><div class="task-icon">🧠</div><div><b>Retention</b><div class="small">Spaced review is improving recall.</div></div></div></div></div>
+  </section>
+</main>
+</div>
+
+<div class="modal" id="modal"><div class="modal-box"><h2>Add study task</h2><div class="field"><label>Task name</label><input id="taskName" placeholder="e.g. Revise thermodynamics"></div><div class="field"><label>Subject</label><select id="taskSubject"><option>Physics</option><option>Mathematics</option><option>Biology</option><option>Chemistry</option></select></div><div class="field"><label>Minutes</label><input id="taskMinutes" type="number" value="30"></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="addTask()">Add task</button></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const state={questions:0,practiceIndex:0,flashIndex:0,flipped:false};
+const questionBank=[
+ {q:"Two resistors of 4 Ω and 6 Ω are connected in series. What is their equivalent resistance?",o:["2 Ω","5 Ω","10 Ω","24 Ω"],a:2,e:"In a series circuit, resistances add: R = 4 + 6 = 10 Ω."},
+ {q:"A current of 2 A flows through a 5 Ω resistor. What is the voltage across it?",o:["2.5 V","7 V","10 V","25 V"],a:2,e:"Using V = IR: V = 2 × 5 = 10 V."},
+ {q:"At a junction, 5 A enters while 2 A leaves through one branch. How much current leaves through the remaining branch?",o:["2 A","3 A","5 A","7 A"],a:1,e:"Kirchhoff's junction rule says incoming current equals outgoing current: 5 = 2 + I, so I = 3 A."},
+ {q:"If resistance stays constant and voltage doubles, current will:",o:["Halve","Double","Stay the same","Become zero"],a:1,e:"From I = V/R, doubling V doubles I when R is constant."},
+ {q:"Which quantity is measured in ohms (Ω)?",o:["Voltage","Current","Resistance","Power"],a:2,e:"The SI unit of electrical resistance is the ohm (Ω)."}
+];
+const flashcards=[
+ ["What is Ohm's Law?","Ohm's Law states that V = IR, where V is voltage, I is current, and R is resistance."],
+ ["What is Kirchhoff's junction rule?","The total current entering a junction equals the total current leaving it."],
+ ["What is electrical power?","Power is the rate of electrical energy transfer. Commonly P = VI, and also P = I²R or V²/R."],
+ ["What happens to series resistances?","They add directly: Req = R1 + R2 + ..."],
+ ["What happens to parallel resistance?","The equivalent resistance is less than the smallest individual branch resistance."]
+];
+
+function showView(id){
+ document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+ document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>showView(b.dataset.view));
+document.getElementById('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+for(let i=0;i<56;i++){const x=document.createElement('i');x.className=['','l1','l2','l3','l4'][Math.floor(Math.random()*5)];document.getElementById('heat').appendChild(x)}
+
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.style.display='block';clearTimeout(window.tt);window.tt=setTimeout(()=>el.style.display='none',2200)}
+function openModal(){document.getElementById('modal').classList.add('open')}
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+function addTask(){const n=document.getElementById('taskName').value.trim();if(!n){toast('Please enter a task name');return}closeModal();toast('Task added to your study plan ✓');document.getElementById('taskName').value=''}
+function appendMsg(text,user=false){const wrap=document.getElementById('messages');const m=document.createElement('div');m.className='msg '+(user?'user':'');m.innerHTML=(user?'<div class="avatar">S</div>':'<div class="bot-icon">✦</div>')+'<div class="bubble">'+text+'</div>';wrap.appendChild(m);wrap.scrollTop=wrap.scrollHeight}
+function sendChat(){const inp=document.getElementById('chatInput');const text=inp.value.trim();if(!text)return;appendMsg(text,true);inp.value='';setTimeout(()=>appendMsg(aiReply(text)),450)}
+function quickAsk(t){document.getElementById('chatInput').value=t;sendChat()}
+function aiReply(t){const s=t.toLowerCase();if(s.includes('hint'))return"💡 <b>Hint:</b> Start by writing down what you know, then identify the formula or rule that connects the known values to the unknown. Don't jump to the final answer.";if(s.includes('quiz'))return"🧠 <b>Quick quiz:</b> A 12 V battery is connected to a 6 Ω resistor. What current flows? Reply with your answer and I'll check it.";if(s.includes('simple'))return"✨ <b>Super simple:</b> Kirchhoff's loop rule means that when you go all the way around a circuit, the voltage gains and drops balance out to zero.";if(s.includes('note'))return"📝 <b>Revision notes:</b><br>• Series: resistances add.<br>• Junction: current in = current out.<br>• Loop: voltage changes sum to zero.<br>• Ohm's law: V = IR.";if(s.includes('12')||s.includes('current'))return"Use Ohm's law: <b>I = V/R</b>. Substitute the voltage and resistance, then calculate. Send me your answer and I'll check it.";return"I can help you learn that step-by-step. Try asking me to <b>explain</b> a concept, give a <b>hint</b>, <b>quiz</b> you, create <b>revision notes</b>, or check your answer."}
+function clearChat(){document.getElementById('messages').innerHTML='';appendMsg("New study session started. What would you like to learn?")}
+function newChat(){clearChat();toast('New conversation started')}
+function answer(btn,correct){document.querySelectorAll('.option').forEach(x=>x.disabled=true);btn.classList.add(correct?'correct':'wrong');if(!correct){const opts=[...document.querySelectorAll('.option')];opts[questionBank[state.practiceIndex].a].classList.add('correct')}document.getElementById('explain').classList.add('show');document.getElementById('nextBtn').disabled=false;if(correct){state.questions++;document.getElementById('qCount').textContent=148+state.questions;toast('Correct! Great work 🎉')}else toast('Not quite — review the explanation.')}
+function nextQuestion(){state.practiceIndex=(state.practiceIndex+1)%questionBank.length;const q=questionBank[state.practiceIndex];document.getElementById('questionNo').textContent=`Question ${state.practiceIndex+1} of 5`;document.getElementById('qProgress').style.width=((state.practiceIndex+1)*20)+'%';document.getElementById('questionText').textContent=q.q;document.getElementById('options').innerHTML=q.o.map((x,i)=>`<button class="option" onclick="answer(this,${i===q.a})">${x}</button>`).join('');document.getElementById('explain').innerHTML='<b>Why:</b> '+q.e;document.getElementById('explain').classList.remove('show');document.getElementById('nextBtn').disabled=true}
+function flipCard(){state.flipped=!state.flipped;document.getElementById('flashDefinition').classList.toggle('hidden',!state.flipped);document.getElementById('flashTerm').style.opacity=state.flipped?.25:1}
+function flashRate(level){state.flashIndex=(state.flashIndex+1)%flashcards.length;const f=flashcards[state.flashIndex];document.getElementById('flashLabel').textContent=`QUESTION · CARD ${state.flashIndex+1} / 12`;document.getElementById('flashTerm').textContent=f[0];document.getElementById('flashDefinition').textContent=f[1];document.getElementById('flashDefinition').classList.add('hidden');state.flipped=false;document.getElementById('flashTerm').style.opacity=1;toast(level==='easy'?'Card mastered ✓':level==='hard'?'Scheduled for another review':'Will repeat soon ↻')}
+</script>
+</body>
+</html>
