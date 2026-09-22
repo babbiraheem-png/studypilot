@@ -69,16 +69,16 @@ main{min-width:0;padding:28px;max-width:1500px;width:100%;margin:auto}
   <section id="dashboard" class="view active">
     <div class="topbar"><div><h1>Good evening, student 👋</h1><p>Your learning workspace is ready for today's session.</p></div><div class="actions"><button class="btn" onclick="openModal()">＋ Add task</button><button class="btn primary" onclick="showView('practice')">Start practice</button></div></div>
     <div class="grid stats">
-      <div class="card stat"><div><div class="small">Study streak</div><div class="num">12 <span class="small">days</span></div></div><span class="badge green">+2 this week</span></div>
-      <div class="card stat"><div><div class="small">Questions solved</div><div class="num" id="qCount">148</div></div><span class="badge">This month</span></div>
-      <div class="card stat"><div><div class="small">Accuracy</div><div class="num">84%</div></div><span class="badge green">↑ 6%</span></div>
-      <div class="card stat"><div><div class="small">Study time</div><div class="num">18.4h</div></div><span class="badge purple">Goal 25h</span></div>
+      <div class="card stat"><div><div class="small">Study streak</div><div class="num" id="streakCount">0 <span class="small">days</span></div></div><span class="badge" id="streakBadge">Start today</span></div>
+      <div class="card stat"><div><div class="small">Questions solved</div><div class="num" id="qCount">0</div></div><span class="badge">Your activity</span></div>
+      <div class="card stat"><div><div class="small">Accuracy</div><div class="num" id="accuracyCount">0%</div></div><span class="badge" id="accuracyBadge">No attempts</span></div>
+      <div class="card stat"><div><div class="small">Study time</div><div class="num" id="studyTime">0m</div></div><span class="badge purple">Goal 25h</span></div>
     </div>
     <div class="grid two">
       <div class="card">
         <div class="card-title"><h2>Continue learning</h2><span>Personalized</span></div>
-        <div class="hero"><h2>Physics: Current Electricity</h2><p>You're 68% through this chapter. Continue from Kirchhoff's laws or ask your AI tutor for a simpler explanation.</p><div class="hero-actions"><button class="btn primary" onclick="showView('revision')">Continue chapter</button><button class="btn" onclick="showView('chat')">Ask tutor</button></div></div>
-        <div style="margin-top:18px"><div class="subject-row"><b>Chapter progress</b><span class="small">68%</span></div><div class="progress"><i style="width:68%"></i></div></div>
+        <div class="hero"><h2>Physics: Current Electricity</h2><p id="continueText">Start your first topic. Work through a question or ask your AI tutor for a simple explanation.</p><div class="hero-actions"><button class="btn primary" onclick="showView('revision')">Continue chapter</button><button class="btn" onclick="showView('chat')">Ask tutor</button></div></div>
+        <div style="margin-top:18px"><div class="subject-row"><b>Chapter progress</b><span class="small" id="chapterProgressText">0%</span></div><div class="progress"><i id="chapterProgress" style="width:0%"></i></div></div>
       </div>
       <div class="card">
         <div class="card-title"><h2>Today's plan</h2><span id="today"></span></div>
@@ -89,11 +89,11 @@ main{min-width:0;padding:28px;max-width:1500px;width:100%;margin:auto}
     </div>
     <div class="grid two">
       <div class="card"><div class="card-title"><h2>Subject mastery</h2><span>Last 30 days</span></div>
-        <div class="subject"><div class="subject-row"><b>Physics</b><span class="small">78%</span></div><div class="progress"><i style="width:78%"></i></div></div>
-        <div class="subject"><div class="subject-row"><b>Mathematics</b><span class="small">86%</span></div><div class="progress"><i style="width:86%"></i></div></div>
-        <div class="subject"><div class="subject-row"><b>Biology</b><span class="small">71%</span></div><div class="progress"><i style="width:71%"></i></div></div>
+        <div class="subject"><div class="subject-row"><b>Physics</b><span class="small" id="physicsMasteryText">0%</span></div><div class="progress"><i id="physicsMastery" style="width:0%"></i></div></div>
+        <div class="subject"><div class="subject-row"><b>Mathematics</b><span class="small" id="mathMasteryText">0%</span></div><div class="progress"><i id="mathMastery" style="width:0%"></i></div></div>
+        <div class="subject"><div class="subject-row"><b>Biology</b><span class="small" id="bioMasteryText">0%</span></div><div class="progress"><i id="bioMastery" style="width:0%"></i></div></div>
       </div>
-      <div class="card"><div class="card-title"><h2>Study activity</h2><span>84 sessions</span></div><div class="streak">12 🔥</div><div class="small">day streak — keep it going!</div><div class="heat" id="heat"></div></div>
+      <div class="card"><div class="card-title"><h2>Study activity</h2><span id="sessionCount">0 sessions</span></div><div class="streak" id="activityStreak">0 🔥</div><div class="small" id="activityMessage">Your activity will appear here as you study.</div><div class="heat" id="heat"></div></div>
     </div>
   </section>
 
@@ -109,8 +109,6 @@ main{min-width:0;padding:28px;max-width:1500px;width:100%;margin:auto}
         <div class="chat-head"><div class="bot"><div class="bot-icon">✦</div><div><b>StudyPilot Tutor</b><div class="small">Adaptive student assistant · Online</div></div></div><button class="btn" onclick="clearChat()">Clear</button></div>
         <div class="messages" id="messages">
           <div class="msg"><div class="bot-icon">✦</div><div class="bubble">Hi! I'm your study tutor. I can <b>explain</b> concepts, give <b>hints</b>, create quizzes, make revision plans, or check your answer. What are you studying?</div></div>
-          <div class="msg user"><div class="avatar">S</div><div class="bubble">Explain Kirchhoff's loop rule in simple words.</div></div>
-          <div class="msg"><div class="bot-icon">✦</div><div class="bubble"><b>Think of a circuit like a hiking trail.</b><br><br>When you walk around a complete loop and return to where you started, your total change in electrical energy must be zero. In a circuit, the voltage gains and voltage drops around the loop therefore add up to zero.<br><br><span class="small">Tip: First choose a direction around the loop, then assign signs consistently.</span></div></div>
         </div>
         <div class="quick"><button onclick="quickAsk('Give me a hint')">💡 Give me a hint</button><button onclick="quickAsk('Quiz me on this')">🧠 Quiz me</button><button onclick="quickAsk('Explain it simpler')">✨ Simpler</button><button onclick="quickAsk('Make revision notes')">📝 Notes</button></div>
         <div class="chat-input"><input id="chatInput" placeholder="Ask your tutor anything..." onkeydown="if(event.key==='Enter')sendChat()"/><button class="btn primary" onclick="sendChat()">Send ↑</button></div>
@@ -121,14 +119,14 @@ main{min-width:0;padding:28px;max-width:1500px;width:100%;margin:auto}
   <section id="revision" class="view">
     <div class="topbar"><div><h1>Revision Center</h1><p>Review weak areas using active recall and spaced repetition.</p></div><button class="btn primary" onclick="showView('flashcards')">Review flashcards</button></div>
     <div class="grid revision-grid">
-      <div class="card chapter"><span class="badge green">68% mastered</span><h3>⚡ Current Electricity</h3><p>Ohm's law · Kirchhoff · circuits · resistance</p><div class="meter"><span>Progress</span><b>68%</b></div><div class="progress"><i style="width:68%"></i></div></div>
-      <div class="card chapter"><span class="badge orange">Needs review</span><h3>∫ Integration</h3><p>Definite integrals · substitution · area</p><div class="meter"><span>Confidence</span><b>54%</b></div><div class="progress"><i style="width:54%"></i></div></div>
-      <div class="card chapter"><span class="badge green">82% mastered</span><h3>🧬 Cell Biology</h3><p>Organelles · membranes · transport · enzymes</p><div class="meter"><span>Progress</span><b>82%</b></div><div class="progress"><i style="width:82%"></i></div></div>
-      <div class="card chapter"><span class="badge orange">Review today</span><h3>🧪 Organic Chemistry</h3><p>Functional groups · reactions · nomenclature</p><div class="meter"><span>Confidence</span><b>61%</b></div><div class="progress"><i style="width:61%"></i></div></div>
-      <div class="card chapter"><span class="badge green">91% mastered</span><h3>📐 Coordinate Geometry</h3><p>Lines · circles · parabola · distance</p><div class="meter"><span>Progress</span><b>91%</b></div><div class="progress"><i style="width:91%"></i></div></div>
-      <div class="card chapter"><span class="badge">Not started</span><h3>🌊 Waves & Oscillations</h3><p>SHM · wave equation · resonance</p><div class="meter"><span>Progress</span><b>12%</b></div><div class="progress"><i style="width:12%"></i></div></div>
+      <div class="card chapter"><span class="badge">Not started</span><h3>⚡ Current Electricity</h3><p>Ohm's law · Kirchhoff · circuits · resistance</p><div class="meter"><span>Progress</span><b>0%</b></div><div class="progress"><i style="width:0%"></i></div></div>
+      <div class="card chapter"><span class="badge">Not started</span><h3>∫ Integration</h3><p>Definite integrals · substitution · area</p><div class="meter"><span>Progress</span><b>0%</b></div><div class="progress"><i style="width:0%"></i></div></div>
+      <div class="card chapter"><span class="badge">Not started</span><h3>🧬 Cell Biology</h3><p>Organelles · membranes · transport · enzymes</p><div class="meter"><span>Progress</span><b>0%</b></div><div class="progress"><i style="width:0%"></i></div></div>
+      <div class="card chapter"><span class="badge">Not started</span><h3>🧪 Organic Chemistry</h3><p>Functional groups · reactions · nomenclature</p><div class="meter"><span>Progress</span><b>0%</b></div><div class="progress"><i style="width:0%"></i></div></div>
+      <div class="card chapter"><span class="badge">Not started</span><h3>📐 Coordinate Geometry</h3><p>Lines · circles · parabola · distance</p><div class="meter"><span>Progress</span><b>0%</b></div><div class="progress"><i style="width:0%"></i></div></div>
+      <div class="card chapter"><span class="badge">Not started</span><h3>🌊 Waves & Oscillations</h3><p>SHM · wave equation · resonance</p><div class="meter"><span>Progress</span><b>0%</b></div><div class="progress"><i style="width:0%"></i></div></div>
     </div>
-    <div class="card" style="margin-top:16px"><div class="card-title"><h2>Smart review queue</h2><span>12 items due</span></div><div class="task"><div class="task-icon">1</div><div><b>Kirchhoff's junction rule</b><div class="small">Due now · Last seen 4 days ago</div></div><button class="btn" style="margin-left:auto" onclick="showView('flashcards')">Review</button></div><div class="task"><div class="task-icon">2</div><div><b>Integration by substitution</b><div class="small">Due today · Confidence 54%</div></div><button class="btn" style="margin-left:auto" onclick="showView('practice')">Practice</button></div></div>
+    <div class="card" style="margin-top:16px"><div class="card-title"><h2>Smart review queue</h2><span>0 items due</span></div><div class="task"><div class="task-icon">✓</div><div><b>Your review queue is empty</b><div class="small">Answer practice questions or review flashcards to build your first study history.</div></div><button class="btn" style="margin-left:auto" onclick="showView('practice')">Start practice</button></div></div>
   </section>
 
   <section id="practice" class="view">
@@ -146,15 +144,15 @@ main{min-width:0;padding:28px;max-width:1500px;width:100%;margin:auto}
   </section>
 
   <section id="flashcards" class="view">
-    <div class="topbar"><div><h1>Flashcards</h1><p>Active recall mode — tap a card to reveal the answer.</p></div><span class="badge">12 due today</span></div>
+    <div class="topbar"><div><h1>Flashcards</h1><p>Active recall mode — tap a card to reveal the answer.</p></div><span class="badge">5 starter cards</span></div>
     <div class="card flashcard" onclick="flipCard()"><div class="flash-inner"><div class="small" id="flashLabel">QUESTION · CARD 1 / 12</div><div class="term" id="flashTerm">What is Ohm's Law?</div><div class="definition hidden" id="flashDefinition">Ohm's Law states that V = IR, where V is voltage, I is current, and R is resistance.</div><div class="small" style="margin-top:25px">Click to flip ↻</div></div></div>
     <div style="display:flex;justify-content:center;gap:9px;margin-top:16px"><button class="btn" onclick="flashRate('again')">↻ Again</button><button class="btn" onclick="flashRate('hard')">⚡ Hard</button><button class="btn primary" onclick="flashRate('easy')">✓ Easy</button></div>
   </section>
 
   <section id="progress" class="view">
-    <div class="topbar"><div><h1>Progress & Analytics</h1><p>Understand how you learn and where to focus next.</p></div></div>
-    <div class="grid stats"><div class="card"><div class="small">Weekly study</div><div class="num">6.8h</div><div class="small green">+18% vs last week</div></div><div class="card"><div class="small">Avg. session</div><div class="num">42m</div><div class="small">Target 45m</div></div><div class="card"><div class="small">Accuracy</div><div class="num">84%</div><div class="small green">Improving</div></div><div class="card"><div class="small">Mastered</div><div class="num">37</div><div class="small">topics</div></div></div>
-    <div class="grid two" style="margin-top:16px"><div class="card"><div class="card-title"><h2>Mastery by subject</h2><span>Current</span></div><div class="subject"><div class="subject-row"><b>Mathematics</b><span>86%</span></div><div class="progress"><i style="width:86%"></i></div></div><div class="subject"><div class="subject-row"><b>Physics</b><span>78%</span></div><div class="progress"><i style="width:78%"></i></div></div><div class="subject"><div class="subject-row"><b>Biology</b><span>71%</span></div><div class="progress"><i style="width:71%"></i></div></div></div><div class="card"><div class="card-title"><h2>Learning insights</h2><span>AI analysis</span></div><div class="task"><div class="task-icon">🎯</div><div><b>Best focus area</b><div class="small">Integration questions have the most mistakes.</div></div></div><div class="task"><div class="task-icon">⏱</div><div><b>Best study time</b><div class="small">Your strongest sessions are 6–8 PM.</div></div></div><div class="task"><div class="task-icon">🧠</div><div><b>Retention</b><div class="small">Spaced review is improving recall.</div></div></div></div></div>
+    <div class="topbar"><div><h1>Progress & Analytics</h1><p>Understand how you learn and where to focus next.</p></div><button class="btn" onclick="resetProgress()">Reset my data</button></div>
+    <div class="grid stats"><div class="card"><div class="small">Weekly study</div><div class="num" id="weeklyStudy">0m</div><div class="small">Target 5h</div></div><div class="card"><div class="small">Avg. session</div><div class="num" id="avgSession">0m</div><div class="small">Target 45m</div></div><div class="card"><div class="small">Accuracy</div><div class="num" id="progressAccuracy">0%</div><div class="small" id="progressAccuracyNote">No attempts yet</div></div><div class="card"><div class="small">Mastered</div><div class="num" id="masteredCount">0</div><div class="small">topics</div></div></div>
+    <div class="grid two" style="margin-top:16px"><div class="card"><div class="card-title"><h2>Mastery by subject</h2><span>Current</span></div><div class="subject"><div class="subject-row"><b>Mathematics</b><span id="progressMathText">0%</span></div><div class="progress"><i id="progressMath" style="width:0%"></i></div></div><div class="subject"><div class="subject-row"><b>Physics</b><span id="progressPhysicsText">0%</span></div><div class="progress"><i id="progressPhysics" style="width:0%"></i></div></div><div class="subject"><div class="subject-row"><b>Biology</b><span id="progressBioText">0%</span></div><div class="progress"><i id="progressBio" style="width:0%"></i></div></div></div><div class="card"><div class="card-title"><h2>Learning insights</h2><span>AI analysis</span></div><div class="task"><div class="task-icon">🎯</div><div><b>Focus area</b><div class="small">Complete a few practice questions and your focus areas will appear here.</div></div></div><div class="task"><div class="task-icon">⏱</div><div><b>Study pattern</b><div class="small">Your best study times will be detected from your activity.</div></div></div><div class="task"><div class="task-icon">🧠</div><div><b>Retention</b><div class="small">Spaced-repetition insights will appear after you build a review history.</div></div></div></div></div>
   </section>
 </main>
 </div>
@@ -163,7 +161,9 @@ main{min-width:0;padding:28px;max-width:1500px;width:100%;margin:auto}
 <div class="toast" id="toast"></div>
 
 <script>
-const state={questions:0,practiceIndex:0,flashIndex:0,flipped:false};
+const saved=JSON.parse(localStorage.getItem('studypilotState')||'null')||{};
+const state={questions:saved.questions||0,correct:saved.correct||0,practiceIndex:0,flashIndex:0,flipped:false,studyMinutes:saved.studyMinutes||0,sessionCount:saved.sessionCount||0,lastStudyDate:saved.lastStudyDate||'',streak:saved.streak||0,heat:saved.heat||Array(56).fill(0)};
+function persist(){localStorage.setItem('studypilotState',JSON.stringify({questions:state.questions,correct:state.correct,studyMinutes:state.studyMinutes,sessionCount:state.sessionCount,lastStudyDate:state.lastStudyDate,streak:state.streak,heat:state.heat}));}
 const questionBank=[
  {q:"Two resistors of 4 Ω and 6 Ω are connected in series. What is their equivalent resistance?",o:["2 Ω","5 Ω","10 Ω","24 Ω"],a:2,e:"In a series circuit, resistances add: R = 4 + 6 = 10 Ω."},
  {q:"A current of 2 A flows through a 5 Ω resistor. What is the voltage across it?",o:["2.5 V","7 V","10 V","25 V"],a:2,e:"Using V = IR: V = 2 × 5 = 10 V."},
@@ -187,7 +187,35 @@ function showView(id){
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>showView(b.dataset.view));
 document.getElementById('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
-for(let i=0;i<56;i++){const x=document.createElement('i');x.className=['','l1','l2','l3','l4'][Math.floor(Math.random()*5)];document.getElementById('heat').appendChild(x)}
+function renderStats(){
+ const accuracy=state.questions?Math.round(state.correct/state.questions*100):0;
+ document.getElementById('qCount').textContent=state.questions;
+ document.getElementById('accuracyCount').textContent=accuracy+'%';
+ document.getElementById('accuracyBadge').textContent=state.questions?('Based on '+state.questions+' attempts'):'No attempts';
+ document.getElementById('studyTime').textContent=state.studyMinutes<60?state.studyMinutes+'m':(state.studyMinutes/60).toFixed(1)+'h';
+ document.getElementById('streakCount').innerHTML=state.streak+' <span class="small">days</span>';
+ document.getElementById('streakBadge').textContent=state.streak?'Keep going 🔥':'Start today';
+ document.getElementById('activityStreak').textContent=state.streak+' 🔥';
+ document.getElementById('sessionCount').textContent=state.sessionCount+' sessions';
+ document.getElementById('activityMessage').textContent=state.sessionCount?'Your study activity is saved on this device.':'Your activity will appear here as you study.';
+ document.getElementById('chapterProgressText').textContent=accuracy+'%'; document.getElementById('chapterProgress').style.width=accuracy+'%';
+ document.getElementById('physicsMasteryText').textContent=accuracy+'%'; document.getElementById('physicsMastery').style.width=accuracy+'%';
+ document.getElementById('mathMasteryText').textContent='0%'; document.getElementById('mathMastery').style.width='0%';
+ document.getElementById('bioMasteryText').textContent='0%'; document.getElementById('bioMastery').style.width='0%';
+ document.getElementById('weeklyStudy').textContent=state.studyMinutes+'m';
+ document.getElementById('avgSession').textContent=state.sessionCount?Math.round(state.studyMinutes/state.sessionCount)+'m':'0m';
+ document.getElementById('progressAccuracy').textContent=accuracy+'%';
+ document.getElementById('progressAccuracyNote').textContent=state.questions?'Based on your answers':'No attempts yet';
+ document.getElementById('masteredCount').textContent=accuracy>=80&&state.questions?'1':'0';
+ document.getElementById('continueText').textContent=state.questions?'You have started this topic. Continue practicing to increase your mastery.':'Start your first topic. Work through a question or ask your AI tutor for a simple explanation.';
+ const heat=document.getElementById('heat'); heat.innerHTML=''; state.heat.forEach(v=>{const x=document.createElement('i');x.className=['','l1','l2','l3','l4'][Math.min(4,v)];heat.appendChild(x)});
+}
+function markStudy(){
+ const now=new Date(); const today=now.toISOString().slice(0,10); const yesterday=new Date(now); yesterday.setDate(yesterday.getDate()-1); const yd=yesterday.toISOString().slice(0,10);
+ if(state.lastStudyDate!==today){state.sessionCount++;state.streak=state.lastStudyDate===yd?state.streak+1:1;state.lastStudyDate=today;state.heat.shift();state.heat.push(1);state.studyMinutes+=5;}
+ persist();renderStats();
+}
+renderStats();
 
 function toast(t){const el=document.getElementById('toast');el.textContent=t;el.style.display='block';clearTimeout(window.tt);window.tt=setTimeout(()=>el.style.display='none',2200)}
 function openModal(){document.getElementById('modal').classList.add('open')}
@@ -199,10 +227,11 @@ function quickAsk(t){document.getElementById('chatInput').value=t;sendChat()}
 function aiReply(t){const s=t.toLowerCase();if(s.includes('hint'))return"💡 <b>Hint:</b> Start by writing down what you know, then identify the formula or rule that connects the known values to the unknown. Don't jump to the final answer.";if(s.includes('quiz'))return"🧠 <b>Quick quiz:</b> A 12 V battery is connected to a 6 Ω resistor. What current flows? Reply with your answer and I'll check it.";if(s.includes('simple'))return"✨ <b>Super simple:</b> Kirchhoff's loop rule means that when you go all the way around a circuit, the voltage gains and drops balance out to zero.";if(s.includes('note'))return"📝 <b>Revision notes:</b><br>• Series: resistances add.<br>• Junction: current in = current out.<br>• Loop: voltage changes sum to zero.<br>• Ohm's law: V = IR.";if(s.includes('12')||s.includes('current'))return"Use Ohm's law: <b>I = V/R</b>. Substitute the voltage and resistance, then calculate. Send me your answer and I'll check it.";return"I can help you learn that step-by-step. Try asking me to <b>explain</b> a concept, give a <b>hint</b>, <b>quiz</b> you, create <b>revision notes</b>, or check your answer."}
 function clearChat(){document.getElementById('messages').innerHTML='';appendMsg("New study session started. What would you like to learn?")}
 function newChat(){clearChat();toast('New conversation started')}
-function answer(btn,correct){document.querySelectorAll('.option').forEach(x=>x.disabled=true);btn.classList.add(correct?'correct':'wrong');if(!correct){const opts=[...document.querySelectorAll('.option')];opts[questionBank[state.practiceIndex].a].classList.add('correct')}document.getElementById('explain').classList.add('show');document.getElementById('nextBtn').disabled=false;if(correct){state.questions++;document.getElementById('qCount').textContent=148+state.questions;toast('Correct! Great work 🎉')}else toast('Not quite — review the explanation.')}
+function answer(btn,correct){document.querySelectorAll('.option').forEach(x=>x.disabled=true);btn.classList.add(correct?'correct':'wrong');if(!correct){const opts=[...document.querySelectorAll('.option')];opts[questionBank[state.practiceIndex].a].classList.add('correct')}document.getElementById('explain').classList.add('show');document.getElementById('nextBtn').disabled=false;state.questions++;if(correct)state.correct++;markStudy();toast(correct?'Correct! Great work 🎉':'Not quite — review the explanation.')}
 function nextQuestion(){state.practiceIndex=(state.practiceIndex+1)%questionBank.length;const q=questionBank[state.practiceIndex];document.getElementById('questionNo').textContent=`Question ${state.practiceIndex+1} of 5`;document.getElementById('qProgress').style.width=((state.practiceIndex+1)*20)+'%';document.getElementById('questionText').textContent=q.q;document.getElementById('options').innerHTML=q.o.map((x,i)=>`<button class="option" onclick="answer(this,${i===q.a})">${x}</button>`).join('');document.getElementById('explain').innerHTML='<b>Why:</b> '+q.e;document.getElementById('explain').classList.remove('show');document.getElementById('nextBtn').disabled=true}
 function flipCard(){state.flipped=!state.flipped;document.getElementById('flashDefinition').classList.toggle('hidden',!state.flipped);document.getElementById('flashTerm').style.opacity=state.flipped?.25:1}
 function flashRate(level){state.flashIndex=(state.flashIndex+1)%flashcards.length;const f=flashcards[state.flashIndex];document.getElementById('flashLabel').textContent=`QUESTION · CARD ${state.flashIndex+1} / 12`;document.getElementById('flashTerm').textContent=f[0];document.getElementById('flashDefinition').textContent=f[1];document.getElementById('flashDefinition').classList.add('hidden');state.flipped=false;document.getElementById('flashTerm').style.opacity=1;toast(level==='easy'?'Card mastered ✓':level==='hard'?'Scheduled for another review':'Will repeat soon ↻')}
+function resetProgress(){if(!confirm("Reset this device's StudyPilot progress?"))return;localStorage.removeItem('studypilotState');location.reload();}
 </script>
 </body>
 </html>
