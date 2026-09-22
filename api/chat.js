@@ -28,6 +28,7 @@ export default async function handler(req, res) {
       'Student: ' + message.slice(0, 10000);
 
     const models = [
+      'models/gemini-3.1-flash-lite',
       'models/gemini-3.5-flash-lite',
       'models/gemini-3.6-flash',
       'models/gemini-3.5-flash'
