@@ -8,47 +8,36 @@ export default async function handler(req, res) {
     }
 
     const key = process.env.GEMINI_API_KEY;
-    if (!key) {
-      return res.status(503).json({ message: 'AI key is not configured on the server yet.' });
-    }
+    if (!key) return res.status(503).json({ message: 'AI key is not configured on the server yet.' });
 
-    const prior = Array.isArray(history)
+    const contents = Array.isArray(history)
       ? history
           .filter(x => x && (x.role === 'user' || x.role === 'model') && Array.isArray(x.parts))
-          .slice(-10)
-          .map(x => {
-            const who = x.role === 'user' ? 'Student' : 'Tutor';
-            const txt = x.parts.map(p => String(p?.text || '')).join(' ').slice(0, 6000);
-            return who + ': ' + txt;
-          })
-          .join('\n')
-      : '';
+          .slice(-6)
+          .map(x => ({
+            role: x.role,
+            parts: [{ text: String(x.parts.map(p => p?.text || '').join(' ')).slice(0, 3500) }]
+          }))
+      : [];
 
-    const input = (prior ? 'Conversation so far:\n' + prior + '\n\n' : '') +
-      'Student: ' + message.slice(0, 10000);
+    contents.push({ role: 'user', parts: [{ text: message.slice(0, 8000) }] });
 
-    const models = [
-      'models/gemini-3.1-flash-lite',
-      'models/gemini-3.5-flash-lite',
-      'models/gemini-3.6-flash',
-      'models/gemini-3.5-flash'
-    ];
+    const systemText =
+      'You are StudyPilot, a fast student tutor. Answer directly and clearly. ' +
+      'Use simple language. Show short reasoning for math and science. ' +
+      'Do not invent facts. For a simple factual question, answer in 1-4 sentences.';
 
-    const systemInstruction =
-      'You are StudyPilot, a patient expert tutor for school and college students. ' +
-      'Answer the student question directly. Show reasoning step by step when useful, ' +
-      'use simple language, and never invent an answer. For math and physics, show formulas ' +
-      'and calculations. For study requests, teach the student rather than only giving the final answer.';
-
-    let lastError = 'The AI service is temporarily busy.';
+    // Fast-first strategy: Flash-Lite is designed for low latency/high volume.
+    // Only use the backup after a temporary overload/rate-limit response.
+    const models = ['gemini-3.5-flash-lite', 'gemini-3.6-flash'];
 
     for (const model of models) {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
+      const timeout = setTimeout(() => controller.abort(), 7000);
 
       try {
         const response = await fetch(
-          'https://generativelanguage.googleapis.com/v1beta/interactions',
+          'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent',
           {
             method: 'POST',
             headers: {
@@ -57,13 +46,11 @@ export default async function handler(req, res) {
             },
             signal: controller.signal,
             body: JSON.stringify({
-              model,
-              input,
-              system_instruction: systemInstruction,
-              store: false,
-              generation_config: {
-                thinking_level: 'minimal',
-                max_output_tokens: 900
+              contents,
+              systemInstruction: { parts: [{ text: systemText }] },
+              generationConfig: {
+                thinkingConfig: { thinkingLevel: 'minimal' },
+                maxOutputTokens: 500
               }
             })
           }
@@ -73,46 +60,28 @@ export default async function handler(req, res) {
         const data = await response.json();
 
         if (response.ok) {
-          const answer = data?.steps
-            ?.filter(step => step?.type === 'model_output')
-            ?.flatMap(step => step?.content || [])
-            ?.filter(block => block?.type === 'text')
-            ?.map(block => block.text || '')
+          const answer = data?.candidates?.[0]?.content?.parts
+            ?.map(p => p?.text || '')
             ?.join('')
             ?.trim();
 
-          if (answer) {
-            return res.status(200).json({ answer, model });
-          }
-
-          lastError = 'The AI returned an empty answer.';
-          continue;
+          if (answer) return res.status(200).json({ answer, model });
         }
 
-        lastError = data?.error?.message || ('Gemini request failed on ' + model + '.');
-
-        // Retry another model for temporary capacity/rate-limit/server errors.
-        if ([429, 500, 502, 503, 504].includes(response.status)) {
-          continue;
+        const messageText = data?.error?.message || 'Gemini request failed.';
+        if (![429, 500, 502, 503, 504].includes(response.status)) {
+          return res.status(response.status).json({ message: messageText });
         }
-
-        // Do not hide auth/configuration errors.
-        return res.status(response.status).json({ message: lastError });
       } catch (error) {
         clearTimeout(timeout);
-        lastError = error?.name === 'AbortError'
-          ? 'The model timed out; trying a backup model.'
-          : 'Temporary AI connection problem; trying a backup model.';
-        continue;
+        if (error?.name !== 'AbortError') break;
       }
     }
 
     return res.status(503).json({
-      message: lastError || 'Google is currently busy on the available Gemini models.'
+      message: 'The AI service is busy right now. Please try again.'
     });
   } catch (error) {
-    return res.status(500).json({
-      message: 'Server error while contacting the AI service.'
-    });
+    return res.status(500).json({ message: 'Server error while contacting the AI service.' });
   }
 }
