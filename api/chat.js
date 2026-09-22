@@ -36,7 +36,7 @@ export default async function handler(req, res) {
           'x-goog-api-key': key
         },
         body: JSON.stringify({
-          model: 'gemini-3.8-flash',
+          model: 'gemini-3.6-flash',
           system_instruction:
             'You are StudyPilot, a patient expert tutor for school and college students. ' +
             'Answer the student question directly. Show reasoning step by step when useful, ' +
