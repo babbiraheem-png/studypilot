@@ -27,6 +27,9 @@ export default async function handler(req, res) {
     const input = (prior ? 'Conversation so far:\n' + prior + '\n\n' : '') +
       'Student: ' + message.slice(0, 10000);
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
     const response = await fetch(
       'https://generativelanguage.googleapis.com/v1beta/interactions',
       {
@@ -35,8 +38,9 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json',
           'x-goog-api-key': key
         },
+        signal: controller.signal,
         body: JSON.stringify({
-          model: 'gemini-3.6-flash',
+          model: 'models/gemini-3.6-flash',
           system_instruction:
             'You are StudyPilot, a patient expert tutor for school and college students. ' +
             'Answer the student question directly. Show reasoning step by step when useful, ' +
@@ -44,13 +48,14 @@ export default async function handler(req, res) {
             'and calculations. For study requests, teach the student rather than only giving the final answer.',
           input,
           generation_config: {
-            temperature: 0.25,
-            max_output_tokens: 1400
+            thinking_level: 'minimal',
+            max_output_tokens: 1200
           }
         })
       }
     );
 
+    clearTimeout(timeout);
     const data = await response.json();
 
     if (!response.ok) {
@@ -77,6 +82,9 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ answer });
   } catch (error) {
+    if (error?.name === 'AbortError') {
+      return res.status(504).json({ message: 'The AI took too long to respond. Please try again.' });
+    }
     return res.status(500).json({ message: 'Server error while contacting Gemini.' });
   }
 }
