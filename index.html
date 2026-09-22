@@ -232,7 +232,55 @@ function openAISetup(){document.getElementById('aiModal').classList.add('open');
 function closeAISetup(){document.getElementById('aiModal').classList.remove('open')}
 async function testServer(){const el=document.getElementById('serverStatus');if(el)el.textContent='Checking…';try{const r=await fetch('/api/health');const d=await r.json();if(!r.ok)throw new Error(d.message||'Server unavailable');if(el)el.textContent=d.aiConfigured?'AI ready ✓':'AI key not configured on server'}catch(e){if(el)el.textContent='Backend not deployed yet'}}
 async function callGemini(text){const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:aiHistory.slice(-12)})});const data=await res.json();if(!res.ok)throw new Error(data?.message||'AI request failed');const out=data?.answer||'';if(!out)throw new Error('The AI returned an empty answer');aiHistory.push({role:'user',parts:[{text}]});aiHistory.push({role:'model',parts:[{text:out}]});aiHistory=aiHistory.slice(-12);localStorage.setItem('studypilotChat',JSON.stringify(aiHistory));return out}
-async function sendChat(){const inp=document.getElementById('chatInput');const text=inp.value.trim();if(!text)return;appendMsg(text,true);inp.value='';const wrap=document.getElementById('messages');const loading=document.createElement('div');loading.className='msg';loading.id='aiLoading';loading.innerHTML='<div class="bot-icon">✦</div><div class="bubble">Thinking…</div>';wrap.appendChild(loading);wrap.scrollTop=wrap.scrollHeight;try{const answer=await Promise.race([callGemini(text),new Promise((_,reject)=>setTimeout(()=>reject(new Error('The tutor is taking longer than expected. Please try again once.')),55000))]);loading.remove();appendMsg(answer,false)}catch(e){loading.remove();appendMsg('The AI Tutor could not finish this request. '+escapeHtml(e.message)+'<br><br>Please try the question again.');}}
+function solveSimpleMath(text){
+  const raw=text.trim().replace(/[?=]+$/,'').trim();
+  const cleaned=raw.replace(/,/g,'');
+  const m=cleaned.match(/^(-?\d+(?:\.\d+)?)\s*(\+|\-|\*|x|×|\/|÷)\s*(-?\d+(?:\.\d+)?)$/i);
+  if(!m)return null;
+  const a=Number(m[1]), op=m[2].toLowerCase(), b=Number(m[3]);
+  let result;
+  if(op==='+') result=a+b;
+  else if(op==='-' ) result=a-b;
+  else if(op==='*'||op==='x'||op==='×') result=a*b;
+  else if(op==='/'||op==='÷'){ if(b===0)return 'Division by zero is undefined.'; result=a/b; }
+  else return null;
+  return Number.isInteger(result)?String(result):String(Number(result.toFixed(10)));
+}
+async function sendChat(){
+  const inp=document.getElementById('chatInput');
+  const text=inp.value.trim();
+  if(!text)return;
+
+  appendMsg(text,true);
+  inp.value='';
+
+  const simple=solveSimpleMath(text);
+  if(simple!==null){
+    setTimeout(()=>appendMsg('The answer is <b>'+escapeHtml(simple)+'</b>.',false),120);
+    markStudy();
+    return;
+  }
+
+  const wrap=document.getElementById('messages');
+  const loading=document.createElement('div');
+  loading.className='msg';
+  loading.id='aiLoading';
+  loading.innerHTML='<div class="bot-icon">✦</div><div class="bubble">Thinking…</div>';
+  wrap.appendChild(loading);
+  wrap.scrollTop=wrap.scrollHeight;
+
+  try{
+    const answer=await Promise.race([
+      callGemini(text),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('The AI is taking longer than expected. Please try again.')),55000))
+    ]);
+    loading.remove();
+    appendMsg(answer,false);
+  }catch(e){
+    loading.remove();
+    appendMsg('The AI Tutor could not finish this request. '+escapeHtml(e.message)+'<br><br>Please try the question again.',false);
+  }
+}
 function quickAsk(t){document.getElementById('chatInput').value=t;sendChat()}
 function clearChat(){document.getElementById('messages').innerHTML='';aiHistory=[];localStorage.removeItem('studypilotChat');appendMsg("New study session started. What would you like to learn?")}
 function newChat(){clearChat();toast('New conversation started')}
