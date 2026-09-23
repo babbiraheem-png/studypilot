@@ -8,7 +8,9 @@ export default async function handler(req, res) {
     }
 
     const key = process.env.GEMINI_API_KEY;
-    if (!key) return res.status(503).json({ message: 'AI key is not configured on the server yet.' });
+    if (!key) {
+      return res.status(503).json({ message: 'AI key is not configured on the server yet.' });
+    }
 
     const contents = Array.isArray(history)
       ? history
@@ -20,20 +22,23 @@ export default async function handler(req, res) {
           }))
       : [];
 
-    contents.push({ role: 'user', parts: [{ text: message.slice(0, 8000) }] });
+    contents.push({
+      role: 'user',
+      parts: [{ text: message.slice(0, 8000) }]
+    });
 
-    const systemText =
-      'You are StudyPilot, a fast student tutor. Answer directly and clearly. ' +
-      'Use simple language. Show short reasoning for math and science. ' +
-      'Do not invent facts. For a simple factual question, answer in 1-4 sentences.';
+    const systemInstruction =
+      'You are StudyPilot, a fast and reliable student tutor. ' +
+      'Answer directly and clearly using simple language. ' +
+      'For math and science, show the essential formula and calculation. ' +
+      'For simple questions, keep the answer concise. Never invent facts.';
 
-    // Fast-first strategy: Flash-Lite is designed for low latency/high volume.
-    // Only use the backup after a temporary overload/rate-limit response.
-    const models = ['gemini-3.5-flash-lite', 'gemini-3.6-flash'];
+    // Fast, current Gemini models. Try one backup only when capacity is temporary.
+    const models = ['gemini-3.1-flash-lite', 'gemini-3.5-flash'];
 
     for (const model of models) {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 7000);
+      const timeout = setTimeout(() => controller.abort(), 12000);
 
       try {
         const response = await fetch(
@@ -47,10 +52,14 @@ export default async function handler(req, res) {
             signal: controller.signal,
             body: JSON.stringify({
               contents,
-              systemInstruction: { parts: [{ text: systemText }] },
+              systemInstruction: {
+                parts: [{ text: systemInstruction }]
+              },
               generationConfig: {
-                thinkingConfig: { thinkingLevel: 'minimal' },
-                maxOutputTokens: 500
+                thinkingConfig: {
+                  thinkingLevel: 'minimal'
+                },
+                maxOutputTokens: 700
               }
             })
           }
@@ -61,27 +70,38 @@ export default async function handler(req, res) {
 
         if (response.ok) {
           const answer = data?.candidates?.[0]?.content?.parts
-            ?.map(p => p?.text || '')
+            ?.map(part => part?.text || '')
             ?.join('')
             ?.trim();
 
-          if (answer) return res.status(200).json({ answer, model });
+          if (answer) {
+            return res.status(200).json({ answer, model });
+          }
+
+          continue;
         }
 
-        const messageText = data?.error?.message || 'Gemini request failed.';
-        if (![429, 500, 502, 503, 504].includes(response.status)) {
-          return res.status(response.status).json({ message: messageText });
+        const googleMessage = data?.error?.message || 'Gemini request failed.';
+
+        // Retry only temporary service pressure.
+        if ([429, 500, 502, 503, 504].includes(response.status)) {
+          continue;
         }
+
+        return res.status(response.status).json({ message: googleMessage });
       } catch (error) {
         clearTimeout(timeout);
-        if (error?.name !== 'AbortError') break;
+        if (error?.name === 'AbortError') continue;
+        return res.status(502).json({ message: 'Temporary connection problem with the AI service.' });
       }
     }
 
     return res.status(503).json({
-      message: 'The AI service is busy right now. Please try again.'
+      message: 'The AI service is temporarily busy. Please try again.'
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Server error while contacting the AI service.' });
+    return res.status(500).json({
+      message: 'Server error while contacting the AI service.'
+    });
   }
 }
