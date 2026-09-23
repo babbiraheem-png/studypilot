@@ -62,13 +62,14 @@ main{min-width:0;padding:28px;max-width:1500px;width:100%;margin:auto}
     <button data-view="practice">✓ <span>Practice</span></button>
     <button data-view="flashcards">▣ <span>Flashcards</span></button>
     <button data-view="progress">◈ <span>Progress</span></button>
+    <button data-view="membership">★ <span>Membership</span></button>
   </nav>
   <div class="side-bottom"><div class="profile"><div class="avatar">S</div><div><b>Student</b><div class="small">Focus mode on</div></div></div></div>
 </aside>
 
 <main>
   <section id="dashboard" class="view active">
-    <div class="topbar"><div><h1>Good evening, student 👋</h1><p>Your learning workspace is ready for today's session.</p></div><div class="actions"><button class="btn" onclick="openModal()">＋ Add task</button><button class="btn primary" onclick="showView('practice')">Start practice</button></div></div>
+    <div class="topbar"><div><h1>Good evening, student 👋</h1><p>Your learning workspace is ready for today's session.</p></div><div class="actions"><span class="badge" id="creditBadge">20 AI credits</span><span class="badge" id="planBadge">Free plan</span><button class="btn" onclick="openModal()">＋ Add task</button><button class="btn primary" onclick="showView('practice')">Start practice</button></div></div>
     <div class="grid stats">
       <div class="card stat"><div><div class="small">Study streak</div><div class="num" id="streakCount">0 <span class="small">days</span></div></div><span class="badge" id="streakBadge">Start today</span></div>
       <div class="card stat"><div><div class="small">Questions solved</div><div class="num" id="qCount">0</div></div><span class="badge">Your activity</span></div>
@@ -150,6 +151,21 @@ main{min-width:0;padding:28px;max-width:1500px;width:100%;margin:auto}
     <div style="display:flex;justify-content:center;gap:9px;margin-top:16px"><button class="btn" onclick="flashRate('again')">↻ Again</button><button class="btn" onclick="flashRate('hard')">⚡ Hard</button><button class="btn primary" onclick="flashRate('easy')">✓ Easy</button></div>
   </section>
 
+  <section id="membership" class="view">
+    <div class="topbar"><div><h1>Membership & AI Credits</h1><p>Choose a plan and keep your AI Tutor usage in one secure account.</p></div><span class="badge" id="membershipStatus">Free</span></div>
+    <div class="grid three">
+      <div class="card"><div class="card-title"><h2>Free</h2><span>For getting started</span></div><div style="font-size:28px;font-weight:850">₹0<span class="small">/month</span></div><p class="small">20 AI credits/month</p><div class="task"><div class="task-icon">✓</div><div><b>Basic AI Tutor</b><div class="small">20 questions</div></div></div><div class="task"><div class="task-icon">✓</div><div><b>Practice</b><div class="small">Basic question sets</div></div></div><button class="btn" style="width:100%;margin-top:15px" disabled>Current plan</button></div>
+      <div class="card" style="border-color:#655cff"><div class="card-title"><h2>Plus</h2><span class="badge purple">Popular</span></div><div style="font-size:28px;font-weight:850">₹99<span class="small">/month</span></div><p class="small">300 AI credits/month</p><div class="task"><div class="task-icon">✦</div><div><b>Advanced AI Tutor</b><div class="small">300 questions/credits</div></div></div><div class="task"><div class="task-icon">↻</div><div><b>Smart revision</b><div class="small">Personalized review</div></div></div><div class="task"><div class="task-icon">◈</div><div><b>Progress analytics</b><div class="small">Detailed learning history</div></div></div><button class="btn primary" style="width:100%;margin-top:15px" onclick="startCheckout('plus')">Get Plus</button></div>
+      <div class="card"><div class="card-title"><h2>Pro</h2><span class="badge orange">Power user</span></div><div style="font-size:28px;font-weight:850">₹199<span class="small">/month</span></div><p class="small">1,000 AI credits/month</p><div class="task"><div class="task-icon">✦</div><div><b>Full AI Tutor</b><div class="small">1,000 questions/credits</div></div></div><div class="task"><div class="task-icon">✓</div><div><b>Adaptive practice</b><div class="small">Personalized difficulty</div></div></div><div class="task"><div class="task-icon">🎯</div><div><b>Exam prep tools</b><div class="small">Advanced study plans</div></div></div><button class="btn primary" style="width:100%;margin-top:15px" onclick="startCheckout('pro')">Get Pro</button></div>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="card-title"><h2>Your account</h2><span>Secure account-backed progress</span></div>
+      <div class="grid two">
+        <div><div class="small">Membership</div><div id="accountPlan" style="font-size:22px;font-weight:800;margin-top:5px">Free</div><div class="small" id="accountEmail" style="margin-top:5px">Not signed in</div></div>
+        <div><div class="small">AI credits remaining</div><div id="accountCredits" style="font-size:32px;font-weight:900;margin-top:5px">20</div><button class="btn" style="margin-top:10px" onclick="openAuth()">Sign in / Create account</button></div>
+      </div>
+    </div>
+  </section>
+
   <section id="progress" class="view">
     <div class="topbar"><div><h1>Progress & Analytics</h1><p>Understand how you learn and where to focus next.</p></div><button class="btn" onclick="resetProgress()">Reset my data</button></div>
     <div class="grid stats"><div class="card"><div class="small">Weekly study</div><div class="num" id="weeklyStudy">0m</div><div class="small">Target 5h</div></div><div class="card"><div class="small">Avg. session</div><div class="num" id="avgSession">0m</div><div class="small">Target 45m</div></div><div class="card"><div class="small">Accuracy</div><div class="num" id="progressAccuracy">0%</div><div class="small" id="progressAccuracyNote">No attempts yet</div></div><div class="card"><div class="small">Mastered</div><div class="num" id="masteredCount">0</div><div class="small">topics</div></div></div>
@@ -159,6 +175,7 @@ main{min-width:0;padding:28px;max-width:1500px;width:100%;margin:auto}
 </div>
 
 <div class="modal" id="modal"><div class="modal-box"><h2>Add study task</h2><div class="field"><label>Task name</label><input id="taskName" placeholder="e.g. Revise thermodynamics"></div><div class="field"><label>Subject</label><select id="taskSubject"><option>Physics</option><option>Mathematics</option><option>Biology</option><option>Chemistry</option></select></div><div class="field"><label>Minutes</label><input id="taskMinutes" type="number" value="30"></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="addTask()">Add task</button></div></div></div>
+<div class="modal" id="authModal"><div class="modal-box"><h2>Student account</h2><p class="small">Create an account to keep your membership, AI credits, and progress across devices.</p><div class="field"><label>Email</label><input id="authEmail" type="email" placeholder="you@example.com"></div><div class="field"><label>Password</label><input id="authPassword" type="password" placeholder="At least 8 characters"></div><div class="modal-actions"><button class="btn" onclick="closeAuth()">Close</button><button class="btn" onclick="signIn()">Sign in</button><button class="btn primary" onclick="signUp()">Create account</button></div><div class="small" id="authMessage" style="margin-top:12px"></div></div></div>
 <div class="toast" id="toast"></div>
 <div class="modal" id="aiModal"><div class="modal-box"><h2>AI Tutor</h2><p class="small" style="line-height:1.6">The AI Tutor is securely connected through the StudyPilot server. Your Gemini API key is never exposed to students.</p><div class="small">Server status: <b id="serverStatus">Checking…</b></div><div class="modal-actions"><button class="btn primary" onclick="testServer()">Test AI Tutor</button><button class="btn" onclick="closeAISetup()">Close</button></div></div></div>
 
@@ -227,6 +244,52 @@ function addTask(){const n=document.getElementById('taskName').value.trim();if(!
 function escapeHtml(str){return String(str).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function formatAI(text){let x=escapeHtml(text);x=x.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/\n/g,'<br>');return x}
 function appendMsg(text,user=false){const wrap=document.getElementById('messages');const m=document.createElement('div');m.className='msg '+(user?'user':'');m.innerHTML=(user?'<div class="avatar">S</div>':'<div class="bot-icon">✦</div>')+'<div class="bubble">'+(user?escapeHtml(text):formatAI(text))+'</div>';wrap.appendChild(m);wrap.scrollTop=wrap.scrollHeight}
+const accountState={plan:'free',credits:20,email:''};
+function openAuth(){document.getElementById('authModal').classList.add('open')}
+function closeAuth(){document.getElementById('authModal').classList.remove('open')}
+async function loadAccount(){
+  try{
+    const r=await fetch('/api/account',{credentials:'include'});
+    if(!r.ok)return;
+    const d=await r.json();
+    if(d?.authenticated){
+      accountState.plan=d.plan||'free';accountState.credits=Number(d.credits||0);accountState.email=d.email||'';
+    }
+  }catch(e){}
+  renderAccount();
+}
+function renderAccount(){
+ const plan=accountState.plan.charAt(0).toUpperCase()+accountState.plan.slice(1);
+ document.getElementById('creditBadge').textContent=accountState.credits+' AI credits';
+ document.getElementById('planBadge').textContent=plan+' plan';
+ document.getElementById('membershipStatus').textContent=plan;
+ document.getElementById('accountPlan').textContent=plan;
+ document.getElementById('accountCredits').textContent=accountState.credits;
+ document.getElementById('accountEmail').textContent=accountState.email||'Not signed in';
+}
+async function signUp(){
+ const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;
+ const msg=document.getElementById('authMessage');
+ if(!email||password.length<8){msg.textContent='Enter a valid email and an 8+ character password.';return}
+ try{const r=await fetch('/api/auth/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});const d=await r.json();msg.textContent=d.message||'Account created. Check your email if confirmation is enabled.';if(r.ok){accountState.email=email;loadAccount();}}
+ catch(e){msg.textContent='Account service is not configured yet.'}
+}
+async function signIn(){
+ const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value,msg=document.getElementById('authMessage');
+ try{const r=await fetch('/api/auth/signin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});const d=await r.json();if(!r.ok){msg.textContent=d.message||'Sign in failed.';return}closeAuth();accountState.email=d.email||email;accountState.plan=d.plan||'free';accountState.credits=Number(d.credits??20);renderAccount();toast('Signed in ✓')}catch(e){msg.textContent='Account service is not configured yet.'}
+}
+async function startCheckout(plan){
+ if(!accountState.email){openAuth();toast('Create an account before purchasing');return}
+ try{
+   const r=await fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan})});
+   const d=await r.json();
+   if(!r.ok)throw new Error(d.message||'Checkout is not configured yet.');
+   if(d.short_url)window.location.href=d.short_url;
+   else if(d.checkout_url)window.location.href=d.checkout_url;
+   else throw new Error('Payment checkout is not configured yet.');
+ }catch(e){toast(e.message)}
+}
+loadAccount();
 function setAIStatus(){const el=document.getElementById('aiStatus');if(el)el.textContent='AI Tutor · Secure server'}
 function openAISetup(){document.getElementById('aiModal').classList.add('open');testServer()}
 function closeAISetup(){document.getElementById('aiModal').classList.remove('open')}
@@ -262,6 +325,7 @@ async function sendChat(){
     markStudy();
     return;
   }
+  if(accountState.email && accountState.credits<=0){appendMsg('You are out of AI credits. Open <b>Membership</b> to upgrade.',false);return;}
 
   const wrap=document.getElementById('messages');
   const loading=document.createElement('div');
@@ -278,6 +342,7 @@ async function sendChat(){
     ]);
     loading.remove();
     appendMsg(answer,false);
+    if(accountState.email){accountState.credits=Math.max(0,accountState.credits-1);renderAccount();}
   }catch(e){
     loading.remove();
     appendMsg('The AI Tutor could not finish this request. '+escapeHtml(e.message)+'<br><br>Please try the question again.',false);
