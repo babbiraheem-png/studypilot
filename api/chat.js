@@ -33,8 +33,11 @@ export default async function handler(req, res) {
       'For math and science, show the essential formula and calculation. ' +
       'For simple questions, keep the answer concise. Never invent facts.';
 
-    // Fast, current Gemini models. Try one backup only when capacity is temporary.
-    const models = ['gemini-3.1-flash-lite', 'gemini-3.5-flash'];
+    const models = [
+      'gemini-3.5-flash-lite',
+      'gemini-3.1-flash-lite',
+      'gemini-3.5-flash'
+    ];
 
     for (const model of models) {
       const controller = new AbortController();
@@ -77,22 +80,18 @@ export default async function handler(req, res) {
           if (answer) {
             return res.status(200).json({ answer, model });
           }
-
-          continue;
         }
 
-        const googleMessage = data?.error?.message || 'Gemini request failed.';
-
-        // Retry only temporary service pressure.
-        if ([429, 500, 502, 503, 504].includes(response.status)) {
-          continue;
+        if (![429, 500, 502, 503, 504].includes(response.status)) {
+          return res.status(response.status).json({
+            message: data?.error?.message || 'Gemini request failed.'
+          });
         }
-
-        return res.status(response.status).json({ message: googleMessage });
       } catch (error) {
         clearTimeout(timeout);
-        if (error?.name === 'AbortError') continue;
-        return res.status(502).json({ message: 'Temporary connection problem with the AI service.' });
+        if (error?.name !== 'AbortError') {
+          // Try the next current Gemini model before failing.
+        }
       }
     }
 
