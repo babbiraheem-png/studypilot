@@ -4,8 +4,8 @@ function setSessionCookies(res, session) {
   if (!session) return;
   const base = 'Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000';
   res.setHeader('Set-Cookie', [
-    `studypilot_access_token=${encodeURIComponent(session.access_token)}; ${base}`,
-    `studypilot_refresh_token=${encodeURIComponent(session.refresh_token)}; ${base}`
+    'studypilot_access_token=' + encodeURIComponent(session.access_token) + '; ' + base,
+    'studypilot_refresh_token=' + encodeURIComponent(session.refresh_token) + '; ' + base
   ]);
 }
 
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       message: data.session
         ? 'Account created and signed in.'
-        : 'Account created. Check your email to confirm.',
+        : 'Account created. Check your email to confirm before signing in.',
       email: data.user?.email || email,
       authenticated: Boolean(data.session)
     });
