@@ -1,3 +1,4 @@
+// StudyPilot account session endpoint
 import { createClient } from '@supabase/supabase-js';
 
 function client() {
