@@ -4,8 +4,8 @@ function setSessionCookies(res, session) {
   if (!session) return;
   const base = 'Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000';
   res.setHeader('Set-Cookie', [
-    'studypilot_access_token=' + encodeURIComponent(session.access_token) + '; ' + base,
-    'studypilot_refresh_token=' + encodeURIComponent(session.refresh_token) + '; ' + base
+    `studypilot_access_token=${encodeURIComponent(session.access_token)}; ${base}`,
+    `studypilot_refresh_token=${encodeURIComponent(session.refresh_token)}; ${base}`
   ]);
 }
 
@@ -22,18 +22,18 @@ export default async function handler(req, res) {
     }
 
     const sb = createClient(process.env.SUPABASE_URL, key, {
-      auth: { autoRefreshToken: false, persistSession: false }
+      auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
     });
 
     const { data, error } = await sb.auth.signUp({ email, password });
     if (error) return res.status(400).json({ message: error.message });
 
-    setSessionCookies(res, data.session);
+    if (data.session) setSessionCookies(res, data.session);
 
     return res.status(200).json({
       message: data.session
         ? 'Account created and signed in.'
-        : 'Account created. Check your email to confirm before signing in.',
+        : 'Account created. Check your email to confirm.',
       email: data.user?.email || email,
       authenticated: Boolean(data.session)
     });
