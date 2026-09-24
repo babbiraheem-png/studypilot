@@ -4,7 +4,7 @@ function client() {
   return createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_PUBLISHABLE_KEY,
-    { auth: { autoRefreshToken: false, persistSession: false } }
+    { auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false } }
   );
 }
 
@@ -12,7 +12,7 @@ function admin() {
   return createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY,
-    { auth: { autoRefreshToken: false, persistSession: false } }
+    { auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false } }
   );
 }
 
@@ -27,12 +27,11 @@ function getBearer(req) {
   return h.startsWith('Bearer ') ? h.slice(7) : null;
 }
 
-function refreshCookies(res, session) {
-  if (!session) return;
+function setSessionCookies(res, session) {
   const base = 'Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000';
   res.setHeader('Set-Cookie', [
-    'studypilot_access_token=' + encodeURIComponent(session.access_token) + '; ' + base,
-    'studypilot_refresh_token=' + encodeURIComponent(session.refresh_token) + '; ' + base
+    `studypilot_access_token=${encodeURIComponent(session.access_token)}; ${base}`,
+    `studypilot_refresh_token=${encodeURIComponent(session.refresh_token)}; ${base}`
   ]);
 }
 
@@ -69,17 +68,20 @@ export default async function handler(req, res) {
       return res.status(401).json({ authenticated: false });
     }
 
-    if (session) refreshCookies(res, session);
+    if (session) setSessionCookies(res, session);
 
     const db = admin();
-    const { data: profile } = await db
+    const { data: profile, error: profileError } = await db
       .from('profiles')
       .select('plan, credits, email')
       .eq('id', user.id)
       .maybeSingle();
 
-    res.setHeader('Cache-Control', 'private, no-store');
+    if (profileError) {
+      return res.status(500).json({ message: 'Account profile could not be loaded.' });
+    }
 
+    res.setHeader('Cache-Control', 'private, no-store');
     return res.status(200).json({
       authenticated: true,
       email: user.email,
