@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 function setSessionCookies(res, session) {
   const base = 'Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000';
   res.setHeader('Set-Cookie', [
-    `studypilot_access_token=${encodeURIComponent(session.access_token)}; ${base}`,
-    `studypilot_refresh_token=${encodeURIComponent(session.refresh_token)}; ${base}`
+    'studypilot_access_token=' + encodeURIComponent(session.access_token) + '; ' + base,
+    'studypilot_refresh_token=' + encodeURIComponent(session.refresh_token) + '; ' + base
   ]);
 }
 
@@ -46,6 +46,8 @@ export default async function handler(req, res) {
       .select('plan, credits')
       .eq('id', data.user.id)
       .maybeSingle();
+
+    res.setHeader('Cache-Control', 'private, no-store');
 
     return res.status(200).json({
       authenticated: true,
