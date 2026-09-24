@@ -1,4 +1,5 @@
 // StudyPilot account session endpoint
+// Deployment trigger after Supabase Production environment variables were configured.
 import { createClient } from '@supabase/supabase-js';
 
 function client() {
