@@ -165,7 +165,7 @@ main{min-width:0;padding:28px;max-width:1500px;width:100%;margin:auto}
     <div class="card" style="margin-top:16px"><div class="card-title"><h2>Your account</h2><span>Secure account-backed progress</span></div>
       <div class="grid two">
         <div><div class="small">Membership</div><div id="accountPlan" style="font-size:22px;font-weight:800;margin-top:5px">Free</div><div class="small" id="accountEmail" style="margin-top:5px">Not signed in</div></div>
-        <div><div class="small">AI credits remaining</div><div id="accountCredits" style="font-size:32px;font-weight:900;margin-top:5px">20</div><button class="btn" style="margin-top:10px" onclick="openAuth()">Sign in / Create account</button></div>
+        <div><div class="small">AI credits remaining</div><div id="accountCredits" style="font-size:32px;font-weight:900;margin-top:5px">20</div><button class="btn" id="membershipAccountAction" style="margin-top:10px" onclick="openAuth()">Sign in / Create account</button></div>
       </div>
     </div>
   </section>
@@ -258,7 +258,7 @@ function closeAuth(){document.getElementById('authModal').classList.remove('open
 
 function renderAccount(){
   const plan=accountState.plan.charAt(0).toUpperCase()+accountState.plan.slice(1);
-  const signedIn=Boolean(accountState.authenticated && accountState.email);
+  const signedIn=Boolean(accountState.authenticated&&accountState.email);
 
   document.getElementById('creditBadge').textContent=accountState.credits+' AI credits';
   document.getElementById('planBadge').textContent=plan+' plan';
@@ -272,6 +272,7 @@ function renderAccount(){
   const avatar=document.getElementById('accountAvatar');
   const logoutBtn=document.getElementById('logoutBtn');
   const accountAction=document.getElementById('accountAction');
+  const membershipAction=document.getElementById('membershipAccountAction');
 
   if(signedIn){
     const localPart=accountState.email.split('@')[0]||'Student';
@@ -279,21 +280,27 @@ function renderAccount(){
     name.textContent=displayName;
     status.textContent=accountState.email;
     avatar.textContent=displayName.charAt(0).toUpperCase();
-    logoutBtn.style.display='block';
+    if(logoutBtn)logoutBtn.style.display='block';
     if(accountAction){
       accountAction.textContent='Log out';
-      accountAction.className='btn';
       accountAction.onclick=logout;
+    }
+    if(membershipAction){
+      membershipAction.textContent='Log out';
+      membershipAction.onclick=logout;
     }
   }else{
     name.textContent='Guest student';
     status.textContent='Not signed in';
     avatar.textContent='S';
-    logoutBtn.style.display='none';
+    if(logoutBtn)logoutBtn.style.display='none';
     if(accountAction){
       accountAction.textContent='Sign in';
-      accountAction.className='btn';
       accountAction.onclick=openAuth;
+    }
+    if(membershipAction){
+      membershipAction.textContent='Sign in / Create account';
+      membershipAction.onclick=openAuth;
     }
   }
 }
@@ -301,9 +308,8 @@ function renderAccount(){
 async function loadAccount(){
   try{
     const r=await fetch('/api/account',{credentials:'include',cache:'no-store'});
-    if(!r.ok) throw new Error('Not signed in');
-    const d=await r.json();
-    if(d?.authenticated){
+    const d=await r.json().catch(()=>({}));
+    if(r.ok&&d?.authenticated){
       accountState.authenticated=true;
       accountState.plan=d.plan||'free';
       accountState.credits=Number(d.credits??20);
@@ -339,9 +345,10 @@ async function signUp(){
     const r=await fetch('/api/auth/signup',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
+      credentials:'include',
       body:JSON.stringify({email,password})
     });
-    const d=await r.json();
+    const d=await r.json().catch(()=>({}));
 
     if(!r.ok){
       msg.textContent=d.message||'Account creation failed.';
@@ -376,9 +383,10 @@ async function signIn(){
     const r=await fetch('/api/auth/signin',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
+      credentials:'include',
       body:JSON.stringify({email,password})
     });
-    const d=await r.json();
+    const d=await r.json().catch(()=>({}));
 
     if(!r.ok){
       msg.textContent=d.message||'Sign in failed.';
@@ -395,8 +403,15 @@ async function signIn(){
 
 async function logout(){
   try{
-    await fetch('/api/auth/logout',{method:'POST',credentials:'include'});
-  }catch(e){}
+    const r=await fetch('/api/auth/logout',{
+      method:'POST',
+      credentials:'include'
+    });
+    if(!r.ok) throw new Error('Logout failed');
+  }catch(e){
+    toast('Logout connection failed. Please try again.');
+    return;
+  }
 
   accountState.authenticated=false;
   accountState.plan='free';
@@ -406,45 +421,6 @@ async function logout(){
   toast('Logged out ✓');
 }
 
-async function startCheckout(plan){
-  if(!accountState.authenticated){
-    openAuth();
-    toast('Sign in before purchasing');
-    return;
-  }
-  try{
-    const r=await fetch('/api/checkout',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({plan})
-    });
-    const d=await r.json();
-    if(!r.ok)throw new Error(d.message||'Checkout is not configured yet.');
-    if(d.short_url)window.location.href=d.short_url;
-    else if(d.checkout_url)window.location.href=d.checkout_url;
-    else throw new Error('Payment checkout is not configured yet.');
-  }catch(e){toast(e.message)}
-}
-
-}}
- catch(e){msg.textContent='Account service is not configured yet.'}
-}
-async function signIn(){
- const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value,msg=document.getElementById('authMessage');
- try{const r=await fetch('/api/auth/signin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});const d=await r.json();if(!r.ok){msg.textContent=d.message||'Sign in failed.';return}closeAuth();accountState.email=d.email||email;accountState.plan=d.plan||'free';accountState.credits=Number(d.credits??20);renderAccount();toast('Signed in ✓')}catch(e){msg.textContent='Account service is not configured yet.'}
-}
-async function startCheckout(plan){
- if(!accountState.email){openAuth();toast('Create an account before purchasing');return}
- try{
-   const r=await fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan})});
-   const d=await r.json();
-   if(!r.ok)throw new Error(d.message||'Checkout is not configured yet.');
-   if(d.short_url)window.location.href=d.short_url;
-   else if(d.checkout_url)window.location.href=d.checkout_url;
-   else throw new Error('Payment checkout is not configured yet.');
- }catch(e){toast(e.message)}
-}
-loadAccount();
 function setAIStatus(){const el=document.getElementById('aiStatus');if(el)el.textContent='AI Tutor · Secure server'}
 function openAISetup(){document.getElementById('aiModal').classList.add('open');testServer()}
 function closeAISetup(){document.getElementById('aiModal').classList.remove('open')}
