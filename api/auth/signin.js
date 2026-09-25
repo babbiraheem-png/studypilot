@@ -21,9 +21,9 @@ export default async function handler(req, res) {
 
   try {
     const { identifier, email, password } = req.body || {};
-    const loginIdentifier = String(identifier || email || '').trim();
-    if (!loginIdentifier || !password) {
-      return res.status(400).json({ message: 'Email address or phone number and password are required.' });
+    const loginEmail = String(email || identifier || '').trim();
+    if (!loginEmail || !loginEmail.includes('@') || !password) {
+      return res.status(400).json({ message: 'Email address and password are required.' });
     }
 
     if (!process.env.SUPABASE_URL || !process.env.SUPABASE_PUBLISHABLE_KEY || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -34,16 +34,7 @@ export default async function handler(req, res) {
       auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
     });
 
-    let data, error;
-    if (loginIdentifier.includes('@')) {
-      ({ data, error } = await sb.auth.signInWithPassword({ email: loginIdentifier, password }));
-    } else {
-      const normalizedPhone = loginIdentifier.replace(/[\s()-]/g, '');
-      if (!/^\+?[1-9]\d{7,14}$/.test(normalizedPhone)) {
-        return res.status(400).json({ message: 'Enter a valid email address or phone number.' });
-      }
-      ({ data, error } = await sb.auth.signInWithPassword({ phone: normalizedPhone, password }));
-    }
+    const { data, error } = await sb.auth.signInWithPassword({ email: loginEmail, password });
     if (error) return res.status(401).json({ message: error.message });
     if (!data.session || !data.user) {
       return res.status(401).json({ message: 'Unable to create a login session.' });
