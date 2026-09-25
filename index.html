@@ -168,7 +168,7 @@ main{min-width:0;padding:30px;max-width:1540px;width:100%;margin:auto}
 
 <main>
   <section id="dashboard" class="view active">
-    <div class="topbar"><div><h1>Good evening, student 👋</h1><p>Your learning workspace is ready for today's session.</p></div><div class="actions"><span class="badge" id="creditBadge">20 AI credits</span><span class="badge" id="planBadge">Free plan</span><button class="btn" id="accountAction" onclick="openAuth()">Sign in</button><button class="btn" onclick="openModal()">＋ Add task</button><button class="btn primary" onclick="showView('practice')">Start practice</button></div></div>
+    <div class="topbar"><div><h1>Good evening, student 👋</h1><p>Your learning workspace is ready for today's session.<span id="classContext" class="small" style="margin-left:8px"></span></p></div><div class="actions"><span class="badge" id="creditBadge">20 AI credits</span><span class="badge" id="planBadge">Free plan</span><label class="class-picker" style="display:flex;align-items:center;gap:7px"><span class="small" style="color:#53657a;font-weight:700">Class</span><select id="classSelector" class="select" aria-label="Choose class" onchange="setStudentClass(this.value)"><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></label><button class="btn" id="accountAction" onclick="openAuth()">Sign in</button><button class="btn" onclick="openModal()">＋ Add task</button><button class="btn primary" onclick="showView('practice')">Start practice</button></div></div>
     <div class="grid stats">
       <div class="card stat"><div><div class="small">Study streak</div><div class="num" id="streakCount">0 <span class="small">days</span></div></div><span class="badge" id="streakBadge">Start today</span></div>
       <div class="card stat"><div><div class="small">Questions solved</div><div class="num" id="qCount">0</div></div><span class="badge">Your activity</span></div>
@@ -178,21 +178,21 @@ main{min-width:0;padding:30px;max-width:1540px;width:100%;margin:auto}
     <div class="grid two">
       <div class="card">
         <div class="card-title"><h2>Continue learning</h2><span>Personalized</span></div>
-        <div class="hero"><h2>Physics: Current Electricity</h2><p id="continueText">Start your first topic. Work through a question or ask your AI tutor for a simple explanation.</p><div class="hero-actions"><button class="btn primary" onclick="showView('revision')">Continue chapter</button><button class="btn" onclick="showView('chat')">Ask tutor</button></div></div>
+        <div class="hero"><h2 id="continueTitle">Class 11 · Physics: Current Electricity</h2><p id="continueText">Start your first topic. Work through a question or ask your AI tutor for a simple explanation.</p><div class="hero-actions"><button class="btn primary" onclick="showView('revision')">Continue chapter</button><button class="btn" onclick="showView('chat')">Ask tutor</button></div></div>
         <div style="margin-top:18px"><div class="subject-row"><b>Chapter progress</b><span class="small" id="chapterProgressText">0%</span></div><div class="progress"><i id="chapterProgress" style="width:0%"></i></div></div>
       </div>
       <div class="card">
         <div class="card-title"><h2>Today's plan</h2><span id="today"></span></div>
-        <div class="task"><div class="task-icon">⚡</div><div><b>Physics revision</b><div class="small">25 min · Current Electricity</div></div></div>
-        <div class="task"><div class="task-icon">∑</div><div><b>Math practice</b><div class="small">15 questions · Calculus</div></div></div>
-        <div class="task"><div class="task-icon">🧠</div><div><b>Flashcard recall</b><div class="small">20 cards · Biology</div></div></div>
+        <div class="task"><div class="task-icon">⚡</div><div><b id="planOneTitle">Physics revision</b><div class="small" id="planOneMeta">25 min · Current Electricity</div></div></div>
+        <div class="task"><div class="task-icon">∑</div><div><b id="planTwoTitle">Math practice</b><div class="small" id="planTwoMeta">15 questions · Calculus</div></div></div>
+        <div class="task"><div class="task-icon">🧠</div><div><b id="planThreeTitle">Flashcard recall</b><div class="small" id="planThreeMeta">20 cards · Biology</div></div></div>
       </div>
     </div>
     <div class="grid two">
       <div class="card"><div class="card-title"><h2>Subject mastery</h2><span>Last 30 days</span></div>
-        <div class="subject"><div class="subject-row"><b>Physics</b><span class="small" id="physicsMasteryText">0%</span></div><div class="progress"><i id="physicsMastery" style="width:0%"></i></div></div>
-        <div class="subject"><div class="subject-row"><b>Mathematics</b><span class="small" id="mathMasteryText">0%</span></div><div class="progress"><i id="mathMastery" style="width:0%"></i></div></div>
-        <div class="subject"><div class="subject-row"><b>Biology</b><span class="small" id="bioMasteryText">0%</span></div><div class="progress"><i id="bioMastery" style="width:0%"></i></div></div>
+        <div class="subject"><div class="subject-row"><b id="subjectOneName">Physics</b><span class="small" id="physicsMasteryText">0%</span></div><div class="progress"><i id="physicsMastery" style="width:0%"></i></div></div>
+        <div class="subject"><div class="subject-row"><b id="subjectTwoName">Mathematics</b><span class="small" id="mathMasteryText">0%</span></div><div class="progress"><i id="mathMastery" style="width:0%"></i></div></div>
+        <div class="subject"><div class="subject-row"><b id="subjectThreeName">Biology</b><span class="small" id="bioMasteryText">0%</span></div><div class="progress"><i id="bioMastery" style="width:0%"></i></div></div>
       </div>
       <div class="card"><div class="card-title"><h2>Study activity</h2><span id="sessionCount">0 sessions</span></div><div class="streak" id="activityStreak">0 🔥</div><div class="small" id="activityMessage">Your activity will appear here as you study.</div><div class="heat" id="heat"></div></div>
     </div>
@@ -298,6 +298,37 @@ const flashcards=[
  ["What happens to parallel resistance?","The equivalent resistance is less than the smallest individual branch resistance."]
 ];
 
+const classProfiles={
+  6:{label:'Class 6',subjects:['Mathematics','Science','English'],hero:'Science: Living Things & Materials',plan:[['Science revision','25 min · Living Things'],['Math practice','15 questions · Fractions'],['Flashcard recall','20 cards · English vocabulary']],topics:['Living Things','Fractions & Decimals','Grammar Basics']},
+  7:{label:'Class 7',subjects:['Mathematics','Science','English'],hero:'Science: Heat & Acids',plan:[['Science revision','25 min · Heat & Acids'],['Math practice','15 questions · Integers'],['Flashcard recall','20 cards · Grammar']],topics:['Heat & Acids','Integers & Algebra','Grammar & Writing']},
+  8:{label:'Class 8',subjects:['Mathematics','Science','Social Science'],hero:'Science: Force & Pressure',plan:[['Science revision','25 min · Force & Pressure'],['Math practice','15 questions · Linear Equations'],['Flashcard recall','20 cards · Social Science']],topics:['Force & Pressure','Linear Equations','Civics & Geography']},
+  9:{label:'Class 9',subjects:['Mathematics','Physics','Chemistry'],hero:'Physics: Motion & Force',plan:[['Physics revision','25 min · Motion'],['Math practice','15 questions · Algebra'],['Flashcard recall','20 cards · Chemistry']],topics:['Motion & Force','Algebra & Geometry','Atoms & Molecules']},
+  10:{label:'Class 10',subjects:['Mathematics','Science','Social Science'],hero:'Science: Electricity & Life Processes',plan:[['Science revision','25 min · Electricity'],['Math practice','15 questions · Quadratics'],['Flashcard recall','20 cards · History & Civics']],topics:['Electricity & Life Processes','Quadratics & Trigonometry','History & Civics']},
+  11:{label:'Class 11',subjects:['Physics','Mathematics','Chemistry'],hero:'Physics: Current Electricity',plan:[['Physics revision','25 min · Current Electricity'],['Math practice','15 questions · Calculus'],['Flashcard recall','20 cards · Chemistry']],topics:['Current Electricity','Calculus & Coordinate Geometry','Organic Chemistry']},
+  12:{label:'Class 12',subjects:['Physics','Mathematics','Chemistry'],hero:'Physics: Electromagnetic Induction',plan:[['Physics revision','25 min · Electromagnetic Induction'],['Math practice','15 questions · Integrals'],['Flashcard recall','20 cards · Organic Chemistry']],topics:['Electromagnetic Induction','Integrals & Vectors','Organic Chemistry']}
+};
+let studentClass=localStorage.getItem('studypilotClass')||'11';
+function setStudentClass(value){
+  studentClass=String(value);
+  localStorage.setItem('studypilotClass',studentClass);
+  applyClassProfile();
+}
+function applyClassProfile(){
+  const p=classProfiles[studentClass]||classProfiles['11'];
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+  const sel=document.getElementById('classSelector'); if(sel)sel.value=studentClass;
+  set('continueTitle',p.label+' · '+p.hero.replace(/^.*?:\s*/,''));
+  set('planOneTitle',p.plan[0][0]); set('planOneMeta',p.plan[0][1]);
+  set('planTwoTitle',p.plan[1][0]); set('planTwoMeta',p.plan[1][1]);
+  set('planThreeTitle',p.plan[2][0]); set('planThreeMeta',p.plan[2][1]);
+  set('subjectOneName',p.subjects[0]); set('subjectTwoName',p.subjects[1]); set('subjectThreeName',p.subjects[2]);
+  set('classContext',' '+p.label+' workspace');
+  const title=document.querySelector('#revision .topbar h1'); if(title) title.textContent=p.label+' · Revision Center';
+  const practiceMeta=document.querySelector('#practice .topbar p'); if(practiceMeta) practiceMeta.textContent='Adaptive questions for '+p.label+'.';
+  const chatTitle=document.querySelector('#chat .topbar h1'); if(chatTitle) chatTitle.textContent=p.label+' · AI Tutor';
+  const chatInput=document.getElementById('chatInput'); if(chatInput) chatInput.placeholder='Ask your '+p.label+' tutor anything...';
+  document.querySelectorAll('#revision .chapter h3').forEach((el,i)=>{if(p.topics[i])el.textContent=p.topics[i]});
+}
 function showView(id){
  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
  document.getElementById(id).classList.add('active');
@@ -582,6 +613,8 @@ function nextQuestion(){state.practiceIndex=(state.practiceIndex+1)%questionBank
 function flipCard(){state.flipped=!state.flipped;document.getElementById('flashDefinition').classList.toggle('hidden',!state.flipped);document.getElementById('flashTerm').style.opacity=state.flipped?.25:1}
 function flashRate(level){state.flashIndex=(state.flashIndex+1)%flashcards.length;const f=flashcards[state.flashIndex];document.getElementById('flashLabel').textContent=`QUESTION · CARD ${state.flashIndex+1} / 12`;document.getElementById('flashTerm').textContent=f[0];document.getElementById('flashDefinition').textContent=f[1];document.getElementById('flashDefinition').classList.add('hidden');state.flipped=false;document.getElementById('flashTerm').style.opacity=1;toast(level==='easy'?'Card mastered ✓':level==='hard'?'Scheduled for another review':'Will repeat soon ↻')}
 function resetProgress(){if(!confirm("Reset this device's StudyPilot progress?"))return;localStorage.removeItem('studypilotState');location.reload();}
+
+applyClassProfile();
 </script>
 <footer style="max-width:1100px;margin:32px auto 24px;padding:16px 20px;text-align:center;color:#64748b;font-size:13px;border-top:1px solid #e2e8f0;">
   <span>Founder: <strong style="color:#ffffff;">Roushan</strong></span>
