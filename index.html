@@ -484,7 +484,7 @@ function renderClassChapters(){
   if(list){
     list.innerHTML=subj.chapters.map((ch,i)=>{
       const progress=getChapterProgress(studentClass,subj.name,ch);
-      return '<div class="card chapter" role="button" tabindex="0" onclick="openChapter('+i+')" onkeydown="if(event.key===\\'Enter\\' || event.key===\\' \\'){openChapter('+i+')}"><span class="badge">Chapter / Unit '+(i+1)+'</span><h3>'+escapeHtml(ch)+'</h3><p>'+escapeHtml(p.label+' · '+subj.name)+'</p><div class="meter"><span>Progress</span><b>'+progress+'%</b></div><div class="progress"><i style="width:'+progress+'%"></i></div><button class="btn chapter-action" type="button" onclick="event.stopPropagation();openChapter('+i+')">Open chapter →</button></div>';
+      return '<div class="card chapter" role="button" tabindex="0" onclick="openChapter('+i+')"><span class="badge">Chapter / Unit '+(i+1)+'</span><h3>'+escapeHtml(ch)+'</h3><p>'+escapeHtml(p.label+' · '+subj.name)+'</p><div class="meter"><span>Progress</span><b>'+progress+'%</b></div><div class="progress"><i style="width:'+progress+'%"></i></div><button class="btn chapter-action" type="button" onclick="event.stopPropagation();openChapter('+i+')">Open chapter →</button></div>';
     }).join('');
   }
   const practiceSelect=document.getElementById('practiceSubject');
