@@ -336,13 +336,138 @@ const saved=JSON.parse(localStorage.getItem('studypilotState')||'null')||{};
 let aiHistory=JSON.parse(localStorage.getItem('studypilotChat')||'[]');
 const state={questions:saved.questions||0,correct:saved.correct||0,practiceIndex:0,flashIndex:0,flipped:false,studyMinutes:saved.studyMinutes||0,sessionCount:saved.sessionCount||0,lastStudyDate:saved.lastStudyDate||'',streak:saved.streak||0,heat:saved.heat||Array(56).fill(0)};
 function persist(){localStorage.setItem('studypilotState',JSON.stringify({questions:state.questions,correct:state.correct,studyMinutes:state.studyMinutes,sessionCount:state.sessionCount,lastStudyDate:state.lastStudyDate,streak:state.streak,heat:state.heat}));}
-const questionBank=[
- {q:"Two resistors of 4 Ω and 6 Ω are connected in series. What is their equivalent resistance?",o:["2 Ω","5 Ω","10 Ω","24 Ω"],a:2,e:"In a series circuit, resistances add: R = 4 + 6 = 10 Ω."},
- {q:"A current of 2 A flows through a 5 Ω resistor. What is the voltage across it?",o:["2.5 V","7 V","10 V","25 V"],a:2,e:"Using V = IR: V = 2 × 5 = 10 V."},
- {q:"At a junction, 5 A enters while 2 A leaves through one branch. How much current leaves through the remaining branch?",o:["2 A","3 A","5 A","7 A"],a:1,e:"Kirchhoff's junction rule says incoming current equals outgoing current: 5 = 2 + I, so I = 3 A."},
- {q:"If resistance stays constant and voltage doubles, current will:",o:["Halve","Double","Stay the same","Become zero"],a:1,e:"From I = V/R, doubling V doubles I when R is constant."},
- {q:"Which quantity is measured in ohms (Ω)?",o:["Voltage","Current","Resistance","Power"],a:2,e:"The SI unit of electrical resistance is the ohm (Ω)."}
-];
+let questionBank=[];
+function practiceBankFor(classValue,subject){
+  const cls=Number(classValue);
+  if(subject==='Mathematics'){
+    if(cls<=8)return [
+      {q:'What is 3/4 + 1/4?',o:['1/2','1','3/4','4/8'],a:1,e:'3/4 + 1/4 = 4/4 = 1.'},
+      {q:'A rectangle has length 8 cm and breadth 5 cm. What is its area?',o:['13 cm²','26 cm²','40 cm²','80 cm²'],a:2,e:'Area = length × breadth = 8 × 5 = 40 cm².'},
+      {q:'Which number is prime?',o:['21','27','29','39'],a:2,e:'29 has exactly two positive factors: 1 and 29.'},
+      {q:'What is the value of 6 × 7?',o:['36','40','42','49'],a:2,e:'6 × 7 = 42.'},
+      {q:'An angle measuring 90° is called:',o:['Acute angle','Right angle','Obtuse angle','Reflex angle'],a:1,e:'A 90° angle is a right angle.'}
+    ];
+    if(cls<=10)return [
+      {q:'If x + 7 = 15, what is x?',o:['6','7','8','22'],a:2,e:'Subtract 7 from both sides: x = 8.'},
+      {q:'What is the discriminant of x² - 5x + 6 = 0?',o:['1','5','6','25'],a:0,e:'For ax²+bx+c, D=b²-4ac = 25-24 = 1.'},
+      {q:'The coordinates of the origin are:',o:['(1,0)','(0,1)','(0,0)','(-1,0)'],a:2,e:'The origin is the point where both axes meet: (0,0).'},
+      {q:'What is sin 90°?',o:['0','1/2','1','Undefined'],a:2,e:'sin 90° = 1.'},
+      {q:'The probability of a certain event is:',o:['0','1/2','1','2'],a:2,e:'A certain event always occurs, so its probability is 1.'}
+    ];
+    return [
+      {q:'If f(x)=x², what is f(3)?',o:['3','6','9','12'],a:2,e:'Substitute x=3: f(3)=3²=9.'},
+      {q:'What is the derivative of x³?',o:['x²','2x²','3x²','3x'],a:2,e:'Using d(xⁿ)/dx = nxⁿ⁻¹, the derivative is 3x².'},
+      {q:'The determinant of [[a,b],[c,d]] is:',o:['ab-cd','ad-bc','ac-bd','a+b+c+d'],a:1,e:'For a 2×2 matrix, determinant = ad - bc.'},
+      {q:'What is ∫ 2x dx?',o:['2x²+C','x²+C','x+C','2+C'],a:1,e:'The integral is x² + C because d(x²)/dx = 2x.'},
+      {q:'If P(A)=0.4 and P(B)=0.3 for independent events, P(A∩B) is:',o:['0.1','0.12','0.7','1.2'],a:1,e:'For independent events, multiply: 0.4 × 0.3 = 0.12.'}
+    ];
+  }
+  if(subject==='Science'){
+    if(cls<=8)return [
+      {q:'Which part of a plant mainly absorbs water from the soil?',o:['Flower','Roots','Fruit','Stem tip'],a:1,e:'Roots, especially root hairs, absorb water and minerals from soil.'},
+      {q:'Which force pulls objects toward Earth?',o:['Magnetic force','Gravitational force','Friction','Muscular force'],a:1,e:'Earth attracts objects through gravity.'},
+      {q:'Water changes into water vapour during:',o:['Freezing','Condensation','Evaporation','Melting'],a:2,e:'Evaporation is the change from liquid water to vapour.'},
+      {q:'Which organ helps humans breathe?',o:['Stomach','Lungs','Kidneys','Skin'],a:1,e:'The lungs are the main organs of gas exchange.'},
+      {q:'A magnet has two poles called:',o:['East and West','Top and Bottom','North and South','Left and Right'],a:2,e:'Every magnet has a north pole and a south pole.'}
+    ];
+    return [
+      {q:'Which particle has a negative charge?',o:['Proton','Neutron','Electron','Nucleus'],a:2,e:'Electrons carry negative electric charge.'},
+      {q:'What is the SI unit of force?',o:['Joule','Newton','Pascal','Watt'],a:1,e:'Force is measured in newtons (N).'},
+      {q:'Which process converts liquid water into vapour?',o:['Condensation','Evaporation','Freezing','Deposition'],a:1,e:'Evaporation changes liquid into gas.'},
+      {q:'Which gas is released during photosynthesis?',o:['Nitrogen','Oxygen','Carbon monoxide','Hydrogen'],a:1,e:'Photosynthesis releases oxygen as a product.'},
+      {q:'The speed of an object is calculated as:',o:['time ÷ distance','distance ÷ time','distance × time','distance + time'],a:1,e:'Speed = distance travelled ÷ time taken.'}
+    ];
+  }
+  if(subject==='Social Science'){
+    if(cls<=8)return [
+      {q:'Which is the largest continent?',o:['Africa','Asia','Europe','Australia'],a:1,e:'Asia is the largest continent by area.'},
+      {q:'A timeline is mainly used to show:',o:['Locations','Sequence of events','Weather','Population'],a:1,e:'A timeline places events in chronological order.'},
+      {q:'Which body works at the village level in Indian local government?',o:['Gram Panchayat','Parliament','Supreme Court','State Secretariat'],a:0,e:'The Gram Panchayat is a local self-government institution at village level.'},
+      {q:'Which resource is generally renewable?',o:['Coal','Petroleum','Sunlight','Natural gas'],a:2,e:'Sunlight is continuously replenished and is renewable.'},
+      {q:'Why do people use maps?',o:['Only for decoration','To represent places and information spatially','Only to measure temperature','Only to count money'],a:1,e:'Maps represent locations and geographic information.'}
+    ];
+    return [
+      {q:'What does democracy emphasise?',o:['Rule by one person','Citizen participation and representation','No laws','Only military decisions'],a:1,e:'Democracy is based on participation, representation, and accountable institutions.'},
+      {q:'Which sector includes farming?',o:['Primary sector','Secondary sector','Tertiary sector','Quaternary sector'],a:0,e:'Agriculture uses natural resources directly, so it is part of the primary sector.'},
+      {q:'What is the main purpose of a constitution?',o:['List of weather reports','Set fundamental rules and institutions of government','School timetable','Market price list'],a:1,e:'A constitution establishes the framework, powers, rights, and rules of government.'},
+      {q:'Which factor most directly describes population density?',o:['Rainfall only','People per unit area','Total land area only','Number of rivers'],a:1,e:'Population density measures how many people live in a unit of area.'},
+      {q:'A bank loan is a form of:',o:['Credit','Barter','Tax','Subsidy only'],a:0,e:'A loan is borrowed money and is a form of credit.'}
+    ];
+  }
+  if(subject==='Physics'){
+    if(cls===11)return [
+      {q:'Which SI unit is used for force?',o:['Joule','Newton','Watt','Pascal'],a:1,e:'Force is measured in newtons.'},
+      {q:'If velocity changes from 10 m/s to 20 m/s in 5 s, acceleration is:',o:['1 m/s²','2 m/s²','5 m/s²','10 m/s²'],a:1,e:'a=(v-u)/t=(20-10)/5=2 m/s².'},
+      {q:'Work done by a constant force perpendicular to displacement is:',o:['Maximum','Zero','Negative always','Infinite'],a:1,e:'W=Fs cosθ, and cos 90°=0.'},
+      {q:'Kinetic energy depends on:',o:['Only time','Mass and speed','Only height','Only force'],a:1,e:'K=½mv², so it depends on mass and speed.'},
+      {q:'The SI unit of power is:',o:['Watt','Volt','Ohm','Tesla'],a:0,e:'Power is measured in watts (W).'}
+    ];
+    return [
+      {q:'Ohm’s law is written as:',o:['V=IR','P=I/R','R=VI','Q=It²'],a:0,e:'For an ohmic conductor under suitable conditions, V=IR.'},
+      {q:'Two 4 Ω resistors in series have equivalent resistance:',o:['1 Ω','2 Ω','4 Ω','8 Ω'],a:3,e:'Series resistances add: 4+4=8 Ω.'},
+      {q:'A changing magnetic flux can produce:',o:['Electromotive force','Only heat','Only mass','No effect'],a:0,e:'Electromagnetic induction produces an emf when magnetic flux changes.'},
+      {q:'The unit of frequency is:',o:['Hertz','Newton','Joule','Tesla'],a:0,e:'Frequency is measured in hertz (Hz).'},
+      {q:'For a photon, energy is proportional to:',o:['Wavelength only','Frequency','Mass of medium','Resistance'],a:1,e:'E=hf, so photon energy is proportional to frequency.'}
+    ];
+  }
+  if(subject==='Chemistry'){
+    if(cls===11)return [
+      {q:'How many significant figures are in 0.00450?',o:['2','3','4','5'],a:1,e:'Leading zeros are not significant; 4, 5, and the trailing zero are significant.'},
+      {q:'The atomic number represents the number of:',o:['Neutrons','Protons','Protons + neutrons','Electrons + neutrons'],a:1,e:'Atomic number equals the number of protons.'},
+      {q:'Which bond forms by sharing electron pairs?',o:['Ionic bond','Covalent bond','Metallic lattice only','Hydrogen nucleus'],a:1,e:'Covalent bonding involves sharing electron pairs.'},
+      {q:'A reaction with ΔH < 0 is generally:',o:['Endothermic','Exothermic','Neutral','Impossible'],a:1,e:'Negative enthalpy change indicates heat is released: exothermic.'},
+      {q:'Oxidation involves:',o:['Gain of electrons','Loss of electrons','No electron change','Only proton gain'],a:1,e:'Oxidation is commonly defined as loss of electrons.'}
+    ];
+    return [
+      {q:'What happens to the cell potential of a concentration cell as the concentration difference falls?',o:['It tends toward zero','It becomes infinite','It always doubles','It stays fixed'],a:0,e:'A smaller concentration difference reduces the driving force, so the potential tends toward zero.'},
+      {q:'The rate constant mainly belongs to the:',o:['Rate law of a reaction','Periodic table','Molecular formula','Atomic mass unit'],a:0,e:'The rate constant k is part of the rate law and depends on conditions such as temperature.'},
+      {q:'Coordination compounds contain a central:',o:['Ligand only','Metal atom or ion','Neutron star','Solvent molecule only'],a:1,e:'A coordination complex has a central metal atom or ion bonded to ligands.'},
+      {q:'An alkene typically contains a:',o:['C-C single bond only','C=C double bond','C≡C triple bond only','No carbon bond'],a:1,e:'Alkenes contain at least one carbon-carbon double bond.'},
+      {q:'Amines are organic derivatives related to:',o:['Ammonia','Methane only','Water only','Carbon dioxide only'],a:0,e:'Amines are derivatives of ammonia in which one or more H atoms are replaced by carbon groups.'}
+    ];
+  }
+  if(subject==='Biology'){
+    if(cls===11)return [
+      {q:'The basic structural and functional unit of life is the:',o:['Tissue','Organ','Cell','Organism'],a:2,e:'The cell is the basic unit of life.'},
+      {q:'Which organelle is mainly responsible for ATP production?',o:['Ribosome','Mitochondrion','Golgi body','Lysosome'],a:1,e:'Mitochondria are the main sites of aerobic cellular respiration and ATP production.'},
+      {q:'Photosynthesis primarily occurs in:',o:['Mitochondria','Chloroplasts','Nucleus','Ribosomes'],a:1,e:'Chloroplasts contain chlorophyll and are the main sites of photosynthesis.'},
+      {q:'The movement of water through xylem is mainly from:',o:['Leaves to roots only','Roots toward aerial parts','Flowers to seeds only','Cells to soil'],a:1,e:'Xylem carries water and minerals upward from roots toward stems and leaves.'},
+      {q:'Which blood cells help defend the body?',o:['Red blood cells','White blood cells','Platelets only','Plasma proteins only'],a:1,e:'White blood cells play major roles in immune defence.'}
+    ];
+    return [
+      {q:'The molecule that stores genetic information in most organisms is:',o:['DNA','Glucose','ATP only','Cellulose'],a:0,e:'DNA is the principal genetic material in most organisms.'},
+      {q:'During meiosis, chromosome number is generally:',o:['Doubled','Reduced by half','Unchanged forever','Tripled'],a:1,e:'Meiosis produces haploid cells, reducing chromosome number by half.'},
+      {q:'Which technique uses microbes or cells to make useful products?',o:['Biotechnology','Weathering','Sedimentation','Reflection'],a:0,e:'Biotechnology applies biological systems or processes for useful purposes.'},
+      {q:'A population consists of organisms of the same species living in:',o:['Different planets only','The same defined area','Only laboratories','Only oceans'],a:1,e:'A population is a group of individuals of the same species in a defined area at a given time.'},
+      {q:'Which level includes interactions between living organisms and their physical environment?',o:['Cell','Tissue','Ecosystem','Organ'],a:2,e:'An ecosystem includes biotic communities and their physical environment.'}
+    ];
+  }
+  return [
+    {q:'Which statement best describes this subject?',o:['It has no concepts','It uses organised concepts and problem solving','It has no revision needs','It is only memorisation'],a:1,e:'Strong subject revision combines concepts, examples, and practice.'},
+    {q:'What should you do before answering a difficult question?',o:['Guess immediately','Identify what is being asked and the relevant concept','Skip every question','Change subjects'],a:1,e:'First identify the task and the concept or rule needed.'},
+    {q:'A good revision answer should be:',o:['Unrelated to the question','Clear and supported by reasoning','Only one random word','Always the longest possible'],a:1,e:'Good answers are relevant, clear, and supported by the required reasoning.'},
+    {q:'Why is practice useful?',o:['It builds retrieval and application skills','It removes the need to learn','It guarantees every answer','It replaces understanding'],a:0,e:'Practice strengthens recall and the ability to apply concepts.'},
+    {q:'What is a useful final check?',o:['Ignore units and signs','Review the result and method','Erase the working','Change the question'],a:1,e:'Checking the result, units, signs, and method catches common errors.'}
+  ];
+}
+function loadPracticeQuestions(){
+  questionBank=practiceBankFor(studentClass,currentSubject().name);
+  state.practiceIndex=0;
+  renderPracticeQuestion();
+}
+function renderPracticeQuestion(){
+  const q=questionBank[state.practiceIndex]||questionBank[0];
+  if(!q)return;
+  document.getElementById('questionNo').textContent='Question '+(state.practiceIndex+1)+' of '+questionBank.length;
+  const meta=document.querySelector('#practice .q-meta span:last-child');
+  if(meta)meta.textContent='✦ '+currentProfile().label+' · '+currentSubject().name+' · '+(document.getElementById('practiceDifficulty')?.value||'Medium');
+  document.getElementById('qProgress').style.width=(((state.practiceIndex+1)/questionBank.length)*100)+'%';
+  document.getElementById('questionText').textContent=q.q;
+  document.getElementById('options').innerHTML=q.o.map((x,i)=>'<button class="option" onclick="answer(this,'+String(i===q.a)+')">'+escapeHtml(x)+'</button>').join('');
+  document.getElementById('explain').innerHTML='<b>Why:</b> '+escapeHtml(q.e);
+  document.getElementById('explain').classList.remove('show');
+  document.getElementById('nextBtn').disabled=true;
+}
 const flashcards=[
  ["What is Ohm's Law?","Ohm's Law states that V = IR, where V is voltage, I is current, and R is resistance."],
  ["What is Kirchhoff's junction rule?","The total current entering a junction equals the total current leaving it."],
@@ -439,11 +564,13 @@ function choosePracticeCategory(type){
   selectedSubject=subj.name;
   localStorage.setItem('studypilotSubject',selectedSubject);
   renderClassChapters();
+  loadPracticeQuestions();
 }
 function setStudentSubject(value){
   selectedSubject=value;
   localStorage.setItem('studypilotSubject',selectedSubject);
   renderClassChapters();
+  loadPracticeQuestions();
 }
 function getChapterKey(classValue,subjectName,chapterName){
   return [classValue,subjectName,chapterName].join('::');
@@ -598,6 +725,7 @@ function applyClassProfile(){
   const chatTitle=document.querySelector('#chat .topbar h1'); if(chatTitle) chatTitle.textContent=p.label+' · AI Tutor';
   const chatInput=document.getElementById('chatInput'); if(chatInput) chatInput.placeholder='Ask your '+p.label+' tutor anything...';
   renderClassChapters();
+  loadPracticeQuestions();
 }
 let newsItems=[];
 let newsFilter='all';
@@ -936,8 +1064,8 @@ async function sendChat(){
 function quickAsk(t){document.getElementById('chatInput').value=t;sendChat()}
 function clearChat(){document.getElementById('messages').innerHTML='';aiHistory=[];localStorage.removeItem('studypilotChat');appendMsg("New study session started. What would you like to learn?")}
 function newChat(){clearChat();toast('New conversation started')}
-function answer(btn,correct){document.querySelectorAll('.option').forEach(x=>x.disabled=true);btn.classList.add(correct?'correct':'wrong');if(!correct){const opts=[...document.querySelectorAll('.option')];opts[questionBank[state.practiceIndex].a].classList.add('correct')}document.getElementById('explain').classList.add('show');document.getElementById('nextBtn').disabled=false;state.questions++;if(correct)state.correct++;markStudy();toast(correct?'Correct! Great work 🎉':'Not quite — review the explanation.')}
-function nextQuestion(){state.practiceIndex=(state.practiceIndex+1)%questionBank.length;const q=questionBank[state.practiceIndex];document.getElementById('questionNo').textContent=`Question ${state.practiceIndex+1} of 5`;document.getElementById('qProgress').style.width=((state.practiceIndex+1)*20)+'%';document.getElementById('questionText').textContent=q.q;document.getElementById('options').innerHTML=q.o.map((x,i)=>`<button class="option" onclick="answer(this,${i===q.a})">${x}</button>`).join('');document.getElementById('explain').innerHTML='<b>Why:</b> '+q.e;document.getElementById('explain').classList.remove('show');document.getElementById('nextBtn').disabled=true}
+function answer(btn,correct){document.querySelectorAll('.option').forEach(x=>x.disabled=true);btn.classList.add(correct?'correct':'wrong');if(!correct){const opts=[...document.querySelectorAll('.option')];const answerIndex=questionBank[state.practiceIndex]?.a;if(Number.isInteger(answerIndex)&&opts[answerIndex])opts[answerIndex].classList.add('correct')}document.getElementById('explain').classList.add('show');document.getElementById('nextBtn').disabled=false;state.questions++;if(correct)state.correct++;markStudy();toast(correct?'Correct! Great work 🎉':'Not quite — review the explanation.')}
+function nextQuestion(){if(!questionBank.length)return;state.practiceIndex=(state.practiceIndex+1)%questionBank.length;renderPracticeQuestion()}
 function flipCard(){state.flipped=!state.flipped;document.getElementById('flashDefinition').classList.toggle('hidden',!state.flipped);document.getElementById('flashTerm').style.opacity=state.flipped?.25:1}
 function flashRate(level){state.flashIndex=(state.flashIndex+1)%flashcards.length;const f=flashcards[state.flashIndex];document.getElementById('flashLabel').textContent=`QUESTION · CARD ${state.flashIndex+1} / 12`;document.getElementById('flashTerm').textContent=f[0];document.getElementById('flashDefinition').textContent=f[1];document.getElementById('flashDefinition').classList.add('hidden');state.flipped=false;document.getElementById('flashTerm').style.opacity=1;toast(level==='easy'?'Card mastered ✓':level==='hard'?'Scheduled for another review':'Will repeat soon ↻')}
 function resetProgress(){if(!confirm("Reset this device's StudyPilot progress?"))return;localStorage.removeItem('studypilotState');location.reload();}
