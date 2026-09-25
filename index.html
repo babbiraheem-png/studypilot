@@ -142,6 +142,30 @@ main{min-width:0;padding:30px;max-width:1540px;width:100%;margin:auto}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
 .toast{position:fixed;right:22px;bottom:22px;background:#20334c;color:#fff;border:1px solid #304765;padding:12px 15px;border-radius:11px;display:none;z-index:30;box-shadow:var(--shadow)}
 
+.news-hero{
+  display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:16px;
+  background:linear-gradient(135deg,#edf5ff 0%,#fffdf8 70%);border-color:#d9e6f5
+}
+.news-hero h2{margin:8px 0 6px;color:#20334c;font-size:24px;letter-spacing:-.035em}
+.news-hero p{margin:0;color:#66778a;max-width:700px;line-height:1.55}
+.news-filters{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.news-filter.active{background:linear-gradient(135deg,#3578d4,#69a7ee);color:#fff;border:0}
+.news-list{display:grid;gap:12px}
+.news-card{
+  display:grid;grid-template-columns:1fr auto;gap:18px;align-items:start;
+  background:rgba(255,253,248,.96);border:1px solid var(--line);border-radius:16px;padding:18px 20px;
+  box-shadow:0 10px 30px rgba(74,88,112,.06)
+}
+.news-card h3{margin:8px 0 8px;font-size:16px;line-height:1.4;color:#21344c}
+.news-card p{margin:0;color:#66778a;font-size:13px;line-height:1.55}
+.news-meta{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.news-source{font-size:11px;font-weight:800;color:#3578d4}
+.news-date{font-size:11px;color:#8a95a4}
+.news-open{white-space:nowrap;align-self:center}
+.news-empty{display:grid;place-items:center;text-align:center;gap:6px;padding:42px;color:#59697d}
+.news-spinner{font-size:24px;animation:spin 1s linear infinite;color:#3578d4}
+.news-footnote{margin-top:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:1000px){.app{grid-template-columns:78px 1fr}.sidebar{padding:15px 10px}.logo span,.nav button span,.profile div:not(.avatar),.side-bottom .small{display:none}.nav button{justify-content:center}.side-bottom{left:10px;right:10px}.stats{grid-template-columns:repeat(2,1fr)}.two,.revision-grid{grid-template-columns:1fr}.chat-layout{grid-template-columns:210px 1fr}}
 @media(max-width:680px){.app{display:block}.sidebar{position:fixed;z-index:15;bottom:0;top:auto;width:100%;height:66px;border-right:0;border-top:1px solid var(--line);padding:6px;background:rgba(255,253,248,.96)}.logo,.side-bottom{display:none}.nav{display:flex;justify-content:space-around}.nav button{padding:9px}.nav button span{display:none}.nav button:first-child{display:none}main{padding:18px 14px 85px}.topbar{align-items:flex-start}.topbar h1{font-size:22px}.actions .btn:not(.primary){display:none}.stats{grid-template-columns:1fr 1fr}.three{grid-template-columns:1fr}.chat-layout{grid-template-columns:1fr;height:calc(100vh - 130px);min-height:550px}.chat-list{display:none}.hero h2{font-size:22px}.q-text{font-size:18px}}
 </style>
@@ -153,6 +177,7 @@ main{min-width:0;padding:30px;max-width:1540px;width:100%;margin:auto}
   <nav class="nav">
     <button class="active" data-view="dashboard">⌂ <span>Dashboard</span></button>
     <button data-view="chat">◉ <span>AI Tutor</span></button>
+    <button data-view="news">📰 <span>News</span></button>
     <button data-view="revision">↻ <span>Revision</span></button>
     <button data-view="practice">✓ <span>Practice</span></button>
     <button data-view="flashcards">▣ <span>Flashcards</span></button>
@@ -215,6 +240,26 @@ main{min-width:0;padding:30px;max-width:1540px;width:100%;margin:auto}
         <div class="chat-input"><input id="chatInput" placeholder="Ask your tutor anything..." onkeydown="if(event.key==='Enter')sendChat()"/><button class="btn primary" onclick="sendChat()">Send ↑</button></div>
       </div>
     </div>
+  </section>
+
+  <section id="news" class="view">
+    <div class="topbar">
+      <div><h1>Education News</h1><p>Fresh official CBSE updates, exam notices, opportunities, and student resources.</p></div>
+      <div class="actions"><span class="badge" id="newsUpdated">Not loaded</span><button class="btn" onclick="loadNews(true)">↻ Refresh</button></div>
+    </div>
+    <div class="card news-hero">
+      <div><span class="badge">News Mode</span><h2 id="newsClassTitle">For your class</h2><p>StudyPilot automatically checks official CBSE sources and highlights updates that matter to your class.</p></div>
+      <div class="news-filters">
+        <button class="btn primary news-filter active" data-news-filter="all" onclick="setNewsFilter('all')">All</button>
+        <button class="btn news-filter" data-news-filter="class" onclick="setNewsFilter('class')">My class</button>
+        <button class="btn news-filter" data-news-filter="exam" onclick="setNewsFilter('exam')">Exams</button>
+        <button class="btn news-filter" data-news-filter="opportunity" onclick="setNewsFilter('opportunity')">Opportunities</button>
+      </div>
+    </div>
+    <div id="newsLoading" class="card news-empty" style="display:none"><div class="news-spinner">↻</div><b>Checking the latest education updates…</b><div class="small">Official CBSE sources are being refreshed.</div></div>
+    <div id="newsError" class="card news-empty" style="display:none"><b>News could not be loaded right now.</b><div class="small" style="margin-top:6px">Try Refresh again.</div></div>
+    <div id="newsList" class="news-list"></div>
+    <div class="small news-footnote">Sources: official CBSE Academic, Examination, and CBSE Notices pages. Open the source for the complete notice.</div>
   </section>
 
   <section id="revision" class="view">
@@ -363,6 +408,7 @@ function setStudentClass(value){
   localStorage.setItem('studypilotClass',studentClass);
   localStorage.setItem('studypilotSubject',selectedSubject);
   applyClassProfile();
+if(document.getElementById('news')?.classList.contains('active'))loadNews(true);
 if(!studentClass)openClassChooser();
 }
 function setStudentSubject(value){
@@ -406,10 +452,68 @@ function applyClassProfile(){
   const chatInput=document.getElementById('chatInput'); if(chatInput) chatInput.placeholder='Ask your '+p.label+' tutor anything...';
   renderClassChapters();
 }
+let newsItems=[];
+let newsFilter='all';
+let newsLastLoaded=0;
+function setNewsFilter(filter){
+  newsFilter=filter;
+  document.querySelectorAll('.news-filter').forEach(b=>b.classList.toggle('active',b.dataset.newsFilter===filter));
+  renderNews();
+}
+function newsCategory(item){
+  const t=(item.title||'').toLowerCase();
+  if(/sample question|loc|list of candidates|examination|admit card|result|supplementary|datesheet|paper pattern|board/.test(t))return 'exam';
+  if(/scholarship|competition|quiz|olympiad|webinar|nielit|career|expo|award|programme|portal|nomination/.test(t))return 'opportunity';
+  return 'class';
+}
+function renderNews(){
+  const list=document.getElementById('newsList');
+  if(!list)return;
+  const cls=String(studentClass||11);
+  document.getElementById('newsClassTitle').textContent='For Class '+cls;
+  let items=newsItems.slice();
+  if(newsFilter==='class')items=items.filter(x=>Number(x.score||0)>=2);
+  if(newsFilter==='exam')items=items.filter(x=>newsCategory(x)==='exam');
+  if(newsFilter==='opportunity')items=items.filter(x=>newsCategory(x)==='opportunity');
+  if(!items.length){
+    list.innerHTML='<div class="card news-empty"><b>No matching updates right now.</b><div class="small">Try another filter or refresh the news feed.</div></div>';
+    return;
+  }
+  list.innerHTML=items.map(item=>{
+    const safeTitle=escapeHtml(item.title||'Education update');
+    const safeWhy=escapeHtml(item.why||'Current official education update.');
+    const safeSource=escapeHtml(item.source||'Official source');
+    const safeDate=escapeHtml(item.date||'Latest');
+    const safeLink=escapeHtml(item.link||'#');
+    return '<article class="news-card"><div><div class="news-meta"><span class="news-source">'+safeSource+'</span><span class="news-date">'+safeDate+'</span><span class="badge">'+escapeHtml(newsCategory(item))+'</span></div><h3>'+safeTitle+'</h3><p>'+safeWhy+'</p></div><a class="btn news-open" href="'+safeLink+'" target="_blank" rel="noopener noreferrer">Open notice ↗</a></article>';
+  }).join('');
+}
+async function loadNews(force=false){
+  const now=Date.now();
+  if(!force&&newsLastLoaded&&now-newsLastLoaded<300000)return;
+  const loading=document.getElementById('newsLoading'), error=document.getElementById('newsError');
+  if(loading)loading.style.display='grid'; if(error)error.style.display='none';
+  try{
+    const res=await fetch('/api/news?class='+encodeURIComponent(studentClass||11),{cache:'no-store'});
+    if(!res.ok)throw new Error('News request failed');
+    const data=await res.json();
+    newsItems=Array.isArray(data.items)?data.items:[];
+    newsLastLoaded=Date.now();
+    const stamp=document.getElementById('newsUpdated');
+    if(stamp)stamp.textContent='Updated '+new Date(data.updatedAt||Date.now()).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    renderNews();
+  }catch(e){
+    newsItems=[];
+    if(error)error.style.display='grid';
+  }finally{
+    if(loading)loading.style.display='none';
+  }
+}
 function showView(id){
  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
  document.getElementById(id).classList.add('active');
  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
+ if(id==='news')loadNews();
  window.scrollTo({top:0,behavior:'smooth'});
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>showView(b.dataset.view));
