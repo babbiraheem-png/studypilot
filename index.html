@@ -168,7 +168,7 @@ main{min-width:0;padding:30px;max-width:1540px;width:100%;margin:auto}
 
 <main>
   <section id="dashboard" class="view active">
-    <div class="topbar"><div><h1>Good evening, student 👋</h1><p>Your learning workspace is ready for today's session.<span id="classContext" class="small" style="margin-left:8px"></span></p></div><div class="actions"><span class="badge" id="creditBadge">20 AI credits</span><span class="badge" id="planBadge">Free plan</span><label class="class-picker" style="display:flex;align-items:center;gap:7px"><span class="small" style="color:#53657a;font-weight:700">Class</span><select id="classSelector" class="select" aria-label="Choose class" onchange="setStudentClass(this.value)"><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></label><button class="btn" id="accountAction" onclick="openAuth()">Sign in</button><button class="btn" onclick="openModal()">＋ Add task</button><button class="btn primary" onclick="showView('practice')">Start practice</button></div></div>
+    <div class="topbar"><div><h1>Good evening, student 👋</h1><p>Your learning workspace is ready for today's session.<span id="classContext" class="small" style="margin-left:8px"></span></p></div><div class="actions"><span class="badge" id="creditBadge">20 AI credits</span><span class="badge" id="planBadge">Free plan</span><label class="class-picker" style="display:flex;align-items:center;gap:7px"><span class="small" style="color:#53657a;font-weight:700">Class</span><select id="classSelector" class="select" aria-label="Choose class" onchange="setStudentClass(this.value)"><option value="6">6</option><option value="7">Class 7</option><option value="8">Class 8</option><option value="9">Class 9</option><option value="10">Class 10</option><option value="11">Class 11</option><option value="12">Class 12</option></select></label><button class="btn" id="accountAction" onclick="openAuth()">Sign in</button><button class="btn" onclick="openModal()">＋ Add task</button><button class="btn" onclick="openClassChooser()">Change class</button><button class="btn primary" onclick="showView('practice')">Start practice</button></div></div>
     <div class="grid stats">
       <div class="card stat"><div><div class="small">Study streak</div><div class="num" id="streakCount">0 <span class="small">days</span></div></div><span class="badge" id="streakBadge">Start today</span></div>
       <div class="card stat"><div><div class="small">Questions solved</div><div class="num" id="qCount">0</div></div><span class="badge">Your activity</span></div>
@@ -271,6 +271,7 @@ main{min-width:0;padding:30px;max-width:1540px;width:100%;margin:auto}
 </div>
 
 <div class="modal" id="modal"><div class="modal-box"><h2>Add study task</h2><div class="field"><label>Task name</label><input id="taskName" placeholder="e.g. Revise thermodynamics"></div><div class="field"><label>Subject</label><select id="taskSubject"><option>Physics</option><option>Mathematics</option><option>Biology</option><option>Chemistry</option></select></div><div class="field"><label>Minutes</label><input id="taskMinutes" type="number" value="30"></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="addTask()">Add task</button></div></div></div>
+<div class="modal" id="classChooserModal"><div class="modal-box"><h2>Choose your class</h2><p class="small">Pick your class to load the matching CBSE / NCERT-aligned subjects and chapters.</p><div class="field"><label for="classChooserSelect">Class</label><select id="classChooserSelect" class="select" style="width:100%"><option value="">Select your class</option><option value="6">Class 6</option><option value="7">Class 7</option><option value="8">Class 8</option><option value="9">Class 9</option><option value="10">Class 10</option><option value="11">Class 11</option><option value="12">Class 12</option></select></div><div class="modal-actions"><button class="btn primary" onclick="saveChosenClass()">Continue →</button></div></div></div>
 <div class="modal" id="authModal"><div class="modal-box"><h2>Student account</h2><p class="small">Create an account to keep your membership and AI credits connected to you.</p><div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"></div><div class="field"><label>Password</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="At least 8 characters"></div><div class="modal-actions"><button class="btn" onclick="closeAuth()">Close</button><button class="btn" onclick="signIn()">Sign in</button><button class="btn primary" onclick="signUp()">Create account</button></div><div class="small" id="authMessage" style="margin-top:12px"></div></div></div>
 <div class="toast" id="toast"></div>
 <div class="modal" id="aiModal"><div class="modal-box"><h2>AI Tutor</h2><p class="small" style="line-height:1.6">The AI Tutor is securely connected through the StudyPilot server. Your Gemini API key is never exposed to students.</p><div class="small">Server status: <b id="serverStatus">Checking…</b></div><div class="modal-actions"><button class="btn primary" onclick="testServer()">Test AI Tutor</button><button class="btn" onclick="closeAISetup()">Close</button></div></div></div>
@@ -341,13 +342,28 @@ function currentSubject(){
   const p=currentProfile();
   return p.subjects.find(s=>s.name===selectedSubject)||p.subjects[0];
 }
+function openClassChooser(){
+  const m=document.getElementById('classChooserModal'); const s=document.getElementById('classChooserSelect');
+  if(!m||!s)return;
+  s.value=studentClass||'';
+  m.classList.add('open');
+}
+function closeClassChooser(){document.getElementById('classChooserModal')?.classList.remove('open')}
+function saveChosenClass(){
+  const s=document.getElementById('classChooserSelect');
+  if(!s||!s.value)return;
+  setStudentClass(s.value);
+  closeClassChooser();
+}
 function setStudentClass(value){
+  if(!classProfiles[String(value)])return;
   studentClass=String(value);
   const p=currentProfile();
   selectedSubject=p.subjects[0].name;
   localStorage.setItem('studypilotClass',studentClass);
   localStorage.setItem('studypilotSubject',selectedSubject);
   applyClassProfile();
+if(!studentClass)openClassChooser();
 }
 function setStudentSubject(value){
   selectedSubject=value;
