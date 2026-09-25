@@ -322,7 +322,7 @@ main{min-width:0;padding:30px;max-width:1540px;width:100%;margin:auto}
   <div id="chapterContent" class="chapter-content"></div>
   <div class="modal-actions"><button class="btn" onclick="askChapterTutor()">✨ Ask AI Tutor</button><button class="btn primary" onclick="markChapterReviewed()">✓ Mark as reviewed</button></div>
 </div></div>
-<div class="modal" id="authModal"><div class="modal-box"><h2>Welcome to StudyPilot</h2><p class="small">Sign in or create your account.</p><div class="field"><label>Login</label><input id="authEmail" type="text" autocomplete="username" placeholder="Email or phone"></div><div class="field"><label>Password</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="At least 8 characters"></div><div class="field hidden" id="authOtpField"><label>Phone verification code</label><input id="authOtp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code"></div><div class="modal-actions"><button class="btn" onclick="closeAuth()">Close</button><button class="btn" onclick="signIn()">Sign in</button><button class="btn primary" onclick="signUp()">Create account</button><button class="btn primary hidden" id="verifyPhoneBtn" onclick="verifyPhone()">Verify phone</button></div><div class="small" id="authMessage" style="margin-top:12px"></div></div></div><div class="toast" id="toast"></div>
+<div class="modal" id="authModal"><div class="modal-box"><h2>Welcome to StudyPilot</h2><p class="small">Sign in or create your account.</p><div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="username" placeholder="Email address"></div><div class="field"><label>Password</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="At least 8 characters"></div></div><div class="modal-actions"><button class="btn" onclick="closeAuth()">Close</button><button class="btn" onclick="signIn()">Sign in</button><button class="btn primary" onclick="signUp()">Create account</button></div><div class="small" id="authMessage" style="margin-top:12px"></div></div></div><div class="toast" id="toast"></div>
 <div class="modal" id="aiModal"><div class="modal-box"><h2>AI Tutor</h2><p class="small" style="line-height:1.6">The AI Tutor is securely connected through the StudyPilot server. Your Gemini API key is never exposed to students.</p><div class="small">Server status: <b id="serverStatus">Checking…</b></div><div class="modal-actions"><button class="btn primary" onclick="testServer()">Test AI Tutor</button><button class="btn" onclick="closeAISetup()">Close</button></div></div></div>
 
 <script>
@@ -893,16 +893,6 @@ async function loadAccount(){
   renderAccount();
 }
 
-function isPhoneIdentifier(value){
-  const v=String(value||'').trim().replace(/[\s()-]/g,'');
-  return /^\+?[1-9]\d{7,14}$/.test(v) && !v.includes('@');
-}
-
-function resetPhoneVerification(){
-  document.getElementById('authOtpField').classList.add('hidden');
-  document.getElementById('verifyPhoneBtn').classList.add('hidden');
-}
-
 async function signUp(){
   const identifier=document.getElementById('authEmail').value.trim();
   const password=document.getElementById('authPassword').value;
@@ -910,7 +900,7 @@ async function signUp(){
   resetPhoneVerification();
 
   if(!identifier||password.length<8){
-    msg.textContent='Enter your email address or phone number and an 8+ character password.';
+    msg.textContent='Enter a valid email address and an 8+ character password.';
     return;
   }
 
@@ -921,7 +911,7 @@ async function signUp(){
       method:'POST',
       headers:{'Content-Type':'application/json'},
       credentials:'include',
-      body:JSON.stringify({identifier,password})
+      body:JSON.stringify({email,password})
     });
     const d=await r.json().catch(()=>({}));
 
@@ -951,41 +941,6 @@ async function signUp(){
   }
 }
 
-async function verifyPhone(){
-  const identifier=document.getElementById('authEmail').value.trim();
-  const token=document.getElementById('authOtp').value.trim();
-  const msg=document.getElementById('authMessage');
-  const phone=identifier;
-
-  if(!isPhoneIdentifier(phone)||!/^[0-9]{6}$/.test(token)){
-    msg.textContent='Enter the 6-digit verification code sent to your phone.';
-    return;
-  }
-
-  msg.textContent='Verifying phone…';
-
-  try{
-    const r=await fetch('/api/auth/verify-phone',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      credentials:'include',
-      body:JSON.stringify({phone,token})
-    });
-    const d=await r.json().catch(()=>({}));
-
-    if(!r.ok){
-      msg.textContent=d.message||'Phone verification failed.';
-      return;
-    }
-
-    closeAuth();
-    await loadAccount();
-    toast('Phone verified and account created ✓');
-  }catch(e){
-    msg.textContent='Phone verification is temporarily unavailable.';
-  }
-}
-
 async function signIn(){
   const identifier=document.getElementById('authEmail').value.trim();
   const password=document.getElementById('authPassword').value;
@@ -993,7 +948,7 @@ async function signIn(){
   resetPhoneVerification();
 
   if(!identifier||!password){
-    msg.textContent='Enter your email address or phone number and password.';
+    msg.textContent='Enter your email address and password.';
     return;
   }
 
@@ -1004,7 +959,7 @@ async function signIn(){
       method:'POST',
       headers:{'Content-Type':'application/json'},
       credentials:'include',
-      body:JSON.stringify({identifier,password})
+      body:JSON.stringify({email,password})
     });
     const d=await r.json().catch(()=>({}));
 
