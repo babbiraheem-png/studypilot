@@ -338,7 +338,7 @@ main{min-width:0;padding:30px;max-width:1540px;width:100%;margin:auto}
   <div id="chapterContent" class="chapter-content"></div>
   <div class="modal-actions"><button class="btn" onclick="askChapterTutor()">✨ Ask AI Tutor</button><button class="btn primary" onclick="markChapterReviewed()">✓ Mark as reviewed</button></div>
 </div></div>
-<div class="modal" id="authModal"><div class="modal-box"><h2>Student account</h2><p class="small">Sign in with your email address or phone number. New accounts require both email and phone.</p><div class="field"><label>Email address or phone number</label><input id="authEmail" type="text" autocomplete="username" inputmode="email" placeholder="you@example.com or +91 98765 43210"></div><div class="small" style="margin-top:-6px;line-height:1.5">For a new account, enter your <b>email address</b> in the box above and your phone number below. Sign in accepts either one.</div><div class="field" id="authPhoneField"><label>Phone number <span class="small">(used for account signup)</span></label><input id="authPhone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+91 98765 43210"></div><div class="field"><label>Password</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="At least 8 characters"></div><div class="modal-actions"><button class="btn" onclick="closeAuth()">Close</button><button class="btn" onclick="signIn()">Sign in</button><button class="btn primary" onclick="signUp()">Create account</button></div><div class="small" id="authMessage" style="margin-top:12px"></div></div></div>
+<div class="modal" id="authModal"><div class="modal-box"><h2>Student account</h2><p class="small">Sign in or create an account with your email address or phone number. Email and phone can be used as your account identifier.</p><div class="field"><label>Email address or phone number</label><input id="authEmail" type="text" autocomplete="username" inputmode="email" placeholder="you@example.com or +91 98765 43210"></div><div class="small" style="margin-top:-6px;line-height:1.5">For a new account, you may enter <b>either email or phone</b> above. The phone field below is optional.</div><div class="field" id="authPhoneField"><label>Phone number <span class="small">(optional)</span></label><input id="authPhone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+91 98765 43210"></div><div class="field"><label>Password</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="At least 8 characters"></div><div class="modal-actions"><button class="btn" onclick="closeAuth()">Close</button><button class="btn" onclick="signIn()">Sign in</button><button class="btn primary" onclick="signUp()">Create account</button></div><div class="small" id="authMessage" style="margin-top:12px"></div></div></div>
 <div class="toast" id="toast"></div>
 <div class="modal" id="aiModal"><div class="modal-box"><h2>AI Tutor</h2><p class="small" style="line-height:1.6">The AI Tutor is securely connected through the StudyPilot server. Your Gemini API key is never exposed to students.</p><div class="small">Server status: <b id="serverStatus">Checking…</b></div><div class="modal-actions"><button class="btn primary" onclick="testServer()">Test AI Tutor</button><button class="btn" onclick="closeAISetup()">Close</button></div></div></div>
 
@@ -928,13 +928,13 @@ async function loadAccount(){
 }
 
 async function signUp(){
-  const email=document.getElementById('authEmail').value.trim();
+  const identifier=document.getElementById('authEmail').value.trim();
   const phone=document.getElementById('authPhone').value.trim();
   const password=document.getElementById('authPassword').value;
   const msg=document.getElementById('authMessage');
 
-  if(!email||!phone||password.length<8){
-    msg.textContent='Enter your email, phone number, and an 8+ character password.';
+  if(!identifier||password.length<8){
+    msg.textContent='Enter your email address or phone number and an 8+ character password.';
     return;
   }
 
@@ -945,7 +945,7 @@ async function signUp(){
       method:'POST',
       headers:{'Content-Type':'application/json'},
       credentials:'include',
-      body:JSON.stringify({email,phone,password})
+      body:JSON.stringify({identifier,phone,password})
     });
     const d=await r.json().catch(()=>({}));
 
