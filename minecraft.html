@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BlockWorld — Voxel Sandbox</title>
+<link rel="stylesheet" href="minecraft.css">
+</head>
+<body>
+<div id="game"></div>
+<div id="crosshair">+</div>
+<div id="hud">
+  <div id="topbar"><span id="coords">XYZ 0 / 0 / 0</span><span id="time">DAY 1 · 06:00</span><span id="fps">60 FPS</span></div>
+  <div id="hint">Click to play · WASD move · Space jump · LMB mine · RMB place · 1–9 select · E inventory · Esc pause</div>
+  <div id="hotbar"></div>
+  <div id="status"></div>
+</div>
+<div id="inventory" class="hidden">
+  <div class="panel">
+    <h2>Inventory</h2>
+    <div id="inventory-grid"></div>
+    <p>Press <b>E</b> or <b>Esc</b> to close</p>
+  </div>
+</div>
+<div id="menu">
+  <div class="menu-card">
+    <div class="logo">BLOCK<span>WORLD</span></div>
+    <p class="subtitle">A browser voxel survival sandbox</p>
+    <button id="play">CREATE WORLD</button>
+    <div class="world-info">
+      <span>🌎 Infinite-style procedural terrain</span>
+      <span>⛏ Mining & building</span>
+      <span>🌲 Trees, caves, water & ores</span>
+      <span>☀️ Dynamic day/night</span>
+      <span>🎒 Inventory & hotbar</span>
+    </div>
+    <small>Original browser game inspired by voxel sandbox mechanics. Not affiliated with Mojang or Minecraft.</small>
+  </div>
+</div>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}
+</script>
+<script type="module" src="minecraft.js"></script>
+</body>
+</html>
