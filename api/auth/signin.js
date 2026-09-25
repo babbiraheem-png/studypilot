@@ -34,26 +34,16 @@ export default async function handler(req, res) {
       auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
     });
 
-    let resolvedEmail = loginIdentifier;
-
-    if (!loginIdentifier.includes('@')) {
+    let data, error;
+    if (loginIdentifier.includes('@')) {
+      ({ data, error } = await sb.auth.signInWithPassword({ email: loginIdentifier, password }));
+    } else {
       const normalizedPhone = loginIdentifier.replace(/[\s()-]/g, '');
       if (!/^\+?[1-9]\d{7,14}$/.test(normalizedPhone)) {
         return res.status(400).json({ message: 'Enter a valid email address or phone number.' });
       }
-      const dbLookup = admin();
-      const { data: phoneProfile, error: phoneError } = await dbLookup
-        .from('profiles')
-        .select('email')
-        .eq('phone', normalizedPhone)
-        .maybeSingle();
-
-      if (phoneError) return res.status(500).json({ message: 'Unable to look up that phone number.' });
-      if (!phoneProfile?.email) return res.status(401).json({ message: 'No StudyPilot account was found for that phone number.' });
-      resolvedEmail = phoneProfile.email;
+      ({ data, error } = await sb.auth.signInWithPassword({ phone: normalizedPhone, password }));
     }
-
-    const { data, error } = await sb.auth.signInWithPassword({ email: resolvedEmail, password });
     if (error) return res.status(401).json({ message: error.message });
     if (!data.session || !data.user) {
       return res.status(401).json({ message: 'Unable to create a login session.' });
