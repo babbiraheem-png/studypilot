@@ -431,7 +431,7 @@ function renderPracticeCategories(){
   const row=document.getElementById('practiceCategoryRow');
   if(!row)return;
   const types=[...new Set(currentProfile().subjects.map(s=>subjectType(s.name)))];
-  row.innerHTML=types.map(type=>'<button class="practice-category'+(subjectType(currentSubject().name)===type?' active':'')+'" type="button" onclick="choosePracticeCategory(\\''+escapeHtml(type)+'\\')">'+escapeHtml(type)+'</button>').join('');
+  row.innerHTML=types.map(type=>'<button class="practice-category'+(subjectType(currentSubject().name)===type?' active':'')+'" type="button" onclick="choosePracticeCategory(&quot;'+escapeHtml(type)+'&quot;)">'+escapeHtml(type)+'</button>').join('');
 }
 function choosePracticeCategory(type){
   const subj=currentProfile().subjects.find(s=>subjectType(s.name)===type);
