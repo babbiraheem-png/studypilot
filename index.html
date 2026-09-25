@@ -451,9 +451,12 @@ function practiceBankFor(classValue,subject){
   ];
 }
 function loadPracticeQuestions(){
-  questionBank=practiceBankFor(studentClass,currentSubject().name);
+  const subject=currentSubject().name;
+  questionBank=practiceBankFor(studentClass,subject);
   state.practiceIndex=0;
   renderPracticeQuestion();
+  const meta=document.querySelector('#practice .q-meta span:last-child');
+  if(meta)meta.textContent='✦ '+currentProfile().label+' · '+subject+' · '+(document.getElementById('practiceDifficulty')?.value||'Medium');
 }
 function renderPracticeQuestion(){
   const q=questionBank[state.practiceIndex]||questionBank[0];
@@ -707,6 +710,7 @@ function renderClassChapters(){
     practiceSelect.value=subj.name;
   }
   renderPracticeCategories();
+  if(document.getElementById('practice')?.classList.contains('active')) loadPracticeQuestions();
 }
 function applyClassProfile(){
   const p=currentProfile();
@@ -789,6 +793,7 @@ function showView(id){
  document.getElementById(id).classList.add('active');
  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
  if(id==='news')loadNews();
+ if(id==='practice')loadPracticeQuestions();
  window.scrollTo({top:0,behavior:'smooth'});
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>showView(b.dataset.view));
