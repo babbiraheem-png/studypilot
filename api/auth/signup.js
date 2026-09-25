@@ -13,8 +13,14 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
 
   try {
-    const { email, password } = req.body || {};
-    if (!email || !password) return res.status(400).json({ message: 'Email and password are required.' });
+    const { email, password, phone } = req.body || {};
+    const normalizedPhone = String(phone || '').replace(/[\s()-]/g, '');
+    if (!email || !password || !normalizedPhone) {
+      return res.status(400).json({ message: 'Email, phone number, and password are required.' });
+    }
+    if (!/^\+?[1-9]\d{7,14}$/.test(normalizedPhone)) {
+      return res.status(400).json({ message: 'Enter a valid phone number with country code, for example +919876543210.' });
+    }
 
     const key = process.env.SUPABASE_PUBLISHABLE_KEY;
     if (!process.env.SUPABASE_URL || !key) {
@@ -25,7 +31,13 @@ export default async function handler(req, res) {
       auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
     });
 
-    const { data, error } = await sb.auth.signUp({ email, password });
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { phone: normalizedPhone }
+      }
+    });
     if (error) return res.status(400).json({ message: error.message });
 
     if (data.session) setSessionCookies(res, data.session);
