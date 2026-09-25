@@ -75,7 +75,7 @@ export default async function handler(req, res) {
     const db = admin();
     const { data: profile, error: profileError } = await db
       .from('profiles')
-      .select('plan, credits, email')
+      .select('plan, credits, email, phone')
       .eq('id', user.id)
       .maybeSingle();
 
@@ -88,7 +88,8 @@ export default async function handler(req, res) {
       authenticated: true,
       email: user.email,
       plan: profile?.plan || 'free',
-      credits: Number(profile?.credits ?? 20)
+      credits: Number(profile?.credits ?? 20),
+      phone: profile?.phone || user.user_metadata?.phone || ''
     });
   } catch (e) {
     res.setHeader('Cache-Control', 'private, no-store');
