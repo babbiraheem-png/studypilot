@@ -488,5 +488,10 @@ function flipCard(){state.flipped=!state.flipped;document.getElementById('flashD
 function flashRate(level){state.flashIndex=(state.flashIndex+1)%flashcards.length;const f=flashcards[state.flashIndex];document.getElementById('flashLabel').textContent=`QUESTION · CARD ${state.flashIndex+1} / 12`;document.getElementById('flashTerm').textContent=f[0];document.getElementById('flashDefinition').textContent=f[1];document.getElementById('flashDefinition').classList.add('hidden');state.flipped=false;document.getElementById('flashTerm').style.opacity=1;toast(level==='easy'?'Card mastered ✓':level==='hard'?'Scheduled for another review':'Will repeat soon ↻')}
 function resetProgress(){if(!confirm("Reset this device's StudyPilot progress?"))return;localStorage.removeItem('studypilotState');location.reload();}
 </script>
+<footer style="max-width:1100px;margin:32px auto 24px;padding:16px 20px;text-align:center;color:#64748b;font-size:13px;border-top:1px solid #e2e8f0;">
+  <span>Founder: <strong style="color:#0f172a;">Roushan</strong></span>
+  <span style="margin:0 10px;color:#cbd5e1;">•</span>
+  <span>Developer: <strong style="color:#0f172a;">Roushan</strong></span>
+</footer>
 </body>
 </html>
