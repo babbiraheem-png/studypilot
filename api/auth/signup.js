@@ -9,16 +9,34 @@ function setSessionCookies(res, session) {
   ]);
 }
 
+function normalizePhone(value) {
+  return String(value || '').replace(/[\s()-]/g, '');
+}
+
+function looksLikePhone(value) {
+  const phone = normalizePhone(value);
+  return /^\+?[1-9]\d{7,14}$/.test(phone) && !phone.includes('@');
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
 
   try {
-    const { email, password, phone } = req.body || {};
-    const normalizedPhone = String(phone || '').replace(/[\s()-]/g, '');
-    if (!email || !password || !normalizedPhone) {
-      return res.status(400).json({ message: 'Email, phone number, and password are required.' });
+    const { identifier, email: legacyEmail, phone: extraPhone, password } = req.body || {};
+    const loginIdentifier = String(identifier || legacyEmail || '').trim();
+    const passwordValue = String(password || '');
+    const normalizedExtraPhone = normalizePhone(extraPhone);
+    const isPhoneSignup = looksLikePhone(loginIdentifier);
+    const email = isPhoneSignup ? null : loginIdentifier;
+    const phone = isPhoneSignup ? normalizePhone(loginIdentifier) : normalizedExtraPhone || null;
+
+    if ((!email && !phone) || passwordValue.length < 8) {
+      return res.status(400).json({ message: 'Enter an email address or phone number and an 8+ character password.' });
     }
-    if (!/^\+?[1-9]\d{7,14}$/.test(normalizedPhone)) {
+    if (email && !email.includes('@')) {
+      return res.status(400).json({ message: 'Enter a valid email address or phone number.' });
+    }
+    if (phone && !/^\+?[1-9]\d{7,14}$/.test(phone)) {
       return res.status(400).json({ message: 'Enter a valid phone number with country code, for example +919876543210.' });
     }
 
@@ -31,13 +49,19 @@ export default async function handler(req, res) {
       auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
     });
 
-    const { data, error } = await sb.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { phone: normalizedPhone }
-      }
-    });
+    const signupPayload = phone
+      ? {
+          phone,
+          password: passwordValue,
+          options: { data: { phone } }
+        }
+      : {
+          email,
+          password: passwordValue,
+          options: { data: phone ? { phone } : {} }
+        };
+
+    const { data, error } = await sb.auth.signUp(signupPayload);
     if (error) return res.status(400).json({ message: error.message });
 
     if (data.session) setSessionCookies(res, data.session);
@@ -45,9 +69,13 @@ export default async function handler(req, res) {
     return res.status(200).json({
       message: data.session
         ? 'Account created and signed in.'
-        : 'Account created. Check your email to confirm.',
-      email: data.user?.email || email,
-      authenticated: Boolean(data.session)
+        : phone
+          ? 'Account created. Check your phone for the verification code.'
+          : 'Account created. Check your email to confirm.',
+      email: data.user?.email || email || '',
+      phone: data.user?.phone || phone || '',
+      authenticated: Boolean(data.session),
+      needsPhoneVerification: Boolean(phone && !data.session)
     });
   } catch (e) {
     return res.status(503).json({ message: 'Account service is not configured.' });
