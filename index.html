@@ -894,12 +894,11 @@ async function loadAccount(){
 }
 
 async function signUp(){
-  const identifier=document.getElementById('authEmail').value.trim();
+  const email=document.getElementById('authEmail').value.trim();
   const password=document.getElementById('authPassword').value;
   const msg=document.getElementById('authMessage');
-  resetPhoneVerification();
 
-  if(!identifier||password.length<8){
+  if(!email||!email.includes('@')||password.length<8){
     msg.textContent='Enter a valid email address and an 8+ character password.';
     return;
   }
@@ -927,14 +926,6 @@ async function signUp(){
       return;
     }
 
-    if(d.needsPhoneVerification){
-      document.getElementById('authOtpField').classList.remove('hidden');
-      document.getElementById('verifyPhoneBtn').classList.remove('hidden');
-      document.getElementById('authPhoneField').classList.add('hidden');
-      msg.textContent='Check your phone for the 6-digit verification code, then enter it below.';
-      return;
-    }
-
     msg.textContent=d.message||'Account created. Check your email to confirm.';
   }catch(e){
     msg.textContent='Account service is temporarily unavailable.';
@@ -942,12 +933,11 @@ async function signUp(){
 }
 
 async function signIn(){
-  const identifier=document.getElementById('authEmail').value.trim();
+  const email=document.getElementById('authEmail').value.trim();
   const password=document.getElementById('authPassword').value;
   const msg=document.getElementById('authMessage');
-  resetPhoneVerification();
 
-  if(!identifier||!password){
+  if(!email||!email.includes('@')||!password){
     msg.textContent='Enter your email address and password.';
     return;
   }
