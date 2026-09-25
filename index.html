@@ -219,19 +219,16 @@ main{min-width:0;padding:30px;max-width:1540px;width:100%;margin:auto}
 
   <section id="revision" class="view">
     <div class="topbar"><div><h1>Revision Center</h1><p>Review weak areas using active recall and spaced repetition.</p></div><button class="btn primary" onclick="showView('flashcards')">Review flashcards</button></div>
-    <div class="grid revision-grid">
-      <div class="card chapter"><span class="badge">Not started</span><h3>⚡ Current Electricity</h3><p>Ohm's law · Kirchhoff · circuits · resistance</p><div class="meter"><span>Progress</span><b>0%</b></div><div class="progress"><i style="width:0%"></i></div></div>
-      <div class="card chapter"><span class="badge">Not started</span><h3>∫ Integration</h3><p>Definite integrals · substitution · area</p><div class="meter"><span>Progress</span><b>0%</b></div><div class="progress"><i style="width:0%"></i></div></div>
-      <div class="card chapter"><span class="badge">Not started</span><h3>🧬 Cell Biology</h3><p>Organelles · membranes · transport · enzymes</p><div class="meter"><span>Progress</span><b>0%</b></div><div class="progress"><i style="width:0%"></i></div></div>
-      <div class="card chapter"><span class="badge">Not started</span><h3>🧪 Organic Chemistry</h3><p>Functional groups · reactions · nomenclature</p><div class="meter"><span>Progress</span><b>0%</b></div><div class="progress"><i style="width:0%"></i></div></div>
-      <div class="card chapter"><span class="badge">Not started</span><h3>📐 Coordinate Geometry</h3><p>Lines · circles · parabola · distance</p><div class="meter"><span>Progress</span><b>0%</b></div><div class="progress"><i style="width:0%"></i></div></div>
-      <div class="card chapter"><span class="badge">Not started</span><h3>🌊 Waves & Oscillations</h3><p>SHM · wave equation · resonance</p><div class="meter"><span>Progress</span><b>0%</b></div><div class="progress"><i style="width:0%"></i></div></div>
+    <div class="revision-controls" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px">
+      <div><div class="small">Curriculum source</div><b id="curriculumLabel">CBSE / NCERT-aligned · 2026–27</b></div>
+      <select id="revisionSubject" class="select" onchange="setStudentSubject(this.value)" aria-label="Revision subject"></select>
     </div>
+    <div class="grid revision-grid" id="chapterList"></div>
     <div class="card" style="margin-top:16px"><div class="card-title"><h2>Smart review queue</h2><span>0 items due</span></div><div class="task"><div class="task-icon">✓</div><div><b>Your review queue is empty</b><div class="small">Answer practice questions or review flashcards to build your first study history.</div></div><button class="btn" style="margin-left:auto" onclick="showView('practice')">Start practice</button></div></div>
   </section>
 
   <section id="practice" class="view">
-    <div class="topbar"><div><h1>Practice Arena</h1><p>Adaptive questions that respond to your performance.</p></div><div class="filters"><select class="select"><option>Physics</option><option>Mathematics</option><option>Biology</option></select><select class="select"><option>Medium</option><option>Easy</option><option>Hard</option></select></div></div>
+    <div class="topbar"><div><h1>Practice Arena</h1><p>Adaptive questions that respond to your performance.</p></div><div class="filters"><select class="select" id="practiceSubject" aria-label="Practice subject" onchange="setStudentSubject(this.value)"></select><select class="select"><option>Medium</option><option>Easy</option><option>Hard</option></select></div></div>
     <div class="card question">
       <div class="q-meta"><span id="questionNo">Question 1 of 5</span><span>⚡ Current Electricity · Medium</span></div>
       <div class="progress"><i id="qProgress" style="width:20%"></i></div>
@@ -299,35 +296,97 @@ const flashcards=[
 ];
 
 const classProfiles={
-  6:{label:'Class 6',subjects:['Mathematics','Science','English'],hero:'Science: Living Things & Materials',plan:[['Science revision','25 min · Living Things'],['Math practice','15 questions · Fractions'],['Flashcard recall','20 cards · English vocabulary']],topics:['Living Things','Fractions & Decimals','Grammar Basics']},
-  7:{label:'Class 7',subjects:['Mathematics','Science','English'],hero:'Science: Heat & Acids',plan:[['Science revision','25 min · Heat & Acids'],['Math practice','15 questions · Integers'],['Flashcard recall','20 cards · Grammar']],topics:['Heat & Acids','Integers & Algebra','Grammar & Writing']},
-  8:{label:'Class 8',subjects:['Mathematics','Science','Social Science'],hero:'Science: Force & Pressure',plan:[['Science revision','25 min · Force & Pressure'],['Math practice','15 questions · Linear Equations'],['Flashcard recall','20 cards · Social Science']],topics:['Force & Pressure','Linear Equations','Civics & Geography']},
-  9:{label:'Class 9',subjects:['Mathematics','Physics','Chemistry'],hero:'Physics: Motion & Force',plan:[['Physics revision','25 min · Motion'],['Math practice','15 questions · Algebra'],['Flashcard recall','20 cards · Chemistry']],topics:['Motion & Force','Algebra & Geometry','Atoms & Molecules']},
-  10:{label:'Class 10',subjects:['Mathematics','Science','Social Science'],hero:'Science: Electricity & Life Processes',plan:[['Science revision','25 min · Electricity'],['Math practice','15 questions · Quadratics'],['Flashcard recall','20 cards · History & Civics']],topics:['Electricity & Life Processes','Quadratics & Trigonometry','History & Civics']},
-  11:{label:'Class 11',subjects:['Physics','Mathematics','Chemistry'],hero:'Physics: Current Electricity',plan:[['Physics revision','25 min · Current Electricity'],['Math practice','15 questions · Calculus'],['Flashcard recall','20 cards · Chemistry']],topics:['Current Electricity','Calculus & Coordinate Geometry','Organic Chemistry']},
-  12:{label:'Class 12',subjects:['Physics','Mathematics','Chemistry'],hero:'Physics: Electromagnetic Induction',plan:[['Physics revision','25 min · Electromagnetic Induction'],['Math practice','15 questions · Integrals'],['Flashcard recall','20 cards · Organic Chemistry']],topics:['Electromagnetic Induction','Integrals & Vectors','Organic Chemistry']}
+6:{label:'Class 6',subjects:[
+{name:'Mathematics',chapters:['Patterns in Mathematics','Lines and Angles','Number Play','Data Handling and Presentation','Prime Time','Perimeter and Area','Fractions','Decimals','Symmetry','The Other Side of Zero']},
+{name:'Science',chapters:['The Wonderful World of Science','Diversity in the Living World','Mindful Eating: A Path to a Healthy Body','Exploring Magnets','Measurement of Length and Motion','Materials Around Us','Temperature and its Measurement','A Journey through States of Water','Methods of Separation in Everyday Life','Living Creatures: Exploring Their Characteristics','Nature’s Treasures','Beyond Earth']},
+{name:'Social Science',chapters:['Locating Places on the Earth','Oceans and Continents','Landforms and Life','Timeline and Sources of History','India, That Is Bharat','The Beginnings of Indian Civilisation','India’s Cultural Roots','Unity in Diversity','Family and Community','Grassroots Democracy','The Value of Work','Economic Activities Around Us']}
+],hero:'Science: Diversity in the Living World',plan:[['Science revision','25 min · Diversity in the Living World'],['Math practice','15 questions · Number Play'],['Social Science recall','20 cards · India, That Is Bharat']]},
+7:{label:'Class 7',subjects:[
+{name:'Mathematics',chapters:['Large Numbers Around Us','Arithmetic Expressions','A Peek Beyond the Point','Expressions Using Letter-Numbers','Parallel and Intersecting Lines','Number Play','A Tale of Three Triangles','Working with Fractions','Geometric Properties of Triangles']},
+{name:'Science',chapters:['Nutrition in Plants','Nutrition in Animals','Heat','Acids, Bases and Salts','Physical and Chemical Changes','Weather, Climate and Adaptations','Winds, Storms and Cyclones','Soil','Respiration in Organisms','Transportation in Animals and Plants','Reproduction in Plants','Motion and Time','Electric Current and its Effects','Light','Water','Forests: Our Lifeline','Wastewater Story']},
+{name:'Social Science',chapters:['Tracing Changes Through a Thousand Years','New Kings and Kingdoms','The Delhi Sultans','The Mughal Empire','Rulers and Buildings','Towns, Traders and Craftspersons','Tribes, Nomads and Settled Communities','Devotional Paths to the Divine','The Making of Regional Cultures','Eighteenth-Century Political Formations','Environment','Inside Our Earth','Our Changing Earth','Air','Water','Human Environment','Markets Around Us']}
+],hero:'Science: Heat and Acids, Bases and Salts',plan:[['Science revision','25 min · Heat'],['Math practice','15 questions · Fractions'],['Social Science recall','20 cards · The Delhi Sultans']]},
+8:{label:'Class 8',subjects:[
+{name:'Mathematics',chapters:['Rational Numbers','Linear Equations in One Variable','Understanding Quadrilaterals','Practical Geometry','Data Handling','Squares and Square Roots','Cubes and Cube Roots','Comparing Quantities','Algebraic Expressions and Identities','Visualising Solid Shapes','Mensuration','Exponents and Powers','Direct and Inverse Proportions','Factorisation','Introduction to Graphs']},
+{name:'Science',chapters:['Crop Production and Management','Microorganisms: Friend and Foe','Coal and Petroleum','Combustion and Flame','Conservation of Plants and Animals','Reproduction in Animals','Reaching the Age of Adolescence','Force and Pressure','Friction','Sound','Chemical Effects of Electric Current','Some Natural Phenomena','Light','Stars and the Solar System','Pollution of Air and Water']},
+{name:'Social Science',chapters:['How, When and Where','From Trade to Territory','Ruling the Countryside','Tribals, Dikus and the Vision of a Golden Age','When People Rebel','Weavers, Iron Smelters and Factory Owners','Civilising the Native, Educating the Nation','Women, Caste and Reform','The Making of the National Movement','India After Independence','Resources','Land, Soil, Water, Natural Vegetation and Wildlife','Mineral and Power Resources','Agriculture','Industries','Human Resources']}
+],hero:'Science: Force and Pressure',plan:[['Science revision','25 min · Force and Pressure'],['Math practice','15 questions · Rational Numbers'],['Social Science recall','20 cards · Resources']]},
+9:{label:'Class 9',subjects:[
+{name:'Mathematics',chapters:['Number Systems','Algebra','Coordinate Geometry','Geometry','Mensuration','Statistics and Probability']},
+{name:'Science',chapters:['Matter and Its Behaviour','Organisation of Living Systems','Motion and Force','Describing Motion Around Us','Structure of Matter','Atoms and Molecules','Energy in Everyday Life','Sound and Communication','The Earth as a System']},
+{name:'Social Science',chapters:['India and the Contemporary World','Understanding Society','Democratic Politics','Economics and Development','People, Places and Environment']}
+],hero:'Science: Describing Motion Around Us',plan:[['Science revision','25 min · Motion and Force'],['Math practice','15 questions · Algebra'],['Social Science recall','20 cards · Understanding Society']]},
+10:{label:'Class 10',subjects:[
+{name:'Mathematics',chapters:['Real Numbers','Polynomials','Pair of Linear Equations in Two Variables','Quadratic Equations','Arithmetic Progressions','Triangles','Coordinate Geometry','Introduction to Trigonometry','Some Applications of Trigonometry','Circles','Areas Related to Circles','Surface Areas and Volumes','Statistics','Probability']},
+{name:'Science',chapters:['Chemical Reactions and Equations','Acids, Bases and Salts','Metals and Non-metals','Periodic Classification of Elements','Carbon and Its Compounds','Life Processes','Control and Coordination','How Do Organisms Reproduce?','Heredity','Light – Reflection and Refraction','The Human Eye and the Colourful World','Electricity','Magnetic Effects of Electric Current','Our Environment']},
+{name:'Social Science',chapters:['The Rise of Nationalism in Europe','Nationalism in India','The Making of a Global World','The Age of Industrialisation','Print Culture and the Modern World','Resources and Development','Forest and Wildlife Resources','Water Resources','Agriculture','Minerals and Energy Resources','Manufacturing Industries','Lifelines of National Economy','Power Sharing','Federalism','Gender, Religion and Caste','Political Parties','Outcomes of Democracy','Development','Sectors of the Indian Economy','Money and Credit','Globalisation and the Indian Economy','Consumer Rights']}
+],hero:'Science: Periodic Classification of Elements',plan:[['Science revision','25 min · Periodic Classification'],['Math practice','15 questions · Quadratic Equations'],['Social Science recall','20 cards · Nationalism in India']]},
+11:{label:'Class 11',subjects:[
+{name:'Physics',chapters:['Units and Measurements','Motion in a Straight Line','Motion in a Plane','Laws of Motion','Work, Energy and Power','System of Particles and Rotational Motion','Gravitation','Mechanical Properties of Solids','Mechanical Properties of Fluids','Thermal Properties of Matter','Thermodynamics','Kinetic Theory','Oscillations','Waves']},
+{name:'Mathematics',chapters:['Sets','Relations and Functions','Trigonometric Functions','Complex Numbers and Quadratic Equations','Linear Inequalities','Permutations and Combinations','Binomial Theorem','Sequences and Series','Straight Lines','Conic Sections','Introduction to Three-Dimensional Geometry','Limits and Derivatives','Statistics','Probability']},
+{name:'Chemistry',chapters:['Some Basic Concepts of Chemistry','Structure of Atom','Classification of Elements and Periodicity in Properties','Chemical Bonding and Molecular Structure','Thermodynamics','Equilibrium','Redox Reactions','Organic Chemistry – Some Basic Principles and Techniques','Hydrocarbons']}
+],hero:'Physics: Laws of Motion',plan:[['Physics revision','25 min · Laws of Motion'],['Math practice','15 questions · Trigonometry'],['Chemistry recall','20 cards · Chemical Bonding']]},
+12:{label:'Class 12',subjects:[
+{name:'Physics',chapters:['Electric Charges and Fields','Electrostatic Potential and Capacitance','Current Electricity','Moving Charges and Magnetism','Magnetism and Matter','Electromagnetic Induction','Alternating Current','Electromagnetic Waves','Ray Optics and Optical Instruments','Wave Optics','Dual Nature of Radiation and Matter','Atoms','Nuclei','Semiconductor Electronics: Materials, Devices and Simple Circuits']},
+{name:'Mathematics',chapters:['Relations and Functions','Inverse Trigonometric Functions','Matrices','Determinants','Continuity and Differentiability','Application of Derivatives','Integrals','Applications of Integrals','Differential Equations','Vector Algebra','Three-Dimensional Geometry','Linear Programming','Probability']},
+{name:'Chemistry',chapters:['Solutions','Electrochemistry','Chemical Kinetics','The d- and f-Block Elements','Coordination Compounds','Haloalkanes and Haloarenes','Alcohols, Phenols and Ethers','Aldehydes, Ketones and Carboxylic Acids','Amines','Biomolecules']}
+],hero:'Physics: Current Electricity',plan:[['Physics revision','25 min · Current Electricity'],['Math practice','15 questions · Integrals'],['Chemistry recall','20 cards · Electrochemistry']]}
 };
 let studentClass=localStorage.getItem('studypilotClass')||'11';
+let selectedSubject=localStorage.getItem('studypilotSubject')||'';
+function currentProfile(){return classProfiles[studentClass]||classProfiles['11']}
+function currentSubject(){
+  const p=currentProfile();
+  return p.subjects.find(s=>s.name===selectedSubject)||p.subjects[0];
+}
 function setStudentClass(value){
   studentClass=String(value);
+  const p=currentProfile();
+  selectedSubject=p.subjects[0].name;
   localStorage.setItem('studypilotClass',studentClass);
+  localStorage.setItem('studypilotSubject',selectedSubject);
   applyClassProfile();
 }
+function setStudentSubject(value){
+  selectedSubject=value;
+  localStorage.setItem('studypilotSubject',selectedSubject);
+  renderClassChapters();
+}
+function renderClassChapters(){
+  const p=currentProfile();
+  const subj=currentSubject();
+  const select=document.getElementById('revisionSubject');
+  if(select){
+    select.innerHTML=p.subjects.map(s=>'<option value="'+escapeHtml(s.name)+'">'+escapeHtml(s.name)+'</option>').join('');
+    select.value=subj.name;
+  }
+  const list=document.getElementById('chapterList');
+  if(list){
+    list.innerHTML=subj.chapters.map((ch,i)=>'<div class="card chapter"><span class="badge">Chapter '+(i+1)+'</span><h3>'+escapeHtml(ch)+'</h3><p>'+escapeHtml(p.label+' · '+subj.name)+'</p><div class="meter"><span>Progress</span><b>0%</b></div><div class="progress"><i style="width:0%"></i></div></div>').join('');
+  }
+  const practiceSelect=document.getElementById('practiceSubject');
+  if(practiceSelect){
+    practiceSelect.innerHTML=p.subjects.map(s=>'<option value="'+escapeHtml(s.name)+'">'+escapeHtml(s.name)+'</option>').join('');
+    practiceSelect.value=subj.name;
+  }
+}
 function applyClassProfile(){
-  const p=classProfiles[studentClass]||classProfiles['11'];
+  const p=currentProfile();
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
   const sel=document.getElementById('classSelector'); if(sel)sel.value=studentClass;
-  set('continueTitle',p.label+' · '+p.hero.replace(/^.*?:\s*/,''));
+  selectedSubject=p.subjects.some(s=>s.name===selectedSubject)?selectedSubject:p.subjects[0].name;
+  const subj=currentSubject();
+  set('continueTitle',p.label+' · '+subj.name+': '+p.hero.replace(/^.*?:\s*/,''));
   set('planOneTitle',p.plan[0][0]); set('planOneMeta',p.plan[0][1]);
   set('planTwoTitle',p.plan[1][0]); set('planTwoMeta',p.plan[1][1]);
   set('planThreeTitle',p.plan[2][0]); set('planThreeMeta',p.plan[2][1]);
-  set('subjectOneName',p.subjects[0]); set('subjectTwoName',p.subjects[1]); set('subjectThreeName',p.subjects[2]);
-  set('classContext',' '+p.label+' workspace');
+  set('subjectOneName',p.subjects[0].name); set('subjectTwoName',p.subjects[1].name); set('subjectThreeName',p.subjects[2].name);
+  set('classContext',' · '+p.label);
   const title=document.querySelector('#revision .topbar h1'); if(title) title.textContent=p.label+' · Revision Center';
-  const practiceMeta=document.querySelector('#practice .topbar p'); if(practiceMeta) practiceMeta.textContent='Adaptive questions for '+p.label+'.';
+  const practiceMeta=document.querySelector('#practice .topbar p'); if(practiceMeta) practiceMeta.textContent='CBSE/NCERT-aligned practice for '+p.label+'.';
   const chatTitle=document.querySelector('#chat .topbar h1'); if(chatTitle) chatTitle.textContent=p.label+' · AI Tutor';
   const chatInput=document.getElementById('chatInput'); if(chatInput) chatInput.placeholder='Ask your '+p.label+' tutor anything...';
-  document.querySelectorAll('#revision .chapter h3').forEach((el,i)=>{if(p.topics[i])el.textContent=p.topics[i]});
+  renderClassChapters();
 }
 function showView(id){
  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
