@@ -20,8 +20,11 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
 
   try {
-    const { email, password } = req.body || {};
-    if (!email || !password) return res.status(400).json({ message: 'Email and password are required.' });
+    const { identifier, email, password } = req.body || {};
+    const loginIdentifier = String(identifier || email || '').trim();
+    if (!loginIdentifier || !password) {
+      return res.status(400).json({ message: 'Email address or phone number and password are required.' });
+    }
 
     if (!process.env.SUPABASE_URL || !process.env.SUPABASE_PUBLISHABLE_KEY || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
       return res.status(503).json({ message: 'Account service is not configured.' });
@@ -31,7 +34,26 @@ export default async function handler(req, res) {
       auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
     });
 
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    let resolvedEmail = loginIdentifier;
+
+    if (!loginIdentifier.includes('@')) {
+      const normalizedPhone = loginIdentifier.replace(/[\s()-]/g, '');
+      if (!/^\+?[1-9]\d{7,14}$/.test(normalizedPhone)) {
+        return res.status(400).json({ message: 'Enter a valid email address or phone number.' });
+      }
+      const dbLookup = admin();
+      const { data: phoneProfile, error: phoneError } = await dbLookup
+        .from('profiles')
+        .select('email')
+        .eq('phone', normalizedPhone)
+        .maybeSingle();
+
+      if (phoneError) return res.status(500).json({ message: 'Unable to look up that phone number.' });
+      if (!phoneProfile?.email) return res.status(401).json({ message: 'No StudyPilot account was found for that phone number.' });
+      resolvedEmail = phoneProfile.email;
+    }
+
+    const { data, error } = await sb.auth.signInWithPassword({ email: resolvedEmail, password });
     if (error) return res.status(401).json({ message: error.message });
     if (!data.session || !data.user) {
       return res.status(401).json({ message: 'Unable to create a login session.' });
