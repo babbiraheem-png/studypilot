@@ -1,3 +1,5 @@
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://mxnhfvhvwqxjfctgfejf.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_UdCozB9L-cEedEJgOq_t9w_Sl4aooYc';
 import { createClient } from '@supabase/supabase-js';
 
 function setSessionCookies(res, session) {
@@ -8,13 +10,7 @@ function setSessionCookies(res, session) {
   ]);
 }
 
-function admin() {
-  return createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
-    { auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false } }
-  );
-}
+
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
@@ -26,7 +22,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Email address and password are required.' });
     }
 
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_PUBLISHABLE_KEY || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
       return res.status(503).json({ message: 'Account service is not configured.' });
     }
 
@@ -42,7 +38,13 @@ export default async function handler(req, res) {
 
     setSessionCookies(res, data.session);
 
-    const db = admin();
+    const db = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
+    });
+    await db.auth.setSession({
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token
+    });
     const { data: profile, error: profileError } = await db
       .from('profiles')
       .select('plan, credits')
