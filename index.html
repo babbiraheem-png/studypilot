@@ -1006,6 +1006,50 @@ function openAuth(){
 }
 function closeAuth(){document.getElementById('authModal').classList.remove('open')}
 
+async function resendConfirmation(){
+  const email=document.getElementById('authEmail').value.trim();
+  const msg=document.getElementById('authMessage');
+  if(!email||!email.includes('@')){
+    msg.textContent='Enter your email address first.';
+    return;
+  }
+  msg.textContent='Requesting a fresh confirmation email…';
+  try{
+    const r=await fetch('/api/auth/resend',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email})
+    });
+    const d=await r.json().catch(()=>({}));
+    msg.textContent=r.ok?(d.message||'Confirmation email requested. Check Inbox and Spam.'):(d.message||'Could not resend the confirmation email.');
+  }catch(e){
+    msg.textContent='Account service is temporarily unavailable.';
+  }
+}
+
+async function handleAuthCallback(){
+  const hash=window.location.hash.startsWith('#')?window.location.hash.slice(1):'';
+  if(!hash)return false;
+  const params=new URLSearchParams(hash);
+  const accessToken=params.get('access_token');
+  const refreshToken=params.get('refresh_token');
+  if(!accessToken||!refreshToken)return false;
+
+  try{
+    const r=await fetch('/api/auth/bootstrap',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'include',
+      body:JSON.stringify({access_token:accessToken,refresh_token:refreshToken})
+    });
+    if(!r.ok)return false;
+    history.replaceState({},document.title,window.location.pathname+window.location.search);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
 function renderAccount(){
   const signedIn=Boolean(accountState.authenticated&&accountState.email);
 
@@ -1099,6 +1143,8 @@ async function signUp(){
     msg.textContent=d.message||'Account created. Check your email to confirm.';
     if(d.alreadyConfirmed){
       msg.textContent='This account is already confirmed. Use the Sign in button above.';
+    }else if(d.needsConfirmation){
+      msg.innerHTML='Confirmation email requested. Check your Inbox and Spam. <button class="btn" style="margin-left:6px;padding:5px 8px;font-size:11px" onclick="resendConfirmation()">Resend email</button>';
     }
   }catch(e){
     msg.textContent='Account service is temporarily unavailable.';
@@ -1229,7 +1275,7 @@ function resetProgress(){if(!confirm("Reset this device's StudyPilot progress?")
 
 applyClassProfile();
 setAccessState(false);
-loadAccount();
+handleAuthCallback().finally(loadAccount);
 </script>
 </body>
 </html>
