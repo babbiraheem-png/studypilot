@@ -42,19 +42,40 @@ export default async function handler(req, res) {
 
     if (error) return res.status(400).json({ message: error.message });
 
-    if (data.session) setSessionCookies(res, data.session);
+    if (data.session) {
+      setSessionCookies(res, data.session);
+      return res.status(200).json({
+        message: 'Account created and signed in.',
+        email: data.user?.email || loginEmail,
+        authenticated: true
+      });
+    }
+
+    // If Supabase reports an existing confirmed account, make the Create
+    // account button useful too: sign in with the same credentials.
+    const existingLogin = await sb.auth.signInWithPassword({
+      email: loginEmail,
+      password: passwordValue
+    });
+
+    if (existingLogin.data?.session && existingLogin.data?.user) {
+      setSessionCookies(res, existingLogin.data.session);
+      return res.status(200).json({
+        message: 'Welcome back — you are signed in.',
+        email: existingLogin.data.user.email || loginEmail,
+        authenticated: true
+      });
+    }
 
     const alreadyConfirmed = Boolean(data.user?.email_confirmed_at);
     return res.status(200).json({
-      message: data.session
-        ? 'Account created and signed in.'
-        : alreadyConfirmed
-          ? 'This account is already confirmed. Use Sign in with your email and password.'
-          : 'Account created. Check your email to confirm.',
+      message: alreadyConfirmed
+        ? 'This account is already confirmed. Use Sign in with your email and password.'
+        : 'Account created. Check your email to confirm.',
       email: data.user?.email || loginEmail,
-      authenticated: Boolean(data.session),
+      authenticated: false,
       alreadyConfirmed,
-      needsConfirmation: !data.session && !alreadyConfirmed
+      needsConfirmation: !alreadyConfirmed
     });
   } catch (e) {
     return res.status(503).json({ message: 'Account service is not configured.' });
