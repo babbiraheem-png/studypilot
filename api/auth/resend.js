@@ -1,5 +1,5 @@
-const SUPABASE_URL = SUPABASE_URL || 'https://mxnhfvhvwqxjfctgfejf.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_UdCozB9L-cEedEJgOq_t9w_Sl4aooYc';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
 import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req, res) {
