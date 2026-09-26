@@ -31,7 +31,29 @@ button,input,textarea,select{font:inherit}
 button{cursor:pointer}
 button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid #4f91ea;outline-offset:2px}
 
-.app{display:grid;grid-template-columns:256px 1fr;min-height:100vh}
+.app{display:grid;grid-template-columns:256px 1fr;min-height:100vh}.access-gate{
+  min-height:100vh;display:grid;place-items:center;padding:28px;
+  background:
+    radial-gradient(circle at 12% 8%,rgba(103,167,244,.18),transparent 28%),
+    radial-gradient(circle at 88% 92%,rgba(230,220,194,.42),transparent 30%),
+    linear-gradient(180deg,#faf6ef 0%,#f3ecdf 100%);
+}
+.access-card{
+  width:min(760px,100%);background:rgba(255,253,248,.96);border:1px solid var(--line);
+  border-radius:28px;padding:42px;box-shadow:0 28px 90px rgba(74,88,112,.14);
+}
+.access-brand{display:flex;align-items:center;gap:12px;margin-bottom:28px;font-family:ui-rounded,"Avenir Next Rounded","Nunito","Trebuchet MS",system-ui,sans-serif;font-weight:900;font-size:24px;letter-spacing:-.045em}
+.access-brand img{width:44px;height:44px;border-radius:13px;display:block;box-shadow:0 10px 24px rgba(53,120,212,.18)}
+.access-brand .study{color:#23344d}.access-brand .pilot{color:#3578d4}
+.access-card h1{margin:0 0 13px;font-size:40px;line-height:1.05;letter-spacing:-.05em;color:#21334d}
+.access-card p{max-width:650px;color:#627187;line-height:1.75;font-size:15px;margin:0}
+.access-actions{display:flex;gap:10px;align-items:center;margin-top:26px}
+.access-note{margin-top:14px!important;font-size:12px!important;color:#8792a1!important}
+@media(max-width:680px){
+  .access-card{padding:28px 22px;border-radius:22px}
+  .access-card h1{font-size:32px}
+  .access-actions{flex-wrap:wrap}
+}
 .sidebar{
   position:sticky;top:0;height:100vh;padding:22px 16px;
   border-right:1px solid var(--line);background:rgba(255,252,245,.90);
@@ -182,7 +204,7 @@ main{min-width:0;padding:30px;max-width:1540px;width:100%;margin:auto}
 </style>
 </head>
 <body>
-<div class="app">
+<div class="access-gate" id="accessGate"><div class="access-card"><div class="access-brand"><img src="/favicon.svg" alt="StudyPilot" /><span><span class="study">Study</span><span class="pilot">Pilot</span></span></div><h1>About Us</h1><p>StudyPilot is a student-focused learning workspace that brings revision, practice questions, flashcards, progress tracking, and AI tutoring together in one place. Our goal is to give students a simple space to learn, practise, and keep improving.</p><div class="access-actions"><button class="btn primary" onclick="openAuth()">Sign in / Create account</button></div><p class="access-note">Please sign in and confirm your email before using the StudyPilot learning workspace.</p></div></div><div class="app" id="appShell" style="display:none">
 <aside class="sidebar">
   <div class="logo"><div class="logo-mark"><img src="/favicon.svg" alt="StudyPilot" /></div><span><span class="logo-word-study">Study</span><span class="logo-word-pilot">Pilot</span><span class="small">Made by Roushan</span></span></div>
   <nav class="nav">
@@ -831,6 +853,13 @@ function formatAI(text){let x=escapeHtml(text);x=x.replace(/\*\*(.*?)\*\*/g,'<b>
 function appendMsg(text,user=false){const wrap=document.getElementById('messages');const m=document.createElement('div');m.className='msg '+(user?'user':'');m.innerHTML=(user?'<div class="avatar">S</div>':'<div class="bot-icon">✦</div>')+'<div class="bubble">'+(user?escapeHtml(text):formatAI(text))+'</div>';wrap.appendChild(m);wrap.scrollTop=wrap.scrollHeight}
 const accountState={authenticated:false,plan:'free',credits:20,email:''};
 
+function setAccessState(allowed){
+  const gate=document.getElementById('accessGate');
+  const app=document.getElementById('appShell');
+  if(gate)gate.style.display=allowed?'none':'grid';
+  if(app)app.style.display=allowed?'grid':'none';
+}
+
 function openAuth(){
   document.getElementById('authMessage').textContent='';
   document.getElementById('authModal').classList.add('open');
@@ -891,6 +920,7 @@ async function loadAccount(){
     accountState.email='';
   }
   renderAccount();
+  setAccessState(Boolean(accountState.authenticated&&accountState.email));
 }
 
 async function signUp(){
@@ -983,6 +1013,7 @@ async function logout(){
   accountState.credits=20;
   accountState.email='';
   renderAccount();
+  setAccessState(false);
   toast('Logged out ✓');
 }
 
@@ -1054,6 +1085,8 @@ function flashRate(level){state.flashIndex=(state.flashIndex+1)%flashcards.lengt
 function resetProgress(){if(!confirm("Reset this device's StudyPilot progress?"))return;localStorage.removeItem('studypilotState');location.reload();}
 
 applyClassProfile();
+setAccessState(false);
+loadAccount();
 </script>
 </body>
 </html>
