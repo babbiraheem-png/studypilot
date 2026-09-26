@@ -74,12 +74,9 @@ export default async function handler(req, res) {
     if (session) setSessionCookies(res, session);
 
     const db = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-      auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
+      auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+      global: { headers: { Authorization: `Bearer ${accessToken}` } }
     });
-    await db.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken || ''
-    }).catch(()=>({}));
 
     const { data: profile, error: profileError } = await db
       .from('profiles')
