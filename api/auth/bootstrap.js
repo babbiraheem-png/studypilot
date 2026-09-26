@@ -1,5 +1,5 @@
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://mxnhfvhvwqxjfctgfejf.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_UdCozB9L-cEedEJgOq_t9w_Sl4aooYc';
+const SUPABASE_URL = SUPABASE_URL || 'https://mxnhfvhvwqxjfctgfejf.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_UdCozB9L-cEedEJgOq_t9w_Sl4aooYc';
 import { createClient } from '@supabase/supabase-js';
 
 function setSessionCookies(res, session) {
@@ -24,8 +24,8 @@ export default async function handler(req, res) {
     }
 
     const sb = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_PUBLISHABLE_KEY,
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY,
       { auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false } }
     );
 
