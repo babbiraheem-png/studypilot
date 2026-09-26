@@ -53,19 +53,26 @@ export default async function handler(req, res) {
     let session = null;
     let user = null;
 
-    if (refreshToken) {
+    // Validate the access token first. This avoids rotating/reusing refresh
+    // tokens on every page load and prevents stale-tab refresh-token errors.
+    const direct = await sb.auth.getUser(accessToken);
+    user = direct.data?.user || null;
+
+    // Only refresh when the access token itself is no longer usable.
+    if (!user && refreshToken) {
       const result = await sb.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken
       });
       session = result.data?.session || null;
       user = result.data?.user || null;
-    } else {
-      const result = await sb.auth.getUser(accessToken);
-      user = result.data?.user || null;
     }
 
     if (!user) {
+      res.setHeader('Set-Cookie', [
+        'studypilot_access_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+        'studypilot_refresh_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0'
+      ]);
       res.setHeader('Cache-Control', 'private, no-store');
       return res.status(401).json({ authenticated: false });
     }
