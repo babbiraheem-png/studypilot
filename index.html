@@ -32,12 +32,42 @@ button{cursor:pointer}
 button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid #4f91ea;outline-offset:2px}
 
 .app{display:grid;grid-template-columns:256px 1fr;min-height:100vh}.access-gate{
-  min-height:100vh;display:grid;place-items:center;padding:28px;
+  min-height:100vh;display:grid;place-items:center;padding:28px;position:relative;overflow:hidden;
   background:
     radial-gradient(circle at 12% 8%,rgba(103,167,244,.18),transparent 28%),
     radial-gradient(circle at 88% 92%,rgba(230,220,194,.42),transparent 30%),
     linear-gradient(180deg,#faf6ef 0%,#f3ecdf 100%);
 }
+.access-gate:before{
+  content:"";position:absolute;width:420px;height:420px;left:-150px;top:-180px;border-radius:50%;
+  background:radial-gradient(circle,rgba(76,139,224,.20),rgba(76,139,224,0) 68%);
+  filter:blur(8px);pointer-events:none;
+}
+.access-gate:after{
+  content:"";position:absolute;width:500px;height:500px;right:-220px;bottom:-260px;border-radius:50%;
+  background:radial-gradient(circle,rgba(232,215,175,.38),rgba(232,215,175,0) 67%);
+  filter:blur(10px);pointer-events:none;
+}
+.access-decoration{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.access-decoration .orb{position:absolute;border-radius:50%;border:1px solid rgba(91,139,205,.16);background:rgba(255,255,255,.12);backdrop-filter:blur(2px)}
+.access-decoration .orb.one{width:120px;height:120px;left:7%;top:18%}
+.access-decoration .orb.two{width:72px;height:72px;right:11%;top:22%}
+.access-decoration .orb.three{width:180px;height:180px;right:5%;top:8%}
+.access-decoration .line{
+  position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgba(75,128,199,.18),transparent);
+  transform-origin:left center;
+}
+.access-decoration .line.one{width:300px;left:2%;top:72%;transform:rotate(-18deg)}
+.access-decoration .line.two{width:230px;right:3%;top:60%;transform:rotate(22deg)}
+.access-decoration .dot-grid{
+  position:absolute;width:150px;height:150px;left:8%;bottom:8%;opacity:.45;
+  background-image:radial-gradient(rgba(53,120,212,.28) 1px,transparent 1px);
+  background-size:14px 14px;
+}
+.access-decoration .spark{position:absolute;color:rgba(53,120,212,.40);font-size:22px}
+.access-decoration .spark.one{left:17%;top:30%}
+.access-decoration .spark.two{right:20%;bottom:25%}
+.access-decoration .spark.three{left:22%;bottom:17%}
 .access-card{
   width:min(760px,100%);background:rgba(255,253,248,.96);border:1px solid var(--line);
   border-radius:28px;padding:42px;box-shadow:0 28px 90px rgba(74,88,112,.14);
@@ -204,7 +234,7 @@ main{min-width:0;padding:30px;max-width:1540px;width:100%;margin:auto}
 </style>
 </head>
 <body>
-<div class="access-gate" id="accessGate"><div class="access-card"><div class="access-brand"><img src="/favicon.svg" alt="StudyPilot" /><span><span class="study">Study</span><span class="pilot">Pilot</span></span></div><h1>About Us</h1><p>StudyPilot is a student-focused learning workspace that brings revision, practice questions, flashcards, progress tracking, and AI tutoring together in one place. Our goal is to give students a simple space to learn, practise, and keep improving.</p><div class="access-actions"><button class="btn primary" onclick="openAuth()">Sign in / Create account</button></div><p class="access-note">Please sign in and confirm your email before using the StudyPilot learning workspace.</p></div></div><div class="app" id="appShell" style="display:none">
+<div class="access-gate" id="accessGate"><div class="access-decoration" aria-hidden="true"><span class="orb one"></span><span class="orb two"></span><span class="orb three"></span><span class="line one"></span><span class="line two"></span><span class="dot-grid"></span><span class="spark one">✦</span><span class="spark two">✦</span><span class="spark three">✦</span></div><div class="access-card"><div class="access-brand"><img src="/favicon.svg" alt="StudyPilot" /><span><span class="study">Study</span><span class="pilot">Pilot</span></span></div><h1>About Us</h1><p>StudyPilot is a student-focused learning workspace that brings revision, practice questions, flashcards, progress tracking, and AI tutoring together in one place. Our goal is to give students a simple space to learn, practise, and keep improving.</p><div class="access-actions"><button class="btn primary" onclick="openAuth()">Sign in / Create account</button></div><p class="access-note">Please sign in and confirm your email before using the StudyPilot learning workspace.</p></div></div><div class="app" id="appShell" style="display:none">
 <aside class="sidebar">
   <div class="logo"><div class="logo-mark"><img src="/favicon.svg" alt="StudyPilot" /></div><span><span class="logo-word-study">Study</span><span class="logo-word-pilot">Pilot</span><span class="small">Made by Roushan</span></span></div>
   <nav class="nav">
