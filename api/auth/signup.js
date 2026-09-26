@@ -30,21 +30,31 @@ export default async function handler(req, res) {
       auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
     });
 
+    const siteUrl = 'https://studypilot-flax.vercel.app/';
+
     const { data, error } = await sb.auth.signUp({
       email: loginEmail,
-      password: passwordValue
+      password: passwordValue,
+      options: {
+        emailRedirectTo: siteUrl
+      }
     });
 
     if (error) return res.status(400).json({ message: error.message });
 
     if (data.session) setSessionCookies(res, data.session);
 
+    const alreadyConfirmed = Boolean(data.user?.email_confirmed_at);
     return res.status(200).json({
       message: data.session
         ? 'Account created and signed in.'
-        : 'Account created. Check your email to confirm.',
+        : alreadyConfirmed
+          ? 'This account is already confirmed. Use Sign in with your email and password.'
+          : 'Account created. Check your email to confirm.',
       email: data.user?.email || loginEmail,
-      authenticated: Boolean(data.session)
+      authenticated: Boolean(data.session),
+      alreadyConfirmed,
+      needsConfirmation: !data.session && !alreadyConfirmed
     });
   } catch (e) {
     return res.status(503).json({ message: 'Account service is not configured.' });
