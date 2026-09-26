@@ -1,3 +1,5 @@
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://mxnhfvhvwqxjfctgfejf.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_UdCozB9L-cEedEJgOq_t9w_Sl4aooYc';
 import { createClient } from '@supabase/supabase-js';
 
 function setSessionCookies(res, session) {
@@ -17,7 +19,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Authentication callback is incomplete.' });
     }
 
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_PUBLISHABLE_KEY) {
+    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       return res.status(503).json({ message: 'Account service is not configured.' });
     }
 
