@@ -1097,6 +1097,9 @@ async function signUp(){
     }
 
     msg.textContent=d.message||'Account created. Check your email to confirm.';
+    if(d.alreadyConfirmed){
+      msg.textContent='This account is already confirmed. Use the Sign in button above.';
+    }
   }catch(e){
     msg.textContent='Account service is temporarily unavailable.';
   }
