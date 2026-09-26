@@ -857,7 +857,7 @@ function setAccessState(allowed){
   const gate=document.getElementById('accessGate');
   const app=document.getElementById('appShell');
   if(gate)gate.style.display=allowed?'none':'grid';
-  if(app)app.style.display=allowed?'grid':'none';
+  if(app)app.style.display=allowed?'':'none';
 }
 
 function openAuth(){
