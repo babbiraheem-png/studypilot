@@ -1,19 +1,13 @@
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://mxnhfvhvwqxjfctgfejf.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_UdCozB9L-cEedEJgOq_t9w_Sl4aooYc';
 // StudyPilot account session endpoint
 // Deployment trigger after Supabase Production environment variables were configured.
 import { createClient } from '@supabase/supabase-js';
 
 function client() {
   return createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_PUBLISHABLE_KEY,
-    { auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false } }
-  );
-}
-
-function admin() {
-  return createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY,
     { auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false } }
   );
 }
@@ -79,10 +73,17 @@ export default async function handler(req, res) {
 
     if (session) setSessionCookies(res, session);
 
-    const db = admin();
+    const db = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
+    });
+    await db.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken || ''
+    }).catch(()=>({}));
+
     const { data: profile, error: profileError } = await db
       .from('profiles')
-      .select('plan, credits, email, phone')
+      .select('plan, credits, email')
       .eq('id', user.id)
       .maybeSingle();
 
@@ -95,8 +96,7 @@ export default async function handler(req, res) {
       authenticated: true,
       email: user.email,
       plan: profile?.plan || 'free',
-      credits: Number(profile?.credits ?? 20),
-      phone: profile?.phone || user.user_metadata?.phone || ''
+      credits: Number(profile?.credits ?? 20)
     });
   } catch (e) {
     res.setHeader('Cache-Control', 'private, no-store');
