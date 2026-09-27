@@ -289,9 +289,9 @@ main{min-width:0;padding:30px;max-width:1540px;width:100%;margin:auto}
       <h1>A smarter place to study.</h1>
       <p class="tagline">Learn, practise, revise, and keep track of your progress in one focused student workspace.</p>
       <div class="access-actions">
-        <button class="btn primary" onclick="openAuth()">Sign in / Create account</button>
+        <button class="btn primary" onclick="window.location.href='/login.html'">Log in</button> <button class="btn" onclick="openAuth()">Create account</button>
       </div>
-      <p class="access-note">Sign in and confirm your email to enter the StudyPilot workspace.</p>
+      <p class="access-note">Log in and confirm your email to enter the StudyPilot workspace.</p>
       <div class="scroll-hint">Scroll down to learn more ↓</div>
     </div>
   </section>
@@ -365,7 +365,7 @@ main{min-width:0;padding:30px;max-width:1540px;width:100%;margin:auto}
 
 <main>
   <section id="dashboard" class="view active">
-    <div class="topbar"><div><h1>Good evening, student 👋</h1><p>Your learning workspace is ready for today's session.<span id="classContext" class="small" style="margin-left:8px"></span></p></div><div class="actions"><label class="class-picker" style="display:flex;align-items:center;gap:7px"><span class="small" style="color:#53657a;font-weight:700">Class</span><select id="classSelector" class="select" aria-label="Choose class" onchange="setStudentClass(this.value)"><option value="6">6</option><option value="7">Class 7</option><option value="8">Class 8</option><option value="9">Class 9</option><option value="10">Class 10</option><option value="11">Class 11</option><option value="12">Class 12</option></select></label><button class="btn" id="accountAction" onclick="openAuth()">Sign in</button><button class="btn" onclick="openModal()">＋ Add task</button><button class="btn" onclick="openClassChooser()">Change class</button><button class="btn primary" onclick="showView('practice')">Start practice</button></div></div>
+    <div class="topbar"><div><h1>Good evening, student 👋</h1><p>Your learning workspace is ready for today's session.<span id="classContext" class="small" style="margin-left:8px"></span></p></div><div class="actions"><label class="class-picker" style="display:flex;align-items:center;gap:7px"><span class="small" style="color:#53657a;font-weight:700">Class</span><select id="classSelector" class="select" aria-label="Choose class" onchange="setStudentClass(this.value)"><option value="6">6</option><option value="7">Class 7</option><option value="8">Class 8</option><option value="9">Class 9</option><option value="10">Class 10</option><option value="11">Class 11</option><option value="12">Class 12</option></select></label><button class="btn" id="accountAction" onclick="window.location.href='/login.html'">Log in</button><button class="btn" onclick="openModal()">＋ Add task</button><button class="btn" onclick="openClassChooser()">Change class</button><button class="btn primary" onclick="showView('practice')">Start practice</button></div></div>
     <div class="grid stats">
       <div class="card stat"><div><div class="small">Study streak</div><div class="num" id="streakCount">0 <span class="small">days</span></div></div><span class="badge" id="streakBadge">Start today</span></div>
       <div class="card stat"><div><div class="small">Questions solved</div><div class="num" id="qCount">0</div></div><span class="badge">Your activity</span></div>
@@ -1167,8 +1167,8 @@ function renderAccount(){
     avatar.textContent='S';
     if(logoutBtn)logoutBtn.style.display='none';
     if(accountAction){
-      accountAction.textContent='Sign in';
-      accountAction.onclick=openAuth;
+      accountAction.textContent='Log in';
+      accountAction.onclick=()=>window.location.href='/login.html';
     }
   }
 }
@@ -1266,13 +1266,13 @@ async function signIn(){
     const d=await r.json().catch(()=>({}));
 
     if(!r.ok){
-      msg.textContent=d.message||'Sign in failed.';
+      msg.textContent=d.message||'Log in failed.';
       return;
     }
 
     closeAuth();
     await loadAccount();
-    toast('Signed in ✓');
+    toast('Logged in ✓');
   }catch(e){
     msg.textContent='Account service is temporarily unavailable.';
   }
@@ -1297,7 +1297,7 @@ async function logout(){
   accountState.email='';
   renderAccount();
   setAccessState(false);
-  toast('Logged out ✓');
+  window.location.href='/login.html';
 }
 
 function setAIStatus(){const el=document.getElementById('aiStatus');if(el)el.textContent='AI Tutor · Secure server'}
