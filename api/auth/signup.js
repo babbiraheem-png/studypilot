@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     }
 
     
-    const sb = createClient(SUPABASE_URL, key, {
+    const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
     });
 
