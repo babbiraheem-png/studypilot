@@ -3,81 +3,183 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Log in · StudyPilot</title>
-<meta name="description" content="Log in to your StudyPilot student workspace.">
+<title>Log in or Create account · StudyPilot</title>
+<meta name="description" content="Log in or create a StudyPilot student account.">
 <style>
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(135deg,#eef5ff,#f8fbff 55%,#ffffff);color:#12203a;display:grid;place-items:center;padding:24px}
-.card{width:min(440px,100%);background:#fff;border:1px solid #dfe7f2;border-radius:24px;box-shadow:0 18px 60px rgba(31,60,100,.12);padding:30px}
+body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(135deg,#eef5ff,#f8fbff 55%,#fff);color:#12203a;display:grid;place-items:center;padding:24px}
+.card{width:min(460px,100%);background:#fff;border:1px solid #dfe7f2;border-radius:24px;box-shadow:0 18px 60px rgba(31,60,100,.12);padding:30px}
 .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;margin-bottom:18px}.mark{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#1d4ed8,#60a5fa);display:grid;place-items:center;color:#fff}
-h1{margin:0 0 8px;font-size:30px}.sub{margin:0 0 24px;color:#66758b;line-height:1.5}
+h1{margin:0 0 8px;font-size:30px}.sub{margin:0 0 20px;color:#66758b;line-height:1.5}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#eef3fa;padding:5px;border-radius:14px;margin-bottom:20px}
+.tab{border:0;background:transparent;color:#66758b;border-radius:10px;padding:11px;font-size:14px;font-weight:800;cursor:pointer}
+.tab.active{background:#fff;color:#1d4ed8;box-shadow:0 1px 4px rgba(20,40,80,.08)}
 label{display:block;font-size:13px;font-weight:700;margin:14px 0 7px}
 input{width:100%;padding:13px 14px;border:1px solid #cbd7e8;border-radius:12px;font-size:15px;outline:none}input:focus{border-color:#4f8cff;box-shadow:0 0 0 3px rgba(79,140,255,.12)}
-button{width:100%;border:0;border-radius:12px;padding:13px 16px;font-size:15px;font-weight:700;cursor:pointer}.primary{background:#1d4ed8;color:#fff;margin-top:16px}.secondary{background:#eef3fa;color:#12203a;margin-top:10px}.link{display:inline;background:none;width:auto;padding:0;color:#1d4ed8;font-weight:700}.small{font-size:12px;color:#718096;line-height:1.5;margin-top:14px}.msg{min-height:20px;margin-top:12px;font-size:13px;color:#45556d}.back{margin-top:18px;text-align:center;font-size:13px}.back a{color:#1d4ed8;text-decoration:none;font-weight:700}
+button.action{width:100%;border:0;border-radius:12px;padding:13px 16px;font-size:15px;font-weight:700;cursor:pointer}.primary{background:#1d4ed8;color:#fff;margin-top:16px}.secondary{background:#eef3fa;color:#12203a;margin-top:10px}.link{display:inline;background:none;width:auto;padding:0;color:#1d4ed8;font-weight:700;border:0;cursor:pointer}
+.small{font-size:12px;color:#718096;line-height:1.5;margin-top:14px}.msg{min-height:22px;margin-top:12px;font-size:13px;color:#45556d}
+.back{margin-top:18px;text-align:center;font-size:13px}.back a{color:#1d4ed8;text-decoration:none;font-weight:700}
+.hidden{display:none}
+.success{color:#147a42}
 </style>
 </head>
 <body>
 <main class="card">
   <div class="logo"><div class="mark">S</div><div>StudyPilot</div></div>
-  <h1>Log in</h1>
-  <p class="sub" id="welcome">Log in to your student workspace.</p>
+  <h1 id="title">Log in</h1>
+  <p class="sub" id="subtitle">Log in to your student workspace.</p>
+
+  <div class="tabs">
+    <button class="tab active" id="loginTab" onclick="setMode('login')">Log in</button>
+    <button class="tab" id="signupTab" onclick="setMode('signup')">Create account</button>
+  </div>
 
   <label for="email">Email</label>
   <input id="email" type="email" autocomplete="username" placeholder="Email address">
 
   <label for="password">Password</label>
-  <input id="password" type="password" autocomplete="current-password" placeholder="Your password">
+  <input id="password" type="password" autocomplete="new-password" placeholder="At least 8 characters">
 
-  <button class="primary" id="loginBtn" onclick="login()">Log in</button>
-  <button class="secondary" onclick="forgotPassword()">Forgot password?</button>
+  <button class="action primary" id="mainBtn" onclick="submitAuth()">Log in</button>
+  <button class="action secondary" id="forgotBtn" onclick="forgotPassword()">Forgot password?</button>
 
   <div class="msg" id="message"></div>
   <div class="small">StudyPilot remembers only your email on this device. It never saves your password.</div>
-  <div class="back">Need an account? <button class="link" onclick="window.location.href='/'">Create account</button></div>
   <div class="back"><a href="/">← Back to StudyPilot</a></div>
 </main>
 
 <script>
-const lastEmail=localStorage.getItem('studypilotLastEmail')||'';
+let mode=new URLSearchParams(location.search).get('mode')==='signup'?'signup':'login';
 const emailEl=document.getElementById('email');
-const welcome=document.getElementById('welcome');
-if(lastEmail){emailEl.value=lastEmail;welcome.textContent='Log in as '+lastEmail;}
+const passwordEl=document.getElementById('password');
+const lastEmail=localStorage.getItem('studypilotLastEmail')||'';
+if(lastEmail)emailEl.value=lastEmail;
 
-async function login(){
+function setMode(next){
+  mode=next;
+  const login=mode==='login';
+  document.getElementById('title').textContent=login?'Log in':'Create your account';
+  document.getElementById('subtitle').textContent=login
+    ? (lastEmail?'Log in as '+lastEmail+'.':'Log in to your student workspace.')
+    : 'Create your free StudyPilot student account.';
+  document.getElementById('mainBtn').textContent=login?'Log in':'Create account';
+  document.getElementById('forgotBtn').style.display=login?'block':'none';
+  document.getElementById('password').placeholder=login?'Your password':'At least 8 characters';
+  document.getElementById('password').autocomplete=login?'current-password':'new-password';
+  document.getElementById('loginTab').classList.toggle('active',login);
+  document.getElementById('signupTab').classList.toggle('active',!login);
+  document.getElementById('message').textContent='';
+}
+
+async function submitAuth(){
   const email=emailEl.value.trim();
-  const password=document.getElementById('password').value;
+  const password=passwordEl.value;
   const msg=document.getElementById('message');
-  const btn=document.getElementById('loginBtn');
-  if(!email||!email.includes('@')||!password){msg.textContent='Enter your email address and password.';return;}
+  const btn=document.getElementById('mainBtn');
+
+  if(!email||!email.includes('@')){
+    msg.textContent='Enter a valid email address.';
+    return;
+  }
+  if(password.length<8){
+    msg.textContent=mode==='signup'
+      ? 'Your password must be at least 8 characters.'
+      : 'Enter your password.';
+    return;
+  }
+
   localStorage.setItem('studypilotLastEmail',email);
-  msg.textContent='Logging in…';btn.disabled=true;
+  btn.disabled=true;
+  msg.className='msg';
+  msg.textContent=mode==='login'?'Logging in…':'Creating your account…';
+
   try{
-    const r=await fetch('/api/auth/signin',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({email,password})});
+    const endpoint=mode==='login'?'/api/auth/signin':'/api/auth/signup';
+    const r=await fetch(endpoint,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'include',
+      body:JSON.stringify({email,password})
+    });
     const d=await r.json().catch(()=>({}));
-    if(!r.ok){msg.textContent=d.message||'Log in failed.';btn.disabled=false;return;}
-    window.location.href='/';
+
+    if(!r.ok){
+      msg.textContent=d.message|| (mode==='login'?'Log in failed.':'Account creation failed.');
+      btn.disabled=false;
+      return;
+    }
+
+    if(mode==='login'){
+      window.location.href='/';
+      return;
+    }
+
+    if(d.authenticated){
+      msg.className='msg success';
+      msg.textContent='Account created. Opening StudyPilot…';
+      window.location.href='/';
+      return;
+    }
+
+    msg.className='msg success';
+    msg.innerHTML=(d.message||'Account created. Check your email to confirm.')+
+      (d.needsConfirmation
+        ? ' <button class="link" onclick="resendConfirmation()">Resend email</button>'
+        : '');
+    passwordEl.value='';
+    btn.disabled=false;
   }catch(e){
     msg.textContent='Account service is temporarily unavailable.';
     btn.disabled=false;
   }
 }
 
+async function resendConfirmation(){
+  const email=emailEl.value.trim();
+  const msg=document.getElementById('message');
+  msg.textContent='Sending a fresh confirmation email…';
+  try{
+    const r=await fetch('/api/auth/resend',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email})
+    });
+    const d=await r.json().catch(()=>({}));
+    msg.textContent=r.ok?(d.message||'A fresh confirmation email was requested. Check Inbox and Spam.'):(d.message||'Could not resend the email.');
+  }catch(e){
+    msg.textContent='Account service is temporarily unavailable.';
+  }
+}
+
 async function forgotPassword(){
   const email=emailEl.value.trim();
   const msg=document.getElementById('message');
-  if(!email||!email.includes('@')){msg.textContent='Enter your email address first.';return;}
+  if(!email||!email.includes('@')){
+    msg.textContent='Enter your email address first.';
+    return;
+  }
   localStorage.setItem('studypilotLastEmail',email);
   msg.textContent='Sending reset email…';
   try{
-    const r=await fetch('/api/auth/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    const r=await fetch('/api/auth/reset-password',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email})
+    });
     const d=await r.json().catch(()=>({}));
     msg.textContent=r.ok?(d.message||'Check your email for a password reset link.'):(d.message||'Could not send the reset email.');
-  }catch(e){msg.textContent='Account service is temporarily unavailable.';}
+  }catch(e){
+    msg.textContent='Account service is temporarily unavailable.';
+  }
 }
 
-document.getElementById('password').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+passwordEl.addEventListener('keydown',e=>{if(e.key==='Enter')submitAuth();});
+setMode(mode);
 
-fetch('/api/account',{credentials:'include',cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(d?.authenticated)window.location.href='/';}).catch(()=>{});
+fetch('/api/account',{credentials:'include',cache:'no-store'})
+  .then(r=>r.ok?r.json():null)
+  .then(d=>{if(d?.authenticated)window.location.href='/';})
+  .catch(()=>{});
 </script>
 </body>
 </html>
