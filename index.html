@@ -1095,13 +1095,19 @@ async function updatePassword(){
 
 async function handleAuthCallback(){
   const hash=window.location.hash.startsWith('#')?window.location.hash.slice(1):'';
-  if(!hash)return false;
-  const params=new URLSearchParams(hash);
+  const hashParams=new URLSearchParams(hash);
+  const queryParams=new URLSearchParams(window.location.search);
+  const params=hashParams.has('type')||hashParams.has('access_token')?hashParams:queryParams;
   const accessToken=params.get('access_token');
   const refreshToken=params.get('refresh_token');
   const recovery=params.get('type')==='recovery';
-  if(!accessToken||!refreshToken)return false;
+  const code=params.get('code');
 
+  // Show recovery UI as soon as the recovery link is recognized.
+  // The server session bootstrap happens before the user can submit a password.
+  if(recovery)setTimeout(openResetPassword,80);
+
+  if(!accessToken||!refreshToken)return Boolean(recovery);
   try{
     const r=await fetch('/api/auth/bootstrap',{
       method:'POST',
@@ -1109,11 +1115,17 @@ async function handleAuthCallback(){
       credentials:'include',
       body:JSON.stringify({access_token:accessToken,refresh_token:refreshToken})
     });
-    if(!r.ok)return false;
-    history.replaceState({},document.title,window.location.pathname+window.location.search);
-    if(recovery)setTimeout(openResetPassword,80);
+    if(!r.ok){
+      const d=await r.json().catch(()=>({}));
+      const msg=document.getElementById('resetMessage');
+      if(recovery&&msg)msg.textContent=d.message||'The password reset link could not be activated. Please request a new one.';
+      return false;
+    }
+    history.replaceState({},document.title,window.location.pathname);
     return true;
   }catch(e){
+    const msg=document.getElementById('resetMessage');
+    if(recovery&&msg)msg.textContent='The password reset link could not be activated. Please request a new one.';
     return false;
   }
 }
