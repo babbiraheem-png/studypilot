@@ -18,7 +18,8 @@ export default async function handler(req, res) {
     }
 
     const accessToken = getCookie(req, 'studypilot_access_token');
-    if (!accessToken) {
+    const refreshToken = getCookie(req, 'studypilot_refresh_token');
+    if (!accessToken || !refreshToken) {
       return res.status(401).json({ message: 'Password reset session has expired. Request a new reset email.' });
     }
 
@@ -27,12 +28,30 @@ export default async function handler(req, res) {
     }
 
     const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-      auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
-      global: { headers: { Authorization: `Bearer ${accessToken}` } }
+      auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
     });
+
+    // Re-establish the recovery session on this server-side client before
+    // calling updateUser. Supabase requires an active auth session here.
+    const { data: sessionData, error: sessionError } = await sb.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken
+    });
+    if (sessionError || !sessionData?.session) {
+      return res.status(401).json({
+        message: sessionError?.message || 'Password reset session has expired. Request a new reset email.'
+      });
+    }
 
     const { error } = await sb.auth.updateUser({ password });
     if (error) return res.status(400).json({ message: error.message });
+
+    // Keep the refreshed session in the browser cookies.
+    const base = 'Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000';
+    res.setHeader('Set-Cookie', [
+      `studypilot_access_token=${encodeURIComponent(sessionData.session.access_token)}; ${base}`,
+      `studypilot_refresh_token=${encodeURIComponent(sessionData.session.refresh_token)}; ${base}`
+    ]);
 
     return res.status(200).json({ message: 'Password updated successfully.' });
   } catch (e) {
