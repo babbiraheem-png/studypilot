@@ -994,11 +994,11 @@ function formatAI(text){let x=escapeHtml(text);x=x.replace(/\*\*(.*?)\*\*/g,'<b>
 function appendMsg(text,user=false){const wrap=document.getElementById('messages');const m=document.createElement('div');m.className='msg '+(user?'user':'');m.innerHTML=(user?'<div class="avatar">S</div>':'<div class="bot-icon">✦</div>')+'<div class="bubble">'+(user?escapeHtml(text):formatAI(text))+'</div>';wrap.appendChild(m);wrap.scrollTop=wrap.scrollHeight}
 const accountState={authenticated:false,plan:'free',credits:20,email:''};
 
-function setAccessState(allowed){
+function setAccessState(){
   const gate=document.getElementById('accessGate');
   const app=document.getElementById('appShell');
-  if(gate)gate.style.display=allowed?'none':'grid';
-  if(app)app.style.display=allowed?'':'none';
+  if(gate)gate.style.display='none';
+  if(app)app.style.display='';
 }
 
 function openAuth(){
@@ -1158,6 +1158,7 @@ function renderAccount(){
     status.textContent=accountState.email;
     avatar.textContent=displayName.charAt(0).toUpperCase();
     if(logoutBtn)logoutBtn.style.display='block';
+    if(accountAction)accountAction.style.display='block';
     if(accountAction){
       accountAction.textContent='Log out';
       accountAction.onclick=logout;
@@ -1167,10 +1168,7 @@ function renderAccount(){
     status.textContent='Not signed in';
     avatar.textContent='S';
     if(logoutBtn)logoutBtn.style.display='none';
-    if(accountAction){
-      accountAction.textContent='Log in';
-      accountAction.onclick=()=>window.location.href='/login.html';
-    }
+    if(accountAction)accountAction.style.display='none';
   }
 }
 
@@ -1196,7 +1194,6 @@ async function loadAccount(){
     accountState.email='';
   }
   renderAccount();
-  setAccessState(Boolean(accountState.authenticated&&accountState.email));
 }
 
 async function signUp(){
@@ -1369,7 +1366,7 @@ function flashRate(level){state.flashIndex=(state.flashIndex+1)%flashcards.lengt
 function resetProgress(){if(!confirm("Reset this device's StudyPilot progress?"))return;localStorage.removeItem('studypilotState');location.reload();}
 
 applyClassProfile();
-setAccessState(false);
+setAccessState(true);
 handleAuthCallback().finally(loadAccount);
 </script>
 </body>
