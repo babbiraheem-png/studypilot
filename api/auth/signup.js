@@ -2,8 +2,13 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
 import { createClient } from '@supabase/supabase-js';
 
+function json(res, status, body) {
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  return res.status(status).json(body);
+}
+
 function setSessionCookies(res, session) {
-  if (!session) return;
   const base = 'Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000';
   res.setHeader('Set-Cookie', [
     `studypilot_access_token=${encodeURIComponent(session.access_token)}; ${base}`,
@@ -11,71 +16,77 @@ function setSessionCookies(res, session) {
   ]);
 }
 
+function explainSignupError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  if (error?.status === 429 || /rate limit|too many requests|email.*rate|over_email_send_rate_limit/.test(message)) {
+    return { status: 429, message: 'Too many signup or email requests were made. Wait a little and try again.' };
+  }
+  if (/already registered|already been registered|user exists/.test(message)) {
+    return { status: 409, message: 'This email may already have a StudyPilot account. Try Log in or Forgot password instead.' };
+  }
+  if (/email address not authorized|smtp|email provider|sending email/.test(message)) {
+    return { status: 503, message: 'The account was not completed because the email service is not ready. Please try again later.' };
+  }
+  if (/password/.test(message) && /weak|short|characters/.test(message)) {
+    return { status: 400, message: 'Choose a stronger password with at least 8 characters.' };
+  }
+  return { status: 400, message: error?.message || 'Account creation failed. Please check the details and try again.' };
+}
+
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return json(res, 405, { message: 'Method not allowed.' });
+  }
+
+  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+    return json(res, 503, { message: 'Account service is not configured on the server.' });
+  }
 
   try {
-    const { email, identifier, password } = req.body || {};
-    const loginEmail = String(email || identifier || '').trim();
-    const passwordValue = String(password || '');
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const password = typeof req.body?.password === 'string' ? req.body.password : '';
 
-    if (!loginEmail || !loginEmail.includes('@') || passwordValue.length < 8) {
-      return res.status(400).json({ message: 'Enter a valid email address and an 8+ character password.' });
+    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return json(res, 400, { message: 'Enter a valid email address.' });
+    }
+    if (password.length < 8 || password.length > 128) {
+      return json(res, 400, { message: 'Choose a password between 8 and 128 characters.' });
     }
 
-    
     const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
     });
 
     const siteUrl = 'https://studypilot-flax.vercel.app/';
-
     const { data, error } = await sb.auth.signUp({
-      email: loginEmail,
-      password: passwordValue,
-      options: {
-        emailRedirectTo: siteUrl
-      }
+      email,
+      password,
+      options: { emailRedirectTo: siteUrl }
     });
 
-    if (error) return res.status(400).json({ message: error.message });
+    if (error) {
+      const mapped = explainSignupError(error);
+      return json(res, mapped.status, { message: mapped.message });
+    }
 
-    if (data.session) {
+    if (data.session && data.user) {
       setSessionCookies(res, data.session);
-      return res.status(200).json({
-        message: 'Account created and signed in.',
-        email: data.user?.email || loginEmail,
-        authenticated: true
+      return json(res, 200, {
+        authenticated: true,
+        email: data.user.email || email,
+        message: 'Your StudyPilot account is ready.'
       });
     }
 
-    // If Supabase reports an existing confirmed account, make the Create
-    // account button useful too: sign in with the same credentials.
-    const existingLogin = await sb.auth.signInWithPassword({
-      email: loginEmail,
-      password: passwordValue
-    });
-
-    if (existingLogin.data?.session && existingLogin.data?.user) {
-      setSessionCookies(res, existingLogin.data.session);
-      return res.status(200).json({
-        message: 'Welcome back — you are signed in.',
-        email: existingLogin.data.user.email || loginEmail,
-        authenticated: true
-      });
-    }
-
-    const alreadyConfirmed = Boolean(data.user?.email_confirmed_at);
-    return res.status(200).json({
-      message: alreadyConfirmed
-        ? 'This account is already confirmed. Use Sign in with your email and password.'
-        : 'Account created. Check your email to confirm.',
-      email: data.user?.email || loginEmail,
+    // Supabase may intentionally obscure whether an address is already registered.
+    // Do not attempt an implicit sign-in from the signup endpoint.
+    return json(res, 200, {
       authenticated: false,
-      alreadyConfirmed,
-      needsConfirmation: !alreadyConfirmed
+      needsConfirmation: true,
+      message: 'If this email can be registered, a confirmation email has been requested. Check Inbox and Spam. If you already have an account, use Log in or Forgot password.'
     });
-  } catch (e) {
-    return res.status(503).json({ message: 'Account service is not configured.' });
+  } catch {
+    return json(res, 503, { message: 'The account service is temporarily unavailable. Please try again shortly.' });
   }
 }
