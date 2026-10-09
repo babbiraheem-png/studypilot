@@ -13,8 +13,8 @@ export default async function handler(req, res) {
 
   try {
     const password = String(req.body?.password || '');
-    if (password.length < 8) {
-      return res.status(400).json({ message: 'Your new password must be at least 8 characters.' });
+    if (password.length < 8 || password.length > 128) {
+      return res.status(400).json({ message: 'Choose a new password between 8 and 128 characters.' });
     }
 
     const accessToken = getCookie(req, 'studypilot_access_token');
