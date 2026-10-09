@@ -43,7 +43,7 @@ button.action{width:100%;border:0;border-radius:12px;padding:13px 16px;font-size
   <button class="action primary" id="mainBtn" onclick="submitAuth()">Log in</button>
   <button class="action secondary" id="forgotBtn" onclick="forgotPassword()">Forgot password?</button>
 
-  <div class="msg" id="message"></div>
+  <div class="msg" id="message" role="status" aria-live="polite"></div>
   <div class="small">StudyPilot remembers only your email on this device. It never saves your password.</div>
   <div class="back"><a href="/">← Back to StudyPilot</a></div>
 </main>
@@ -81,9 +81,9 @@ async function submitAuth(){
     msg.textContent='Enter a valid email address.';
     return;
   }
-  if(password.length<8){
+  if((mode==='signup' && (password.length<8 || password.length>128)) || (mode==='login' && !password)){
     msg.textContent=mode==='signup'
-      ? 'Your password must be at least 8 characters.'
+      ? 'Choose a password between 8 and 128 characters.'
       : 'Enter your password.';
     return;
   }
@@ -122,10 +122,18 @@ async function submitAuth(){
     }
 
     msg.className='msg success';
-    msg.innerHTML=(d.message||'Account created. Check your email to confirm.')+
-      (d.needsConfirmation
-        ? ' <button class="link" onclick="resendConfirmation()">Resend email</button>'
-        : '');
+    msg.replaceChildren();
+    const confirmationText=document.createElement('span');
+    confirmationText.textContent=d.message||'If this email can be registered, check your inbox to confirm the account.';
+    msg.appendChild(confirmationText);
+    if(d.needsConfirmation){
+      const resendButton=document.createElement('button');
+      resendButton.type='button';
+      resendButton.className='link';
+      resendButton.textContent=' Resend email';
+      resendButton.addEventListener('click',resendConfirmation);
+      msg.appendChild(resendButton);
+    }
     passwordEl.value='';
     btn.disabled=false;
   }catch(e){
@@ -137,6 +145,8 @@ async function submitAuth(){
 async function resendConfirmation(){
   const email=emailEl.value.trim();
   const msg=document.getElementById('message');
+  if(!email||!email.includes('@')){msg.textContent='Enter your email address first.';return;}
+  msg.className='msg';
   msg.textContent='Sending a fresh confirmation email…';
   try{
     const r=await fetch('/api/auth/resend',{
@@ -145,7 +155,8 @@ async function resendConfirmation(){
       body:JSON.stringify({email})
     });
     const d=await r.json().catch(()=>({}));
-    msg.textContent=r.ok?(d.message||'A fresh confirmation email was requested. Check Inbox and Spam.'):(d.message||'Could not resend the email.');
+    msg.className=r.ok?'msg success':'msg';
+    msg.textContent=d.message||(r.ok?'A fresh confirmation email was requested. Check Inbox and Spam.':'Could not resend the email.');
   }catch(e){
     msg.textContent='Account service is temporarily unavailable.';
   }
@@ -167,7 +178,8 @@ async function forgotPassword(){
       body:JSON.stringify({email})
     });
     const d=await r.json().catch(()=>({}));
-    msg.textContent=r.ok?(d.message||'Check your email for a password reset link.'):(d.message||'Could not send the reset email.');
+    msg.className=r.ok?'msg success':'msg';
+    msg.textContent=d.message||(r.ok?'Check your email for a password reset link.':'Could not send the reset email.');
   }catch(e){
     msg.textContent='Account service is temporarily unavailable.';
   }

@@ -1018,7 +1018,7 @@ function openAuth(){
 }
 function closeAuth(){document.getElementById('authModal').classList.remove('open')}
 
-async function resendConfirmation(){
+async async function resendConfirmation(){
   const email=document.getElementById('authEmail').value.trim();
   const msg=document.getElementById('authMessage');
   if(!email||!email.includes('@')){
@@ -1230,11 +1230,16 @@ async function signUp(){
       return;
     }
 
-    msg.textContent=d.message||'Account created. Check your email to confirm.';
-    if(d.alreadyConfirmed){
-      msg.textContent='This account is already confirmed. Use the Sign in button above.';
-    }else if(d.needsConfirmation){
-      msg.innerHTML='Confirmation email requested. Check your Inbox and Spam. <button class="btn" style="margin-left:6px;padding:5px 8px;font-size:11px" onclick="resendConfirmation()">Resend email</button>';
+    msg.textContent=d.message||'If this email can be registered, check your inbox to confirm the account.';
+    if(d.needsConfirmation){
+      const resendBtn=document.createElement('button');
+      resendBtn.type='button';
+      resendBtn.className='btn';
+      resendBtn.style.cssText='margin-left:6px;padding:5px 8px;font-size:11px';
+      resendBtn.textContent='Resend email';
+      resendBtn.onclick=resendConfirmation;
+      msg.appendChild(document.createTextNode(' '));
+      msg.appendChild(resendBtn);
     }
   }catch(e){
     msg.textContent='Account service is temporarily unavailable.';
