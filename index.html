@@ -1018,7 +1018,7 @@ function openAuth(){
 }
 function closeAuth(){document.getElementById('authModal').classList.remove('open')}
 
-async async function resendConfirmation(){
+async function resendConfirmation(){
   const email=document.getElementById('authEmail').value.trim();
   const msg=document.getElementById('authMessage');
   if(!email||!email.includes('@')){
