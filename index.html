@@ -1017,6 +1017,7 @@ function showView(id){
  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
  if(id==='news')loadNews();
  if(id==='practice')loadPracticeQuestions();
+ if(id==='tools')renderStudyTools();
  window.scrollTo({top:0,behavior:'smooth'});
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>showView(b.dataset.view));
@@ -1470,6 +1471,8 @@ function toggleFocusTimer(){const btn=document.getElementById('focusStartBtn');i
 function resetFocusTimer(){if(focusTimerInterval)clearInterval(focusTimerInterval);focusTimerInterval=null;const mins=Math.max(1,Math.min(180,Number(document.getElementById('focusMinutes')?.value)||25));focusTimerSeconds=focusTimerInitial=mins*60;paintFocusTimer();const btn=document.getElementById('focusStartBtn');if(btn)btn.textContent='Start focus';const st=document.getElementById('focusTimerStatus');if(st)st.textContent='Ready when you are'}
 function saveDailyGoal(value){const d=studyToolsData();d.goalMinutes=Math.max(5,Math.min(600,Number(value)||25));writeStudyTools(d);renderStudyTools()}
 
+renderStudyTools();
+paintFocusTimer();
 applyClassProfile();
 setAccessState(true);
 handleAuthCallback().finally(loadAccount);
