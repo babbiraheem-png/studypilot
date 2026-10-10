@@ -26,7 +26,7 @@ button.action{width:100%;border:0;border-radius:12px;padding:13px 16px;font-size
 :root{color-scheme:dark}
 body{
  background:radial-gradient(ellipse at 15% 12%,rgba(139,92,246,.13),transparent 34%),
- radial-gradient(ellipse at 88% 88%,rgba(107,91,255,.13),transparent 34%),#0b1018;
+ radial-gradient(ellipse at 88% 88%,rgba(107,91,255,.13),transparent 34%),#090b18;
  color:#f1f5f9;position:relative;overflow:hidden
 }
 body:before,body:after{content:"";position:fixed;pointer-events:none;border:1px solid rgba(139,92,246,.10);border-radius:50%;width:380px;height:380px;right:-170px;top:-170px}
@@ -84,6 +84,12 @@ button.action:hover{transform:translateY(-1px)}
 body:before{animation:sp-login-glow 18s ease-in-out infinite alternate}
 body:after{animation:sp-login-glow 24s ease-in-out infinite alternate-reverse}
 @media(prefers-reduced-motion:reduce){body:before,body:after{animation:none}}
+
+/* Animated violet aurora matching the main dashboard */
+body:before{border-color:rgba(167,139,250,.15);box-shadow:0 0 80px rgba(124,58,237,.08);animation:loginOrbit 20s ease-in-out infinite alternate}
+body:after{border-color:rgba(192,132,252,.18);box-shadow:0 0 70px rgba(167,139,250,.08);animation:loginOrbit 16s ease-in-out infinite alternate-reverse}
+@keyframes loginOrbit{from{transform:translate3d(0,0,0) rotate(0deg)}to{transform:translate3d(12px,18px,0) rotate(8deg)}}
+@media(prefers-reduced-motion:reduce){body:before,body:after{animation:none!important}}
 </style>
 </head>
 <body>
