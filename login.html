@@ -25,11 +25,11 @@ button.action{width:100%;border:0;border-radius:12px;padding:13px 16px;font-size
 /* StudyPilot matching midnight login experience */
 :root{color-scheme:dark}
 body{
- background:radial-gradient(ellipse at 15% 12%,rgba(199,243,107,.13),transparent 34%),
+ background:radial-gradient(ellipse at 15% 12%,rgba(139,92,246,.13),transparent 34%),
  radial-gradient(ellipse at 88% 88%,rgba(107,91,255,.13),transparent 34%),#0b1018;
  color:#f1f5f9;position:relative;overflow:hidden
 }
-body:before,body:after{content:"";position:fixed;pointer-events:none;border:1px solid rgba(199,243,107,.10);border-radius:50%;width:380px;height:380px;right:-170px;top:-170px}
+body:before,body:after{content:"";position:fixed;pointer-events:none;border:1px solid rgba(139,92,246,.10);border-radius:50%;width:380px;height:380px;right:-170px;top:-170px}
 body:after{width:240px;height:240px;left:-120px;right:auto;top:auto;bottom:-100px;border-color:rgba(130,145,255,.13)}
 .card{
  position:relative;z-index:1;background:rgba(17,25,37,.94);border:1px solid #2a394a;
@@ -37,27 +37,27 @@ body:after{width:240px;height:240px;left:-120px;right:auto;top:auto;bottom:-100p
  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)
 }
 .logo{font-size:23px;letter-spacing:-.05em;color:#f6f8fb;margin-bottom:27px}
-.mark{background:#c7f36b;color:#17200e;border-radius:13px;box-shadow:0 8px 28px rgba(199,243,107,.14);font-weight:950}
+.mark{background:#8b5cf6;color:#160f2e;border-radius:13px;box-shadow:0 8px 28px rgba(139,92,246,.14);font-weight:950}
 h1{color:#f6f8fb;font-size:34px;letter-spacing:-.055em}
 .sub{color:#98a8ba;font-size:14px;line-height:1.7}
 .tabs{background:#0d1520;border:1px solid #273648;border-radius:14px;padding:5px}
 .tab{color:#8d9db1;border-radius:10px}
-.tab.active{background:#c7f36b;color:#17200e;box-shadow:none}
+.tab.active{background:#8b5cf6;color:#160f2e;box-shadow:none}
 label{color:#c3cfdd;font-size:12px;letter-spacing:.02em}
 input{background:#0d1520;color:#f0f5fb;border:1px solid #2b3a4c;border-radius:12px;padding:14px}
 input::placeholder{color:#687b91}
-input:focus{border-color:#c7f36b;box-shadow:0 0 0 3px rgba(199,243,107,.10)}
+input:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.10)}
 button.action{border-radius:12px;transition:transform .18s,background .18s}
 button.action:hover{transform:translateY(-1px)}
-.primary{background:#c7f36b;color:#17200e;margin-top:16px}
-.primary:hover{background:#d9ff8b}
+.primary{background:#8b5cf6;color:#160f2e;margin-top:16px}
+.primary:hover{background:#c4b5fd}
 .secondary{background:#172231;color:#d9e3ee;border:1px solid #2a394b;margin-top:10px}
-.link{color:#c7f36b}
+.link{color:#8b5cf6}
 .small{color:#8495aa;font-size:12px;line-height:1.7}
 .msg{color:#c1cddd;line-height:1.6}
 .success{color:#b7f58a}
 .back{color:#94a4b8}
-.back a{color:#c7f36b}
+.back a{color:#8b5cf6}
 button:disabled{opacity:.65;cursor:wait}
 @media(max-width:520px){body{padding:16px}.card{padding:26px 20px;border-radius:23px}h1{font-size:30px}}
 
@@ -79,6 +79,11 @@ button.action:hover{transform:translateY(-1px)}
 .card{animation:purpleCardGlow 8s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){.card{animation:none}}
 
+
+@keyframes sp-login-glow{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(-16px,14px,0) scale(1.06)}}
+body:before{animation:sp-login-glow 18s ease-in-out infinite alternate}
+body:after{animation:sp-login-glow 24s ease-in-out infinite alternate-reverse}
+@media(prefers-reduced-motion:reduce){body:before,body:after{animation:none}}
 </style>
 </head>
 <body>
