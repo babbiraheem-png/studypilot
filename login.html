@@ -131,7 +131,7 @@ button.action:hover{transform:none!important}
 .back{margin-top:25px!important;color:#737b87!important}
 .back a{text-decoration:none!important}
 @media(max-width:520px){body{padding:20px 16px!important}.card{padding:12px 0!important}h1{font-size:28px!important}.logo{margin-bottom:32px!important}}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.password-wrap{position:relative}.password-wrap input{padding-right:76px}.password-toggle{position:absolute;right:13px;top:50%;transform:translateY(-50%);padding:7px 4px;font-size:13px;background:transparent!important}.password-toggle:focus-visible{outline:2px solid #3578d4;outline-offset:2px;border-radius:5px}input:invalid:not(:placeholder-shown){border-color:#cbd0d8}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 
 </style>
 </head>
@@ -147,10 +147,12 @@ button.action:hover{transform:none!important}
   </div>
 
   <label for="email">Email</label>
-  <input id="email" type="email" autocomplete="username" placeholder="Email address">
+  <input id="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" required placeholder="you@example.com" aria-describedby="emailHint">
+  <div id="emailHint" class="small" style="text-align:left;margin-top:7px">Use the email address connected to your StudyPilot account.</div>
 
   <label for="password">Password</label>
-  <input id="password" type="password" autocomplete="new-password" placeholder="At least 8 characters">
+  <div class="password-wrap"><input id="password" type="password" autocomplete="current-password" required placeholder="Your password" aria-describedby="passwordHint"><button type="button" id="togglePassword" class="link password-toggle" aria-label="Show password" aria-pressed="false">Show</button></div>
+  <div id="passwordHint" class="small" style="text-align:left;margin-top:7px">New here? Choose Create account above.</div>
 
   <button class="action primary" id="mainBtn" onclick="submitAuth()">Log in</button>
   <button class="action secondary" id="forgotBtn" onclick="forgotPassword()">Forgot password?</button>
@@ -164,8 +166,21 @@ button.action:hover{transform:none!important}
 let mode=new URLSearchParams(location.search).get('mode')==='signup'?'signup':'login';
 const emailEl=document.getElementById('email');
 const passwordEl=document.getElementById('password');
-const lastEmail=localStorage.getItem('studypilotLastEmail')||'';
+let lastEmail=localStorage.getItem('studypilotLastEmail')||'';
 if(lastEmail)emailEl.value=lastEmail;
+emailEl.addEventListener('input',()=>{
+  const typed=emailEl.value.trim();
+  if(mode==='login') document.getElementById('subtitle').textContent=typed
+    ? 'Continue securely with '+typed+'.'
+    : 'Log in to your student workspace.';
+});
+document.getElementById('togglePassword').addEventListener('click',()=>{
+  const showing=passwordEl.type==='text';
+  passwordEl.type=showing?'password':'text';
+  document.getElementById('togglePassword').textContent=showing?'Show':'Hide';
+  document.getElementById('togglePassword').setAttribute('aria-label',showing?'Show password':'Hide password');
+  document.getElementById('togglePassword').setAttribute('aria-pressed',String(!showing));
+});
 
 function setMode(next){
   mode=next;
@@ -200,6 +215,7 @@ async function submitAuth(){
     return;
   }
 
+  lastEmail=email;
   localStorage.setItem('studypilotLastEmail',email);
   btn.disabled=true;
   msg.className='msg';
@@ -281,7 +297,10 @@ async function forgotPassword(){
     msg.textContent='Enter your email address first.';
     return;
   }
+  lastEmail=email;
   localStorage.setItem('studypilotLastEmail',email);
+  const forgotBtn=document.getElementById('forgotBtn');
+  forgotBtn.disabled=true;
   msg.textContent='Sending reset email…';
   try{
     const r=await fetch('/api/auth/reset-password',{
@@ -294,6 +313,8 @@ async function forgotPassword(){
     msg.textContent=d.message||(r.ok?'Check your email for a password reset link.':'Could not send the reset email.');
   }catch(e){
     msg.textContent='Account service is temporarily unavailable.';
+  }finally{
+    forgotBtn.disabled=false;
   }
 }
 
