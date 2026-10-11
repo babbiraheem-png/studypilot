@@ -26,6 +26,30 @@
 }
 </script>
 <title>StudyPilot — AI Study Tutor, Revision & Practice</title>
+<!-- Send visitors to login before revealing the study workspace. Password-recovery links must still load the recovery UI. -->
+<style>html.sp-auth-checking body{visibility:hidden!important}</style>
+<script>
+(function(){
+  const query = new URLSearchParams(window.location.search);
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const isPasswordRecovery =
+    query.get("type") === "recovery" ||
+    hash.get("type") === "recovery";
+  if (isPasswordRecovery) return;
+
+  document.documentElement.classList.add("sp-auth-checking");
+  fetch("/api/account", { credentials: "include", cache: "no-store" })
+    .then(function(response){ return response.ok ? response.json() : null; })
+    .then(function(account){
+      if (account && account.authenticated) {
+        document.documentElement.classList.remove("sp-auth-checking");
+      } else {
+        window.location.replace("/login.html");
+      }
+    })
+    .catch(function(){ window.location.replace("/login.html"); });
+})();
+</script>
 <style>
 :root{
   --bg:#f6f0e6;--panel:#fffdf8;--panel2:#eef5ff;--text:#1c2a3a;--muted:#6d7a89;
