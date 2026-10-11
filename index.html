@@ -1418,7 +1418,7 @@ async function handleAuthCallback(){
 
   if(!accessToken||!refreshToken)return Boolean(recovery);
   try{
-    const r=await fetch('/api/auth/bootstrap',{
+    const r=await fetch('/api/auth/google',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       credentials:'include',
