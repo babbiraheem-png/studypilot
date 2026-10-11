@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Finishing Google sign-in · StudyPilot</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#f7f9fc;color:#202123;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{width:min(420px,100%);text-align:center;padding:32px 24px}
+.mark{margin:0 auto 20px;width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,#3578d4,#67a7f4);display:grid;place-items:center;color:white;font-weight:900;font-size:24px}
+h1{font-size:25px;letter-spacing:-.03em;margin:0 0 10px}
+p{font-size:14px;color:#687386;line-height:1.65}
+.spinner{width:28px;height:28px;border:3px solid #dce6f4;border-top-color:#3578d4;border-radius:50%;animation:spin .8s linear infinite;margin:24px auto}
+button{border:0;border-radius:10px;background:#3578d4;color:#fff;padding:12px 18px;font-weight:700;cursor:pointer}
+[hidden]{display:none!important}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spinner{animation:none}}
+</style>
+</head>
+<body>
+<main>
+  <div class="mark" aria-hidden="true">S</div>
+  <h1 id="heading">Finishing Google sign-in…</h1>
+  <div id="spinner" class="spinner" aria-hidden="true"></div>
+  <p id="status" role="status" aria-live="polite">Please keep this page open for a moment.</p>
+  <button id="back" type="button" hidden onclick="location.replace('/login.html')">Back to log in</button>
+</main>
+<script>
+(async function finishGoogleSignIn(){
+  const heading = document.getElementById('heading');
+  const status = document.getElementById('status');
+  const spinner = document.getElementById('spinner');
+  const back = document.getElementById('back');
+  const hash = new URLSearchParams(location.hash.slice(1));
+  const query = new URLSearchParams(location.search);
+  const oauthError = hash.get('error_description') || query.get('error_description') ||
+    hash.get('error') || query.get('error');
+  const accessToken = hash.get('access_token');
+  const refreshToken = hash.get('refresh_token');
+
+  // Remove OAuth tokens from the address bar as soon as they have been read.
+  history.replaceState(null, document.title, location.pathname);
+
+  function showError(message){
+    heading.textContent = 'Google sign-in could not finish';
+    status.textContent = message;
+    spinner.hidden = true;
+    back.hidden = false;
+  }
+
+  if (oauthError) {
+    showError('Google sign-in was cancelled or rejected. Return to log in and try again.');
+    return;
+  }
+  if (!accessToken || !refreshToken) {
+    showError('No sign-in session was returned. Please return to log in and try again.');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/auth/oauth-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      cache: 'no-store',
+      body: JSON.stringify({ access_token: accessToken, refresh_token: refreshToken })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.authenticated) {
+      showError(result.message || 'We could not verify your sign-in. Please try again.');
+      return;
+    }
+    heading.textContent = 'You’re signed in';
+    status.textContent = 'Opening your StudyPilot workspace…';
+    window.location.replace('/');
+  } catch {
+    showError('The account service could not be reached. Check your connection and try again.');
+  }
+})();
+</script>
+</body>
+</html>
