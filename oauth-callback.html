@@ -60,7 +60,7 @@ button{border:0;border-radius:10px;background:#3578d4;color:#fff;padding:12px 18
   }
 
   try {
-    const response = await fetch('/api/auth/oauth-session', {
+    const response = await fetch('/api/auth/google', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
