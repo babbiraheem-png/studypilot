@@ -91,17 +91,19 @@ body:after{border-color:rgba(192,132,252,.18);box-shadow:0 0 70px rgba(167,139,2
 @keyframes loginOrbit{from{transform:translate3d(0,0,0) rotate(0deg)}to{transform:translate3d(12px,18px,0) rotate(8deg)}}
 @media(prefers-reduced-motion:reduce){body:before,body:after{animation:none!important}}
 
-/* Sunset Orange login palette to match the new StudyPilot layout */
-:root{color-scheme:dark}
-body{background:radial-gradient(ellipse at 15% 12%,rgba(255,117,66,.17),transparent 36%),radial-gradient(ellipse at 88% 88%,rgba(200,75,47,.14),transparent 34%),#100e13!important;color:#f8f2ef!important}
-body:before{border-color:rgba(255,135,72,.17)!important;box-shadow:0 0 80px rgba(255,117,66,.10)!important}
-body:after{border-color:rgba(255,177,124,.17)!important;box-shadow:0 0 70px rgba(200,75,47,.10)!important}
-.card{background:rgba(28,23,29,.95)!important;border-color:#3c2d30!important;box-shadow:0 32px 100px rgba(0,0,0,.4),0 0 35px rgba(255,117,66,.06)!important;color:#f8f2ef!important}
-.logo{color:#fff5ef!important}.mark{background:linear-gradient(135deg,#ffb17c,#ff7542)!important;color:#28130e!important;box-shadow:0 8px 28px rgba(255,117,66,.18)!important}
-h1{color:#fff5ef!important}.sub,label{color:#c6b4b0!important}
-.tabs{background:#19151c!important;border-color:#463437!important}.tab{color:#b9aaa8!important}.tab.active{background:linear-gradient(135deg,#ff9a62,#e85f3b)!important;color:#28130e!important}
-input{background:#19151c!important;color:#f8f2ef!important;border-color:#463437!important}input::placeholder{color:#958584!important}input:focus{border-color:#ff8748!important;box-shadow:0 0 0 3px rgba(255,135,72,.14)!important}
-.primary{background:linear-gradient(135deg,#ff9a62,#e85f3b)!important;color:#28130e!important}.primary:hover{background:linear-gradient(135deg,#ffb17c,#ff7542)!important}.secondary{background:#241b21!important;color:#f8e7df!important;border-color:#463437!important}.link,.back a{color:#ffad7a!important}.small,.back{color:#b9aaa8!important}
+
+/* RESTORED CLASSIC STUDYPILOT BLUE LOGIN THEME */
+:root{color-scheme:light!important}
+body{background:radial-gradient(ellipse at 15% 12%,rgba(53,120,212,.12),transparent 36%),radial-gradient(ellipse at 88% 88%,rgba(103,167,244,.13),transparent 34%),#f6f9ff!important;color:#1c2a3a!important}
+body:before,body:after{border-color:rgba(53,120,212,.13)!important;box-shadow:0 0 70px rgba(53,120,212,.07)!important}
+.card{background:rgba(255,255,255,.96)!important;border-color:#dce7f5!important;box-shadow:0 24px 80px rgba(35,74,125,.12)!important;color:#1c2a3a!important;backdrop-filter:blur(18px)}
+.logo{color:#1c2a3a!important}.mark{background:linear-gradient(135deg,#3578d4,#67a7f4)!important;color:#fff!important;box-shadow:0 8px 24px rgba(53,120,212,.16)!important}
+h1{color:#1c2a3a!important}.sub,label{color:#66758b!important}
+.tabs{background:#eef3fa!important;border-color:#dfe7f2!important}.tab{color:#66758b!important}.tab.active{background:#fff!important;color:#1d4ed8!important;box-shadow:0 1px 4px rgba(20,40,80,.08)!important}
+input{background:#fff!important;color:#1c2a3a!important;border-color:#cbd7e8!important}input::placeholder{color:#8997a9!important}input:focus{border-color:#4f8cff!important;box-shadow:0 0 0 3px rgba(79,140,255,.12)!important}
+.primary{background:linear-gradient(135deg,#3578d4,#1d4ed8)!important;color:#fff!important;box-shadow:0 8px 22px rgba(53,120,212,.17)!important}.primary:hover{background:linear-gradient(135deg,#67a7f4,#3578d4)!important}
+.secondary{background:#eef3fa!important;color:#12203a!important;border-color:#dce7f5!important}
+.link,.back a{color:#1d4ed8!important}.success{color:#147a42!important}.small,.back{color:#718096!important}.msg{color:#45556d!important}
 </style>
 </head>
 <body>
