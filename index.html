@@ -33,7 +33,9 @@
   const query = new URLSearchParams(window.location.search);
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
   const isPasswordRecovery = query.get("type") === "recovery" || hash.get("type") === "recovery";
-  if (isPasswordRecovery) return;
+  const recoveryAccessToken = hash.get("access_token") || query.get("access_token");
+  const recoveryRefreshToken = hash.get("refresh_token") || query.get("refresh_token");
+  if (isPasswordRecovery && recoveryAccessToken && recoveryRefreshToken) return;
 
   document.documentElement.classList.add("sp-auth-checking");
   const accessToken = hash.get("access_token") || query.get("access_token");
