@@ -26,27 +26,51 @@
 }
 </script>
 <title>StudyPilot — AI Study Tutor, Revision & Practice</title>
-<!-- Send visitors to login before revealing the study workspace. Password-recovery links must still load the recovery UI. -->
+<!-- Keep the workspace private while checking the session. Supabase recovery links still load the reset-password UI. -->
 <style>html.sp-auth-checking body{visibility:hidden!important}</style>
 <script>
 (function(){
   const query = new URLSearchParams(window.location.search);
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-  const isPasswordRecovery =
-    query.get("type") === "recovery" ||
-    hash.get("type") === "recovery";
+  const isPasswordRecovery = query.get("type") === "recovery" || hash.get("type") === "recovery";
   if (isPasswordRecovery) return;
 
   document.documentElement.classList.add("sp-auth-checking");
+  const accessToken = hash.get("access_token") || query.get("access_token");
+  const refreshToken = hash.get("refresh_token") || query.get("refresh_token");
+
+  function showWorkspaceIfAuthenticated(account){
+    if (account && account.authenticated) {
+      document.documentElement.classList.remove("sp-auth-checking");
+    } else {
+      window.location.replace("/login.html");
+    }
+  }
+
+  if (accessToken && refreshToken) {
+    // Remove tokens from the address bar, then verify the email-confirmation
+    // session on the server before revealing the protected workspace.
+    window.history.replaceState({}, document.title, window.location.pathname);
+    fetch("/api/account", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      cache: "no-store",
+      body: JSON.stringify({ access_token: accessToken, refresh_token: refreshToken })
+    })
+    .then(function(response){
+      if (!response.ok) return null;
+      return fetch("/api/account", { credentials: "include", cache: "no-store" })
+        .then(function(accountResponse){ return accountResponse.ok ? accountResponse.json() : null; });
+    })
+    .then(showWorkspaceIfAuthenticated)
+    .catch(function(){ window.location.replace("/login.html"); });
+    return;
+  }
+
   fetch("/api/account", { credentials: "include", cache: "no-store" })
     .then(function(response){ return response.ok ? response.json() : null; })
-    .then(function(account){
-      if (account && account.authenticated) {
-        document.documentElement.classList.remove("sp-auth-checking");
-      } else {
-        window.location.replace("/login.html");
-      }
-    })
+    .then(showWorkspaceIfAuthenticated)
     .catch(function(){ window.location.replace("/login.html"); });
 })();
 </script>
@@ -1442,7 +1466,7 @@ async function handleAuthCallback(){
 
   if(!accessToken||!refreshToken)return Boolean(recovery);
   try{
-    const r=await fetch('/api/auth/google',{
+    const r=await fetch('/api/account',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       credentials:'include',
