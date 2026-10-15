@@ -37,12 +37,52 @@ function clearSessionCookies(res) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', 'GET');
-    return res.status(405).json({ message: 'Method not allowed.' });
+  res.setHeader('Cache-Control', 'private, no-store');
+
+  // Email confirmation and password-reset links return short-lived Supabase
+  // tokens to the site. Verify them server-side and keep them in HttpOnly cookies.
+  if (req.method === 'POST') {
+    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+      return res.status(503).json({ authenticated: false, message: 'Account service is not configured.' });
+    }
+
+    const origin = req.headers.origin;
+    if (origin && origin !== 'https://studypilot-flax.vercel.app') {
+      return res.status(403).json({ authenticated: false, message: 'This sign-in request was not accepted.' });
+    }
+
+    const accessToken = typeof req.body?.access_token === 'string' ? req.body.access_token : '';
+    const refreshToken = typeof req.body?.refresh_token === 'string' ? req.body.refresh_token : '';
+    if (!accessToken || !refreshToken || accessToken.length > 8192 || refreshToken.length > 8192) {
+      return res.status(400).json({ authenticated: false, message: 'Sign-in could not be completed. Please try again.' });
+    }
+
+    try {
+      const sb = client();
+      const { data, error } = await sb.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      });
+      if (error || !data?.session) {
+        return res.status(401).json({ authenticated: false, message: 'Your sign-in session could not be verified. Please try again.' });
+      }
+
+      const verified = await sb.auth.getUser(data.session.access_token);
+      if (verified.error || !verified.data?.user) {
+        return res.status(401).json({ authenticated: false, message: 'Your sign-in session could not be verified. Please try again.' });
+      }
+
+      setSessionCookies(res, data.session);
+      return res.status(200).json({ authenticated: true, email: verified.data.user.email || null });
+    } catch {
+      return res.status(503).json({ authenticated: false, message: 'The account service is temporarily unavailable. Please try again.' });
+    }
   }
 
-  res.setHeader('Cache-Control', 'private, no-store');
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET, POST');
+    return res.status(405).json({ message: 'Method not allowed.' });
+  }
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     return res.status(503).json({ authenticated: false, message: 'Account service is not configured.' });
   }
