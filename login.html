@@ -148,7 +148,7 @@ button.action:hover{transform:none!important}
   </div>
 
   <label for="email">Email</label>
-  <input id="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" required placeholder="you@example.com" aria-describedby="emailHint">
+  <input id="email" type="email" autocomplete="off" inputmode="email" autocapitalize="none" spellcheck="false" required placeholder="you@example.com" aria-describedby="emailHint">
   <div id="emailHint" class="small" style="text-align:left;margin-top:7px">Use the email address connected to your StudyPilot account.</div>
 
   <label for="password">Password</label>
@@ -159,7 +159,7 @@ button.action:hover{transform:none!important}
   <button class="action secondary" id="forgotBtn" onclick="forgotPassword()">Forgot password?</button>
 
   <div class="msg" id="message" role="status" aria-live="polite"></div>
-  <div class="small">StudyPilot remembers only your email on this device. It never saves your password.</div>
+  <div class="small">For privacy on shared devices, enter your email each time. StudyPilot never saves your password.</div>
   <div class="back"><a href="/">← Back to StudyPilot</a></div>
 </main>
 
@@ -167,8 +167,9 @@ button.action:hover{transform:none!important}
 let mode=new URLSearchParams(location.search).get('mode')==='signup'?'signup':'login';
 const emailEl=document.getElementById('email');
 const passwordEl=document.getElementById('password');
-let lastEmail=localStorage.getItem('studypilotLastEmail')||'';
-if(lastEmail)emailEl.value=lastEmail;
+// Clear the legacy saved email so this browser does not keep prefilling one person's account.
+try { localStorage.removeItem('studypilotLastEmail'); } catch {}
+let lastEmail='';
 emailEl.addEventListener('input',()=>{
   const typed=emailEl.value.trim();
   if(mode==='login') document.getElementById('subtitle').textContent=typed
@@ -188,7 +189,7 @@ function setMode(next){
   const login=mode==='login';
   document.getElementById('title').textContent=login?'Log in':'Create your account';
   document.getElementById('subtitle').textContent=login
-    ? (lastEmail?'Log in as '+lastEmail+'.':'Log in to your student workspace.')
+    ? 'Log in to your student workspace.'
     : 'Create your free StudyPilot student account.';
   document.getElementById('mainBtn').textContent=login?'Log in':'Create account';
   document.getElementById('forgotBtn').style.display=login?'block':'none';
@@ -216,8 +217,7 @@ async function submitAuth(){
     return;
   }
 
-  lastEmail=email;
-  localStorage.setItem('studypilotLastEmail',email);
+  
   btn.disabled=true;
   msg.className='msg';
   msg.textContent=mode==='login'?'Logging in…':'Creating your account…';
@@ -298,8 +298,7 @@ async function forgotPassword(){
     msg.textContent='Enter your email address first.';
     return;
   }
-  lastEmail=email;
-  localStorage.setItem('studypilotLastEmail',email);
+  
   const forgotBtn=document.getElementById('forgotBtn');
   forgotBtn.disabled=true;
   msg.textContent='Sending reset email…';
