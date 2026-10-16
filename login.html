@@ -141,6 +141,8 @@ button.action:hover{transform:none!important}
   <div class="logo"><div class="mark">S</div><div>StudyPilot</div></div>
   <h1 id="title">Log in</h1>
   <p class="sub" id="subtitle">Log in to your student workspace.</p>
+  <div class="msg success" id="activeSessionNotice" style="display:none;text-align:left" role="status" aria-live="polite"></div>
+  <button type="button" class="action secondary" id="switchAccountBtn" style="display:none">Log out and switch account</button>
 
   <div class="tabs">
     <button class="tab active" id="loginTab" onclick="setMode('login')">Log in</button>
@@ -321,10 +323,47 @@ async function forgotPassword(){
 passwordEl.addEventListener('keydown',e=>{if(e.key==='Enter')submitAuth();});
 setMode(mode);
 
+const activeSessionNotice=document.getElementById('activeSessionNotice');
+const switchAccountBtn=document.getElementById('switchAccountBtn');
+
+// Show the current browser session without forcing the visitor back into it.
+// A visitor can explicitly sign out, then enter a different email.
 fetch('/api/account',{credentials:'include',cache:'no-store'})
   .then(r=>r.ok?r.json():null)
-  .then(d=>{if(d?.authenticated)window.location.href='/';})
+  .then(d=>{
+    if(d?.authenticated && d.email){
+      activeSessionNotice.textContent='This browser is signed in as '+d.email+'. Sign out to switch accounts on this browser.';
+      activeSessionNotice.style.display='block';
+      switchAccountBtn.style.display='block';
+    }
+  })
   .catch(()=>{});
+
+switchAccountBtn.addEventListener('click',async()=>{
+  switchAccountBtn.disabled=true;
+  activeSessionNotice.textContent='Signing out of the current account…';
+  try{
+    const r=await fetch('/api/auth/logout',{
+      method:'POST',
+      credentials:'include',
+      cache:'no-store'
+    });
+    if(!r.ok)throw new Error('Sign out failed');
+    activeSessionNotice.style.display='none';
+    switchAccountBtn.style.display='none';
+    emailEl.value='';
+    passwordEl.value='';
+    lastEmail='';
+    document.getElementById('subtitle').textContent=mode==='login'
+      ? 'Log in to your student workspace.'
+      : 'Create your free StudyPilot student account.';
+    document.getElementById('message').textContent='Signed out. Enter the email for the account you want to use.';
+  }catch(e){
+    activeSessionNotice.textContent='Could not sign out right now. Refresh this page and try again.';
+  }finally{
+    switchAccountBtn.disabled=false;
+  }
+});
 </script>
 </body>
 </html>
