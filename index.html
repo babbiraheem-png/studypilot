@@ -831,10 +831,11 @@ input:focus,textarea:focus,select:focus{border-color:#4f8cff!important;box-shado
   <div id="chapterContent" class="chapter-content"></div>
   <div class="modal-actions"><button class="btn" onclick="askChapterTutor()">✨ Ask AI Tutor</button><button class="btn primary" onclick="markChapterReviewed()">✓ Mark as reviewed</button></div>
 </div></div>
-<div class="modal" id="authModal"><div class="modal-box"><h2>Welcome to StudyPilot</h2><p class="small" id="authWelcomeText">Sign in or create your account.</p><div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="username" placeholder="Email address"></div><div class="field"><label>Password</label><input id="authPassword" type="password" autocomplete="off" placeholder="Your password"></div><div class="small" style="margin-top:8px">StudyPilot remembers only your email on this device — never your password.</div></div><div class="modal-actions"><button class="btn" onclick="closeAuth()">Close</button><button class="btn" onclick="signIn()">Sign in</button><button class="btn primary" onclick="signUp()">Create account</button></div><div class="small" style="margin-top:10px"><button class="btn" style="padding:5px 8px;font-size:11px" onclick="requestPasswordReset()">Forgot password?</button></div><div class="small" id="authMessage" style="margin-top:12px"></div></div></div><div class="modal" id="resetPasswordModal"><div class="modal-box"><h2>Set a new password</h2><p class="small">Choose a new password with at least 8 characters.</p><div class="field"><label>New password</label><input id="newPassword" type="password" autocomplete="new-password" placeholder="New password"></div><div class="field"><label>Confirm new password</label><input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Repeat new password"></div><div class="modal-actions"><button class="btn" onclick="closeResetPassword()">Cancel</button><button class="btn primary" onclick="updatePassword()">Update password</button></div><div class="small" id="resetMessage" style="margin-top:12px"></div></div></div><div class="toast" id="toast"></div>
+<div class="modal" id="authModal"><div class="modal-box"><h2>Welcome to StudyPilot</h2><p class="small" id="authWelcomeText">Sign in or create your account.</p><div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="off" placeholder="Email address"></div><div class="field"><label>Password</label><input id="authPassword" type="password" autocomplete="off" placeholder="Your password"></div><div class="small" style="margin-top:8px">For privacy on shared devices, enter your email each time. StudyPilot never saves your password.</div></div><div class="modal-actions"><button class="btn" onclick="closeAuth()">Close</button><button class="btn" onclick="signIn()">Sign in</button><button class="btn primary" onclick="signUp()">Create account</button></div><div class="small" style="margin-top:10px"><button class="btn" style="padding:5px 8px;font-size:11px" onclick="requestPasswordReset()">Forgot password?</button></div><div class="small" id="authMessage" style="margin-top:12px"></div></div></div><div class="modal" id="resetPasswordModal"><div class="modal-box"><h2>Set a new password</h2><p class="small">Choose a new password with at least 8 characters.</p><div class="field"><label>New password</label><input id="newPassword" type="password" autocomplete="new-password" placeholder="New password"></div><div class="field"><label>Confirm new password</label><input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Repeat new password"></div><div class="modal-actions"><button class="btn" onclick="closeResetPassword()">Cancel</button><button class="btn primary" onclick="updatePassword()">Update password</button></div><div class="small" id="resetMessage" style="margin-top:12px"></div></div></div><div class="toast" id="toast"></div>
 <div class="modal" id="aiModal"><div class="modal-box"><h2>AI Tutor</h2><p class="small" style="line-height:1.6">The AI Tutor is securely connected through the StudyPilot server. Your Gemini API key is never exposed to students.</p><div class="small">Server status: <b id="serverStatus">Checking…</b></div><div class="modal-actions"><button class="btn primary" onclick="testServer()">Test AI Tutor</button><button class="btn" onclick="closeAISetup()">Close</button></div></div></div>
 
 <script>
+try { localStorage.removeItem('studypilotLastEmail'); } catch {}
 const saved=JSON.parse(localStorage.getItem('studypilotState')||'null')||{};
 let aiHistory=JSON.parse(localStorage.getItem('studypilotChat')||'[]');
 const state={questions:saved.questions||0,correct:saved.correct||0,practiceIndex:0,flashIndex:0,flipped:false,studyMinutes:saved.studyMinutes||0,sessionCount:saved.sessionCount||0,lastStudyDate:saved.lastStudyDate||'',streak:saved.streak||0,heat:saved.heat||Array(56).fill(0)};
@@ -1349,18 +1350,12 @@ function setAccessState(){
 }
 
 function openAuth(){
-  const savedEmail=localStorage.getItem('studypilotLastEmail')||'';
   const emailInput=document.getElementById('authEmail');
   const welcome=document.getElementById('authWelcomeText');
   document.getElementById('authMessage').textContent='';
   document.getElementById('authPassword').value='';
-  if(savedEmail){
-    emailInput.value=savedEmail;
-    welcome.textContent='Sign in as '+savedEmail;
-  }else{
-    emailInput.value='';
-    welcome.textContent='Sign in or create your account.';
-  }
+  emailInput.value='';
+  welcome.textContent='Sign in or create your account.';
   document.getElementById('authModal').classList.add('open');
 }
 function closeAuth(){document.getElementById('authModal').classList.remove('open')}
@@ -1546,7 +1541,6 @@ async function loadAccount(){
 async function signUp(){
   const email=document.getElementById('authEmail').value.trim();
   const password=document.getElementById('authPassword').value;
-  if(email) localStorage.setItem('studypilotLastEmail',email);
   const msg=document.getElementById('authMessage');
 
   if(!email||!email.includes('@')||password.length<8){
@@ -1596,7 +1590,6 @@ async function signUp(){
 async function signIn(){
   const email=document.getElementById('authEmail').value.trim();
   const password=document.getElementById('authPassword').value;
-  if(email) localStorage.setItem('studypilotLastEmail',email);
   const msg=document.getElementById('authMessage');
 
   if(!email||!email.includes('@')||!password){
@@ -1640,7 +1633,6 @@ async function logout(){
     return;
   }
 
-  if(accountState.email) localStorage.setItem('studypilotLastEmail',accountState.email);
   accountState.authenticated=false;
   accountState.plan='free';
   accountState.credits=20;
