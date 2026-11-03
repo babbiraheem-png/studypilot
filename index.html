@@ -630,7 +630,7 @@ input:focus,textarea:focus,select:focus{border-color:#4f8cff!important;box-shado
     <div class="grid two">
       <div class="card">
         <div class="card-title"><h2>Continue learning</h2><span>Personalized</span></div>
-        <div class="hero"><h2 id="continueTitle">Class 11 · Physics: Current Electricity</h2><p id="continueText">Start your first topic. Work through a question or ask your AI tutor for a simple explanation.</p><div class="hero-actions"><button class="btn primary" onclick="showView('revision')">Continue chapter</button><button class="btn" onclick="showView('chat')">Ask tutor</button></div></div>
+        <div class="hero"><h2 id="continueTitle">Class 11 · Physics: Current Electricity</h2><p id="continueText">Start your first topic. Work through a question or ask your AI tutor for a simple explanation.</p><div class="hero-actions"><button class="btn primary" id="continueLearningBtn" onclick="continueLearning()">Start learning</button><button class="btn" onclick="showView('chat')">Ask tutor</button></div></div>
         <div style="margin-top:18px"><div class="subject-row"><b>Chapter progress</b><span class="small" id="chapterProgressText">0%</span></div><div class="progress"><i id="chapterProgress" style="width:0%"></i></div></div>
       </div>
       <div class="card">
@@ -1038,6 +1038,24 @@ function setStudentSubject(value){
 function getChapterKey(classValue,subjectName,chapterName){
   return [classValue,subjectName,chapterName].join('::');
 }
+function getStartedChapters(){
+  try{return JSON.parse(localStorage.getItem('studypilotStartedChapters')||'{}')||{};}
+  catch{return {};}
+}
+function hasStartedChapter(classValue,subjectName,chapterName){
+  return Boolean(getStartedChapters()[getChapterKey(classValue,subjectName,chapterName)]);
+}
+function markChapterStarted(classValue,subjectName,chapterName){
+  const started=getStartedChapters();
+  started[getChapterKey(classValue,subjectName,chapterName)]=Date.now();
+  localStorage.setItem('studypilotStartedChapters',JSON.stringify(started));
+}
+function continueLearning(){
+  const subj=currentSubject();
+  const startedIndex=subj.chapters.findIndex(ch=>hasStartedChapter(studentClass,subj.name,ch));
+  showView('revision');
+  if(startedIndex>=0)openChapter(startedIndex);
+}
 function getChapterProgress(classValue,subjectName,chapterName){
   const saved=JSON.parse(localStorage.getItem('studypilotChapterProgress')||'{}');
   return Number(saved[getChapterKey(classValue,subjectName,chapterName)]||0);
@@ -1122,6 +1140,8 @@ function openChapter(index){
   const chapter=subj.chapters[index];
   if(!chapter)return;
   selectedChapterIndex=index;
+  markChapterStarted(studentClass,subj.name,chapter);
+  renderContinueLearning();
   const progress=getChapterProgress(studentClass,subj.name,chapter);
   const title=document.getElementById('chapterModalTitle');
   const meta=document.getElementById('chapterModalMeta');
@@ -1178,11 +1198,19 @@ function renderContinueLearning(){
   const featured=String(p.hero||'').match(/^([^:]+):\s*(.+)$/);
   const featuredSubject=featured?.[1]?.trim();
   const featuredChapter=featured?.[2]?.trim();
-  // A class profile's featured chapter may belong to a different subject.
-  // Reuse it only for that subject; otherwise select a chapter from the active subject.
-  const chapter=featuredSubject===subj.name?featuredChapter:(subj.chapters[0]||'Choose a chapter');
+  const startedIndex=subj.chapters.findIndex(ch=>hasStartedChapter(studentClass,subj.name,ch));
+  const chapter=startedIndex>=0
+    ? subj.chapters[startedIndex]
+    : (featuredSubject===subj.name?featuredChapter:(subj.chapters[0]||'Choose a chapter'));
+  const started=startedIndex>=0;
   const title=document.getElementById('continueTitle');
+  const button=document.getElementById('continueLearningBtn');
+  const description=document.getElementById('continueText');
   if(title)title.textContent=p.label+' · '+subj.name+': '+chapter;
+  if(button)button.textContent=started?'Continue chapter':'Start learning';
+  if(description)description.textContent=started
+    ? 'You have started this chapter. Continue where you left off.'
+    : 'Choose a chapter to begin. Your dashboard will show Continue after you open a chapter.';
 }
 function applyClassProfile(){
   const p=currentProfile();
@@ -1291,7 +1319,7 @@ function renderStats(){
  document.getElementById('progressAccuracy').textContent=accuracy+'%';
  document.getElementById('progressAccuracyNote').textContent=state.questions?'Based on your answers':'No attempts yet';
  document.getElementById('masteredCount').textContent=accuracy>=80&&state.questions?'1':'0';
- document.getElementById('continueText').textContent=state.questions?'You have started this topic. Continue practicing to increase your mastery.':'Start your first topic. Work through a question or ask your AI tutor for a simple explanation.';
+
  const heat=document.getElementById('heat'); heat.innerHTML=''; state.heat.forEach(v=>{const x=document.createElement('i');x.className=['','l1','l2','l3','l4'][Math.min(4,v)];heat.appendChild(x)});
 }
 function markStudy(){
