@@ -672,6 +672,134 @@ input:focus,textarea:focus,select:focus{
   #chat .chat-layout{min-height:540px!important}
 }
 
+
+/* StudyPilot unified theme: white surfaces, light-blue accents, black text in every mode */
+:root{
+  color-scheme:light;
+  --bg:#f3f8ff;--panel:#ffffff;--panel2:#eaf3ff;--text:#172337;--muted:#52647a;
+  --line:#d5e4f5;--primary:#b8dcff;--primary2:#dceeff;
+  --shadow:0 12px 32px rgba(45,88,138,.09);--radius:18px;
+}
+html,body{
+  background:#f3f8ff!important;color:#172337!important;
+}
+body{
+  background:
+    radial-gradient(ellipse at 8% 0%,rgba(151,199,246,.26),transparent 34%),
+    radial-gradient(ellipse at 94% 10%,rgba(194,222,250,.34),transparent 34%),
+    linear-gradient(180deg,#f8fbff 0%,#edf5ff 100%)!important;
+  color:#172337!important;
+}
+body:before{
+  background:
+    radial-gradient(ellipse at 18% 20%,rgba(123,184,241,.19),transparent 40%),
+    radial-gradient(ellipse at 82% 68%,rgba(171,210,248,.21),transparent 38%)!important;
+  opacity:.9;
+}
+/* Make text consistently black/dark in every mode. */
+body,body *{color:#172337!important}
+.sidebar{
+  background:rgba(255,255,255,.97)!important;border-color:#d5e4f5!important;
+  box-shadow:0 8px 28px rgba(45,88,138,.06)!important;
+}
+.logo-word-study{color:#172337!important}
+.logo-word-pilot{color:#3578d4!important}
+.logo .small{color:#52647a!important}
+.nav button{color:#25364d!important}
+.nav button:hover{background:#edf6ff!important;color:#172337!important}
+.nav button.active{
+  background:linear-gradient(100deg,#e2f1ff,#f2f8ff)!important;
+  color:#172337!important;border-color:#c6def7!important;
+  box-shadow:inset 0 -2px #80b9ef,0 5px 16px rgba(45,88,138,.07)!important;
+}
+.profile,.card,.tool-card,.news-card,.info-box,.access-card,.info-section,.chapter-section,
+.subject,.option,.modal-box,.tool-item,.note-item,.task,.chapter,.flashcard,.tool-panel,
+.chat-list,.chat-window{
+  background:#fff!important;border-color:#d8e6f5!important;color:#172337!important;
+  box-shadow:0 10px 28px rgba(45,88,138,.07)!important;
+}
+main{color:#172337!important}
+.topbar h1,h1,h2,h3,h4,.card-title h2,.chapter h3,.chapter-section h3,
+.news-card h3,.stat .num,.streak,.q-text,.flash-inner .term,.profile b{
+  color:#172337!important;
+}
+.topbar p,.small,.muted,.card-title span,.chapter p,.news-card p,.chapter-section p,
+.chapter-section ul,.flash-inner .definition,.item-meta,.practice-classify-label,
+.q-meta,.info-section>p,.info-box p,.scroll-hint{
+  color:#52647a!important;
+}
+.btn,.select,select,input,textarea,.field input,.field textarea,.field select{
+  background:#fff!important;color:#172337!important;border-color:#cbdced!important;
+}
+input::placeholder,textarea::placeholder{color:#75869a!important}
+.btn:hover,.option:hover{background:#eff7ff!important;border-color:#a9cbed!important}
+.btn.primary,.primary,.practice-category.active,.news-filter.active{
+  background:linear-gradient(135deg,#d7ebff,#b9dcfb)!important;color:#172337!important;
+  border:1px solid #a9cbed!important;box-shadow:0 7px 18px rgba(68,132,192,.12)!important;
+}
+.badge,.pill,.tag,.chapter-chip{
+  background:#e9f4ff!important;color:#172337!important;border-color:#c9e0f7!important;
+}
+.progress{background:#e4edf7!important}
+.progress i{background:linear-gradient(90deg,#8fc2ef,#b7dcfa)!important}
+.subject,.task,.chapter-section,.chapter-question,.tool-empty{
+  background:#f5f9ff!important;border-color:#d8e6f5!important;color:#172337!important;
+}
+.task-icon,.info-icon,.bot-icon{
+  background:#e7f3ff!important;color:#172337!important;border-color:#c8e0f7!important;
+}
+.heat i{background:#e7eff8!important}
+.heat i.l1{background:#d5e9fb!important}.heat i.l2{background:#b9dafa!important}
+.heat i.l3{background:#94c4ef!important}.heat i.l4{background:#6ba9e4!important}
+.hero,.tools-intro,.news-hero{
+  background:linear-gradient(135deg,#e5f2ff 0%,#f5faff 62%,#fff 100%)!important;
+  border-color:#c9e0f7!important;
+}
+.hero h2,.news-hero h2,.hero p,.news-hero p{color:#172337!important}
+.option{color:#172337!important}
+.option.correct{background:#e8f7ef!important;border-color:#9ad7b5!important}
+.option.wrong{background:#fff0f1!important;border-color:#e9aab2!important}
+.explain{background:#edf6ff!important;color:#172337!important;border-color:#9fc8ee!important}
+.modal{background:rgba(39,73,111,.22)!important}
+.modal-box{background:#fff!important;color:#172337!important}
+.toast{background:#e5f2ff!important;border:1px solid #bcd8f3!important;color:#172337!important}
+.field input:focus,.field textarea:focus,.field select:focus,
+input:focus,textarea:focus,select:focus{
+  border-color:#80b9ef!important;box-shadow:0 0 0 3px rgba(95,157,217,.14)!important;
+}
+/* AI Tutor uses the same white/light-blue palette as all other modes. */
+#chat{
+  background:linear-gradient(180deg,#edf6ff 0%,#e4f1ff 100%)!important;
+  border:1px solid #c8def5!important;border-radius:24px!important;
+  padding:clamp(14px,2vw,24px)!important;color:#172337!important;
+  box-shadow:0 12px 32px rgba(45,88,138,.08)!important;
+}
+#chat .topbar h1,#chat .topbar p{color:#172337!important}
+#chat .chat-list,#chat .chat-window{background:#fff!important;border:1px solid #d2e3f5!important;color:#172337!important}
+#chat .chat-list .card-title h2,#chat .chat-head b{color:#172337!important}
+#chat .chat-item{background:#f7fbff!important;border-color:transparent!important}
+#chat .chat-item b,#chat .chat-item p{color:#172337!important}
+#chat .chat-item:hover,#chat .chat-item.active{background:#eaf4ff!important;border-color:#c9def7!important}
+#chat .chat-item.active{box-shadow:inset 3px 0 #8abfea!important}
+#chat .chat-head{background:#edf6ff!important;border-bottom:1px solid #d5e4f5!important;color:#172337!important}
+#chat .chat-head .small{color:#52647a!important}
+#chat .bot-icon{background:#dceeff!important;color:#172337!important;box-shadow:none!important;border:1px solid #c8def5!important}
+#chat .messages{background:#f3f8ff!important}
+#chat .msg .bubble{background:#fff!important;border:1px solid #d6e4f4!important;color:#172337!important;box-shadow:0 5px 14px rgba(44,91,145,.05)!important}
+#chat .msg.user .bubble{background:#dceeff!important;border:1px solid #bad8f5!important;color:#172337!important}
+#chat .quick{background:#fff!important}
+#chat .quick button{background:#f1f7ff!important;border:1px solid #d2e2f4!important;color:#172337!important}
+#chat .quick button:hover{background:#e5f1ff!important;border-color:#9fc3ee!important}
+#chat .chat-input{background:#fff!important;border-top:1px solid #d5e4f5!important}
+#chat .chat-input input{background:#f8fbff!important;border:1px solid #ccdef2!important;color:#172337!important}
+#chat .chat-input input::placeholder{color:#75869a!important}
+#chat .btn{background:#f2f7fe!important;border-color:#ccdef2!important;color:#172337!important}
+#chat .btn.primary{background:linear-gradient(135deg,#d7ebff,#b9dcfb)!important;color:#172337!important}
+@media(max-width:680px){
+  #chat{padding:12px!important;border-radius:17px!important}
+  #chat .chat-layout{min-height:540px!important}
+}
+
 </style>
 </head>
 <body>
@@ -1065,28 +1193,94 @@ function shuffleStudyItems(items){
   return shuffled;
 }
 let practiceRoundComplete=false;
-function loadPracticeQuestions(){
-  const subject=currentSubject().name;
-  const key=String(studentClass)+'::'+subject;
-  const bank=practiceBankFor(studentClass,subject);
-  const uniqueQuestions=bank.filter((item,index,list)=>list.findIndex(other=>other.q.trim().toLowerCase()===item.q.trim().toLowerCase())===index);
-  questionBank=shuffleStudyItems(uniqueQuestions);
-  let previousOrders={};
-  try{previousOrders=JSON.parse(localStorage.getItem('studypilotPracticeLastOrders')||'{}')||{};}catch(e){}
-  const previous=previousOrders[key]||[];
-  const signature=questionBank.map(item=>item.q);
-  if(questionBank.length>1 && previous.length){
-    if(signature.join('::')===previous.join('::') || signature[0]===previous[0]){
-      questionBank.push(questionBank.shift());
-    }
+let practiceLoading=false;
+let practiceRequestId=0;
+function normalizePracticeQuestion(value){
+  return String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+}
+function readPracticeQuestionHistory(key){
+  try{
+    const data=JSON.parse(localStorage.getItem('studypilotPracticeQuestionHistory')||'{}')||{};
+    return Array.isArray(data[key])?data[key].filter(item=>typeof item==='string').slice(-60):[];
+  }catch(e){return [];}
+}
+function savePracticeQuestionHistory(key,questions){
+  try{
+    const data=JSON.parse(localStorage.getItem('studypilotPracticeQuestionHistory')||'{}')||{};
+    data[key]=questions.slice(-60);
+    localStorage.setItem('studypilotPracticeQuestionHistory',JSON.stringify(data));
+  }catch(e){}
+}
+async function loadPracticeQuestions(){
+  const practiceView=document.getElementById('practice');
+  if(!practiceView?.classList.contains('active')){
+    practiceRoundComplete=true;
+    return;
   }
-  previousOrders[key]=questionBank.map(item=>item.q);
-  try{localStorage.setItem('studypilotPracticeLastOrders',JSON.stringify(previousOrders));}catch(e){}
-  state.practiceIndex=0;
+  const requestId=++practiceRequestId;
+  const subject=currentSubject().name;
+  const difficulty=document.getElementById('practiceDifficulty')?.value||'Medium';
+  const historyKey=String(studentClass)+'::'+subject;
+  const recentQuestions=readPracticeQuestionHistory(historyKey);
+  practiceLoading=true;
   practiceRoundComplete=false;
-  renderPracticeQuestion();
+  questionBank=[];
+  state.practiceIndex=0;
+  document.getElementById('questionNo').textContent='Preparing a fresh round…';
+  document.getElementById('qProgress').style.width='0%';
+  document.getElementById('questionText').textContent='StudyPilot is creating five new '+difficulty.toLowerCase()+' questions for '+currentProfile().label+' '+subject+'.';
+  document.getElementById('options').innerHTML='';
+  document.getElementById('explain').classList.remove('show');
+  const next=document.getElementById('nextBtn');
+  next.textContent='Generating questions…';
+  next.disabled=true;
   const meta=document.querySelector('#practice .q-meta span:last-child');
-  if(meta)meta.textContent='✦ '+currentProfile().label+' · '+subject+' · '+(document.getElementById('practiceDifficulty')?.value||'Medium');
+  if(meta)meta.textContent='✦ '+currentProfile().label+' · '+subject+' · '+difficulty+' · New questions';
+
+  try{
+    const response=await fetch('/api/practice',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'same-origin',
+      body:JSON.stringify({
+        studentClass:Number(studentClass),
+        subject,
+        difficulty,
+        recentQuestions:recentQuestions.slice(-30)
+      })
+    });
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data.message||'Could not generate fresh questions.');
+    if(requestId!==practiceRequestId)return;
+    const seen=new Set(recentQuestions.map(normalizePracticeQuestion));
+    const fresh=(Array.isArray(data.questions)?data.questions:[])
+      .filter(item=>item&&typeof item.q==='string'&&Array.isArray(item.o)&&item.o.length===4&&
+        item.o.every(option=>typeof option==='string'&&option.trim())&&
+        Number.isInteger(item.a)&&item.a>=0&&item.a<4&&typeof item.e==='string'&&
+        !seen.has(normalizePracticeQuestion(item.q)))
+      .filter((item,index,list)=>list.findIndex(other=>normalizePracticeQuestion(other.q)===normalizePracticeQuestion(item.q))===index);
+    if(fresh.length!==5)throw new Error('The AI did not return five completely new questions. Please try again.');
+    questionBank=shuffleStudyItems(fresh);
+    savePracticeQuestionHistory(historyKey,recentQuestions.concat(questionBank.map(item=>item.q)));
+    state.practiceIndex=0;
+    practiceRoundComplete=false;
+    renderPracticeQuestion();
+  }catch(error){
+    if(requestId!==practiceRequestId)return;
+    questionBank=[];
+    state.practiceIndex=0;
+    practiceRoundComplete=true;
+    document.getElementById('questionNo').textContent='Fresh questions unavailable';
+    document.getElementById('qProgress').style.width='0%';
+    document.getElementById('questionText').textContent=(error?.message||'StudyPilot could not generate new questions right now.')+' Your previous questions will not be recycled. Press Try again when ready.';
+    document.getElementById('options').innerHTML='';
+    document.getElementById('explain').classList.remove('show');
+    next.textContent='Try again';
+    next.disabled=false;
+    toast('Could not generate fresh questions');
+  }finally{
+    if(requestId===practiceRequestId)practiceLoading=false;
+  }
 }
 function renderPracticeQuestion(){
   const q=questionBank[state.practiceIndex];
@@ -1105,13 +1299,13 @@ function renderPracticeQuestion(){
 }
 function finishPracticeRound(){
   practiceRoundComplete=true;
-  document.getElementById('questionNo').textContent='Round complete · '+questionBank.length+' questions';
+  document.getElementById('questionNo').textContent='Round complete · '+questionBank.length+' new questions';
   document.getElementById('qProgress').style.width='100%';
-  document.getElementById('questionText').textContent='You have answered every question in this round. No questions will repeat automatically.';
+  document.getElementById('questionText').textContent='You have completed this set of new questions. StudyPilot will generate a different set when you start another round.';
   document.getElementById('options').innerHTML='';
   document.getElementById('explain').classList.remove('show');
   const next=document.getElementById('nextBtn');
-  next.textContent='Start a new shuffled round →';
+  next.textContent='Generate 5 new questions →';
   next.disabled=false;
 }
 const flashcards=[
@@ -1890,8 +2084,9 @@ function clearChat(){document.getElementById('messages').innerHTML='';aiHistory=
 function newChat(){clearChat();toast('New conversation started')}
 function answer(btn,correct){document.querySelectorAll('.option').forEach(x=>x.disabled=true);btn.classList.add(correct?'correct':'wrong');if(!correct){const opts=[...document.querySelectorAll('.option')];const answerIndex=questionBank[state.practiceIndex]?.a;if(Number.isInteger(answerIndex)&&opts[answerIndex])opts[answerIndex].classList.add('correct')}document.getElementById('explain').classList.add('show');document.getElementById('nextBtn').disabled=false;state.questions++;if(correct)state.correct++;markStudy();toast(correct?'Correct! Great work 🎉':'Not quite — review the explanation.')}
 function nextQuestion(){
-  if(!questionBank.length)return;
+  if(practiceLoading)return;
   if(practiceRoundComplete){loadPracticeQuestions();return;}
+  if(!questionBank.length)return;
   if(state.practiceIndex<questionBank.length-1){
     state.practiceIndex++;
     renderPracticeQuestion();
