@@ -977,7 +977,7 @@ input:focus,textarea:focus,select:focus{
   </section>
 
   <section id="practice" class="view">
-    <div class="topbar"><div><h1>Practice Arena</h1><p>Choose a subject type, then the exact subject, before you start practising.</p></div><div class="filters"><select class="select" id="practiceSubject" aria-label="Practice subject" onchange="setStudentSubject(this.value)"></select><select class="select" id="practiceDifficulty" aria-label="Practice difficulty"><option>Medium</option><option>Easy</option><option>Hard</option></select></div></div>
+    <div class="topbar"><div><h1>Practice Arena</h1><p>Choose a subject type, then the exact subject, before you start practising.</p></div><div class="filters"><select class="select" id="practiceSubject" aria-label="Practice subject" onchange="setStudentSubject(this.value)"></select><select class="select" id="practiceDifficulty" aria-label="Practice difficulty" onchange="loadPracticeQuestions()"><option>Medium</option><option>Easy</option><option>Hard</option></select></div></div>
     <div class="card practice-classify">
       <div class="practice-classify-label">Subject type</div>
       <div class="practice-category-row" id="practiceCategoryRow"></div>
