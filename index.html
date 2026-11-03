@@ -26,56 +26,8 @@
 }
 </script>
 <title>StudyPilot — AI Study Tutor, Revision & Practice</title>
-<!-- Keep the workspace private while checking the session. Supabase recovery links still load the reset-password UI. -->
-<style>html.sp-auth-checking body{visibility:hidden!important}</style>
-<script>
-(function(){
-  const query = new URLSearchParams(window.location.search);
-  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-  const isPasswordRecovery = query.get("type") === "recovery" || hash.get("type") === "recovery";
-  const recoveryAccessToken = hash.get("access_token") || query.get("access_token");
-  const recoveryRefreshToken = hash.get("refresh_token") || query.get("refresh_token");
-  if (isPasswordRecovery && recoveryAccessToken && recoveryRefreshToken) return;
-
-  document.documentElement.classList.add("sp-auth-checking");
-  const accessToken = hash.get("access_token") || query.get("access_token");
-  const refreshToken = hash.get("refresh_token") || query.get("refresh_token");
-
-  function showWorkspaceIfAuthenticated(account){
-    if (account && account.authenticated) {
-      document.documentElement.classList.remove("sp-auth-checking");
-    } else {
-      window.location.replace("/login.html");
-    }
-  }
-
-  if (accessToken && refreshToken) {
-    // Remove tokens from the address bar, then verify the email-confirmation
-    // session on the server before revealing the protected workspace.
-    window.history.replaceState({}, document.title, window.location.pathname);
-    fetch("/api/account", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      cache: "no-store",
-      body: JSON.stringify({ access_token: accessToken, refresh_token: refreshToken })
-    })
-    .then(function(response){
-      if (!response.ok) return null;
-      return fetch("/api/account", { credentials: "include", cache: "no-store" })
-        .then(function(accountResponse){ return accountResponse.ok ? accountResponse.json() : null; });
-    })
-    .then(showWorkspaceIfAuthenticated)
-    .catch(function(){ window.location.replace("/login.html"); });
-    return;
-  }
-
-  fetch("/api/account", { credentials: "include", cache: "no-store" })
-    .then(function(response){ return response.ok ? response.json() : null; })
-    .then(showWorkspaceIfAuthenticated)
-    .catch(function(){ window.location.replace("/login.html"); });
-})();
-</script>
+<!-- Public science-fair mode: show the main workspace without requiring sign-in.
+     Account and password-recovery handlers remain available for later reactivation. -->
 <style>
 :root{
   --bg:#f6f0e6;--panel:#fffdf8;--panel2:#eef5ff;--text:#1c2a3a;--muted:#6d7a89;
@@ -646,7 +598,7 @@ input:focus,textarea:focus,select:focus{border-color:#4f8cff!important;box-shado
       </div>
     </div>
   </section>
-</div><div class="app" id="appShell" style="display:none">
+</div><div class="app" id="appShell">
 <aside class="sidebar">
   <div class="logo"><div class="logo-mark"><img src="/favicon.svg" alt="StudyPilot" /></div><span><span class="logo-word-study">Study</span><span class="logo-word-pilot">Pilot</span><span class="small">Made by Roushan</span></span></div>
   <nav class="nav">
@@ -668,7 +620,7 @@ input:focus,textarea:focus,select:focus{border-color:#4f8cff!important;box-shado
 
 <main>
   <section id="dashboard" class="view active">
-    <div class="topbar"><div><h1>Good evening, student 👋</h1><p>Your learning workspace is ready for today's session.<span id="classContext" class="small" style="margin-left:8px"></span></p></div><div class="actions"><label class="class-picker" style="display:flex;align-items:center;gap:7px"><span class="small" style="color:#53657a;font-weight:700">Class</span><select id="classSelector" class="select" aria-label="Choose class" onchange="setStudentClass(this.value)"><option value="6">6</option><option value="7">Class 7</option><option value="8">Class 8</option><option value="9">Class 9</option><option value="10">Class 10</option><option value="11">Class 11</option><option value="12">Class 12</option></select></label><button class="btn" id="accountAction" onclick="window.location.href='/login.html'">Log in</button><button class="btn" onclick="openModal()">＋ Add task</button><button class="btn" onclick="openClassChooser()">Change class</button><button class="btn primary" onclick="showView('practice')">Start practice</button></div></div>
+    <div class="topbar"><div><h1>Good evening, student 👋</h1><p>Your learning workspace is ready for today's session.<span id="classContext" class="small" style="margin-left:8px"></span></p></div><div class="actions"><label class="class-picker" style="display:flex;align-items:center;gap:7px"><span class="small" style="color:#53657a;font-weight:700">Class</span><select id="classSelector" class="select" aria-label="Choose class" onchange="setStudentClass(this.value)"><option value="6">6</option><option value="7">Class 7</option><option value="8">Class 8</option><option value="9">Class 9</option><option value="10">Class 10</option><option value="11">Class 11</option><option value="12">Class 12</option></select></label><button class="btn" id="accountAction" style="display:none" onclick="openAuth()">Log in</button><button class="btn" onclick="openModal()">＋ Add task</button><button class="btn" onclick="openClassChooser()">Change class</button><button class="btn primary" onclick="showView('practice')">Start practice</button></div></div>
     <div class="grid stats">
       <div class="card stat"><div><div class="small">Study streak</div><div class="num" id="streakCount">0 <span class="small">days</span></div></div><span class="badge" id="streakBadge">Start today</span></div>
       <div class="card stat"><div><div class="small">Questions solved</div><div class="num" id="qCount">0</div></div><span class="badge">Your activity</span></div>
@@ -1638,8 +1590,8 @@ async function logout(){
   accountState.credits=20;
   accountState.email='';
   renderAccount();
+  // In public science-fair mode, signing out returns to the public dashboard.
   setAccessState(false);
-  window.location.href='/login.html';
 }
 
 function setAIStatus(){const el=document.getElementById('aiStatus');if(el)el.textContent='AI Tutor · Secure server'}
