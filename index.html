@@ -1699,7 +1699,13 @@ renderStudyTools();
 paintFocusTimer();
 applyClassProfile();
 setAccessState(true);
-handleAuthCallback().finally(loadAccount);
+handleAuthCallback().finally(()=>{
+  // Keep the public science-fair dashboard in guest mode; do not display an old
+  // browser account on a shared device. Auth handlers remain available for later.
+  accountState.authenticated=false;
+  accountState.email='';
+  renderAccount();
+});
 </script>
 </body>
 </html>
