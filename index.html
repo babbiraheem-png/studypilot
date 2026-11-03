@@ -523,6 +523,155 @@ input:focus,textarea:focus,select:focus{border-color:#4f8cff!important;box-shado
 @media(max-width:1050px){.sidebar{align-items:flex-start!important;flex-wrap:wrap!important;gap:8px 14px!important}.logo{align-self:center!important}.nav{order:3!important;flex-basis:100%!important;width:100%!important}.side-bottom{margin-left:auto!important}.nav button{padding:9px 11px!important}}
 @media(max-width:680px){.sidebar{padding:10px 12px!important;gap:8px!important}.logo{font-size:18px!important}.logo-mark{width:32px!important;height:32px!important}.side-bottom{max-width:48%}.profile{padding:6px 8px!important}.profile .small{display:none!important}.nav{gap:4px!important}.nav button{font-size:12px!important;padding:9px 10px!important}.nav button span{display:inline!important}main{padding:15px!important}.topbar{align-items:flex-start!important;flex-direction:column!important}.actions{flex-wrap:wrap!important}}
 @media(prefers-reduced-motion:reduce){body:before{animation:none!important}}
+
+/* StudyPilot global black theme with a dedicated blue-and-white AI Tutor */
+:root{
+  color-scheme:dark;
+  --bg:#070a11;--panel:#111827;--panel2:#17243a;--text:#f4f7fc;--muted:#a7b4c7;
+  --line:#29364b;--primary:#347fe0;--primary2:#72b4ff;
+  --shadow:0 16px 42px rgba(0,0,0,.28);--radius:18px;
+}
+html,body{background:#070a11!important;color:#f4f7fc!important}
+body{
+  background:
+    radial-gradient(ellipse at 12% 0%,rgba(31,91,165,.17),transparent 34%),
+    radial-gradient(ellipse at 90% 12%,rgba(23,58,105,.16),transparent 30%),
+    linear-gradient(180deg,#070a11 0%,#090e18 100%)!important;
+  color:#f4f7fc!important;
+}
+body:before{
+  background:
+    radial-gradient(ellipse at 18% 20%,rgba(28,91,164,.17),transparent 40%),
+    radial-gradient(ellipse at 82% 68%,rgba(31,76,133,.13),transparent 38%)!important;
+  opacity:.9;
+}
+.sidebar{
+  background:rgba(9,14,24,.96)!important;border-color:#26344a!important;
+  box-shadow:0 10px 35px rgba(0,0,0,.18)!important;
+}
+.logo-word-study{color:#f4f7fc!important}
+.logo-word-pilot{color:#72b4ff!important}
+.logo .small{color:#9aaac0!important}
+.nav button{color:#b2bfd1!important}
+.nav button:hover{background:#14243b!important;color:#fff!important}
+.nav button.active{
+  background:linear-gradient(100deg,#142e50,#10223a)!important;color:#91c5ff!important;
+  border-color:#254a78!important;box-shadow:inset 0 -2px #4d9af2,0 6px 20px rgba(0,0,0,.16)!important;
+}
+.profile,.card,.tool-card,.news-card,.info-box,.access-card,.info-section,.chapter-section,
+.subject,.option,.modal-box,.tool-item,.note-item,.task,.chapter,.flashcard,.tool-panel{
+  background:#111a29!important;border-color:#2a3a51!important;color:#eef4fd!important;
+  box-shadow:0 12px 34px rgba(0,0,0,.20)!important;
+}
+.profile b,.card-title h2,.chapter h3,.chapter-section h3,.news-card h3,
+.topbar h1,h1,h2,h3,h4,.stat .num,.streak,.q-text,.flash-inner .term{
+  color:#f4f7fc!important;
+}
+.topbar p,.small,.muted,.card-title span,.chapter p,.news-card p,.chapter-section p,
+.chapter-section ul,.flash-inner .definition,.item-meta,.practice-classify-label,
+.q-meta,.info-section>p,.info-box p,.scroll-hint{
+  color:#a7b4c7!important;
+}
+main{color:#f4f7fc!important}
+.btn,.select,select,input,textarea,.field input,.field textarea,.field select{
+  background:#0b1321!important;color:#f2f6fd!important;border-color:#31435c!important;
+}
+input::placeholder,textarea::placeholder{color:#8293aa!important}
+.btn:hover,.option:hover{background:#172840!important;border-color:#4c78ad!important}
+.btn.primary,.primary,.practice-category.active,.news-filter.active{
+  background:linear-gradient(135deg,#2874d2,#4599f4)!important;color:#fff!important;
+  border-color:transparent!important;box-shadow:0 8px 22px rgba(34,112,207,.25)!important;
+}
+.badge,.pill,.tag,.chapter-chip{
+  background:#142b49!important;color:#9ccaff!important;border-color:#284d78!important;
+}
+.progress{background:#26364b!important}
+.progress i{background:linear-gradient(90deg,#347fe0,#80bdff)!important}
+.subject,.task,.chapter-section,.chapter-question,.tool-empty{
+  background:#0e1725!important;border-color:#293a52!important;color:#edf4fd!important;
+}
+.task-icon,.info-icon{background:#142b49!important;color:#8ec3ff!important}
+.heat i{background:#1c2a3d!important}
+.heat i.l1{background:#24466e!important}.heat i.l2{background:#2e65a0!important}
+.heat i.l3{background:#367fc8!important}.heat i.l4{background:#55a4f5!important}
+.hero,.tools-intro,.news-hero{
+  background:linear-gradient(135deg,#101f34 0%,#142b49 58%,#111a29 100%)!important;
+  border-color:#2b4e78!important;
+}
+.hero h2,.news-hero h2{color:#f4f8ff!important}
+.hero p,.news-hero p{color:#b8c9df!important}
+.option{color:#edf4fd!important}
+.option.correct{background:#12372f!important;border-color:#2a9b78!important}
+.option.wrong{background:#3b202a!important;border-color:#bd536c!important}
+.explain{background:#142b49!important;color:#c5d9f2!important;border-color:#65a5ed!important}
+.modal{background:rgba(0,0,0,.72)!important}
+.toast{background:#14243a!important;border-color:#355274!important;color:#fff!important}
+.chapter-chip-row .chapter-chip{color:#9ccaff!important}
+.field input:focus,.field textarea:focus,.field select:focus,
+input:focus,textarea:focus,select:focus{
+  border-color:#5ba5fa!important;box-shadow:0 0 0 3px rgba(67,145,235,.18)!important;
+}
+
+/* The AI Tutor is intentionally a bright, blue-and-white workspace */
+#chat{
+  background:linear-gradient(180deg,#f7fbff 0%,#eaf3ff 100%)!important;
+  border:1px solid #c9def7!important;border-radius:24px!important;
+  padding:clamp(14px,2vw,24px)!important;color:#18395f!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.16)!important;
+}
+#chat .topbar h1{color:#163b68!important}
+#chat .topbar p{color:#617b9b!important}
+#chat .chat-list,#chat .chat-window{
+  background:#fff!important;border:1px solid #cbdcf0!important;
+  color:#17385e!important;box-shadow:0 10px 28px rgba(37,91,151,.09)!important;
+}
+#chat .chat-list .card-title h2{color:#173c69!important}
+#chat .chat-item{background:#f7fbff!important;border-color:transparent!important}
+#chat .chat-item b{color:#23486f!important}
+#chat .chat-item p{color:#7188a4!important}
+#chat .chat-item:hover,#chat .chat-item.active{
+  background:#eaf3ff!important;border-color:#c9def7!important;
+}
+#chat .chat-item.active{box-shadow:inset 3px 0 #347fe0!important}
+#chat .chat-head{
+  background:linear-gradient(90deg,#eaf4ff,#f8fbff)!important;
+  border-bottom:1px solid #d5e4f5!important;color:#163c68!important;
+}
+#chat .chat-head b{color:#173d69!important}
+#chat .chat-head .small{color:#6c83a0!important}
+#chat .bot-icon{
+  background:linear-gradient(135deg,#2d75d0,#70b4ff)!important;color:#fff!important;
+  box-shadow:0 8px 18px rgba(52,127,224,.22)!important;border:0!important;
+}
+#chat .messages{background:linear-gradient(180deg,#f8fbff,#edf5ff)!important}
+#chat .msg .bubble{
+  background:#fff!important;border:1px solid #d6e4f4!important;color:#1d3d61!important;
+  box-shadow:0 5px 16px rgba(44,91,145,.07)!important;
+}
+#chat .msg.user .bubble{
+  background:linear-gradient(135deg,#2874d2,#4d9af0)!important;
+  border:0!important;color:#fff!important;
+}
+#chat .quick{background:#fff!important}
+#chat .quick button{
+  background:#f4f9ff!important;border:1px solid #d2e2f4!important;color:#315b86!important;
+}
+#chat .quick button:hover{background:#e5f1ff!important;border-color:#9fc3ee!important}
+#chat .chat-input{
+  background:#fff!important;border-top:1px solid #d5e4f5!important;
+}
+#chat .chat-input input{
+  background:#f8fbff!important;border:1px solid #ccdef2!important;color:#18395f!important;
+}
+#chat .chat-input input::placeholder{color:#8298b3!important}
+#chat .chat-input input:focus{border-color:#4b91e5!important;box-shadow:0 0 0 3px rgba(53,120,212,.14)!important}
+#chat .btn{background:#f2f7fe!important;border-color:#ccdef2!important;color:#28527e!important}
+#chat .btn.primary{background:linear-gradient(135deg,#2874d2,#4d9af0)!important;color:#fff!important}
+@media(max-width:680px){
+  #chat{padding:12px!important;border-radius:17px!important}
+  #chat .chat-layout{min-height:540px!important}
+}
+
 </style>
 </head>
 <body>
