@@ -862,14 +862,15 @@ input:focus,textarea:focus,select:focus{
         <button class="option" onclick="answer(this,false)">2 Ω</button><button class="option" onclick="answer(this,false)">5 Ω</button><button class="option" onclick="answer(this,true)">10 Ω</button><button class="option" onclick="answer(this,false)">24 Ω</button>
       </div>
       <div class="explain" id="explain"><b>Why:</b> In a series circuit, resistances add: <b>R = 4 + 6 = 10 Ω.</b></div>
-      <div style="display:flex;justify-content:space-between;margin-top:20px"><span class="small">Accuracy adapts the next question.</span><button class="btn primary" id="nextBtn" onclick="nextQuestion()" disabled>Next question →</button></div>
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:20px"><span class="small">Shuffled practice · no repeats in a round.</span><button class="btn primary" id="nextBtn" onclick="nextQuestion()" disabled>Next question →</button></div>
     </div>
   </section>
 
   <section id="flashcards" class="view">
-    <div class="topbar"><div><h1>Flashcards</h1><p>Active recall mode — tap a card to reveal the answer.</p></div><span class="badge">5 starter cards</span></div>
-    <div class="card flashcard" onclick="flipCard()"><div class="flash-inner"><div class="small" id="flashLabel">QUESTION · CARD 1 / 12</div><div class="term" id="flashTerm">What is Ohm's Law?</div><div class="definition hidden" id="flashDefinition">Ohm's Law states that V = IR, where V is voltage, I is current, and R is resistance.</div><div class="small" style="margin-top:25px">Click to flip ↻</div></div></div>
-    <div style="display:flex;justify-content:center;gap:9px;margin-top:16px"><button class="btn" onclick="flashRate('again')">↻ Again</button><button class="btn" onclick="flashRate('hard')">⚡ Hard</button><button class="btn primary" onclick="flashRate('easy')">✓ Easy</button></div>
+    <div class="topbar"><div><h1>Flashcards</h1><p>Active recall mode — tap a card to reveal the answer.</p></div><span class="badge">5 cards · shuffled, no repeats</span></div>
+    <div class="card flashcard" onclick="flipCard()"><div class="flash-inner"><div class="small" id="flashLabel">QUESTION · CARD 1 / 5</div><div class="term" id="flashTerm">What is Ohm's Law?</div><div class="definition hidden" id="flashDefinition">Ohm's Law states that V = IR, where V is voltage, I is current, and R is resistance.</div><div class="small" style="margin-top:25px">Click to flip ↻</div></div></div>
+    <div id="flashRatingActions" style="display:flex;justify-content:center;gap:9px;margin-top:16px"><button class="btn" onclick="flashRate('again')">↻ Needs review</button><button class="btn" onclick="flashRate('hard')">⚡ Hard</button><button class="btn primary" onclick="flashRate('easy')">✓ Easy</button></div>
+    <div style="display:flex;justify-content:center;margin-top:16px"><button class="btn primary hidden" id="flashRestartBtn" onclick="startFlashcardRound()">Start a new shuffled round →</button></div>
   </section>
 
   <section id="progress" class="view">
@@ -1055,17 +1056,41 @@ function practiceBankFor(classValue,subject){
     {q:'What is a useful final check?',o:['Ignore units and signs','Review the result and method','Erase the working','Change the question'],a:1,e:'Checking the result, units, signs, and method catches common errors.'}
   ];
 }
+function shuffleStudyItems(items){
+  const shuffled=[...items];
+  for(let i=shuffled.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+  }
+  return shuffled;
+}
+let practiceRoundComplete=false;
 function loadPracticeQuestions(){
   const subject=currentSubject().name;
-  questionBank=practiceBankFor(studentClass,subject);
+  const key=String(studentClass)+'::'+subject;
+  const bank=practiceBankFor(studentClass,subject);
+  const uniqueQuestions=bank.filter((item,index,list)=>list.findIndex(other=>other.q.trim().toLowerCase()===item.q.trim().toLowerCase())===index);
+  questionBank=shuffleStudyItems(uniqueQuestions);
+  let previousOrders={};
+  try{previousOrders=JSON.parse(localStorage.getItem('studypilotPracticeLastOrders')||'{}')||{};}catch(e){}
+  const previous=previousOrders[key]||[];
+  const signature=questionBank.map(item=>item.q);
+  if(questionBank.length>1 && previous.length){
+    if(signature.join('::')===previous.join('::') || signature[0]===previous[0]){
+      questionBank.push(questionBank.shift());
+    }
+  }
+  previousOrders[key]=questionBank.map(item=>item.q);
+  try{localStorage.setItem('studypilotPracticeLastOrders',JSON.stringify(previousOrders));}catch(e){}
   state.practiceIndex=0;
+  practiceRoundComplete=false;
   renderPracticeQuestion();
   const meta=document.querySelector('#practice .q-meta span:last-child');
   if(meta)meta.textContent='✦ '+currentProfile().label+' · '+subject+' · '+(document.getElementById('practiceDifficulty')?.value||'Medium');
 }
 function renderPracticeQuestion(){
-  const q=questionBank[state.practiceIndex]||questionBank[0];
-  if(!q)return;
+  const q=questionBank[state.practiceIndex];
+  if(!q){finishPracticeRound();return;}
   document.getElementById('questionNo').textContent='Question '+(state.practiceIndex+1)+' of '+questionBank.length;
   const meta=document.querySelector('#practice .q-meta span:last-child');
   if(meta)meta.textContent='✦ '+currentProfile().label+' · '+currentSubject().name+' · '+(document.getElementById('practiceDifficulty')?.value||'Medium');
@@ -1074,7 +1099,20 @@ function renderPracticeQuestion(){
   document.getElementById('options').innerHTML=q.o.map((x,i)=>'<button class="option" onclick="answer(this,'+String(i===q.a)+')">'+escapeHtml(x)+'</button>').join('');
   document.getElementById('explain').innerHTML='<b>Why:</b> '+escapeHtml(q.e);
   document.getElementById('explain').classList.remove('show');
-  document.getElementById('nextBtn').disabled=true;
+  const next=document.getElementById('nextBtn');
+  next.textContent=state.practiceIndex===questionBank.length-1?'Finish round →':'Next question →';
+  next.disabled=true;
+}
+function finishPracticeRound(){
+  practiceRoundComplete=true;
+  document.getElementById('questionNo').textContent='Round complete · '+questionBank.length+' questions';
+  document.getElementById('qProgress').style.width='100%';
+  document.getElementById('questionText').textContent='You have answered every question in this round. No questions will repeat automatically.';
+  document.getElementById('options').innerHTML='';
+  document.getElementById('explain').classList.remove('show');
+  const next=document.getElementById('nextBtn');
+  next.textContent='Start a new shuffled round →';
+  next.disabled=false;
 }
 const flashcards=[
  ["What is Ohm's Law?","Ohm's Law states that V = IR, where V is voltage, I is current, and R is resistance."],
@@ -1083,6 +1121,8 @@ const flashcards=[
  ["What happens to series resistances?","They add directly: Req = R1 + R2 + ..."],
  ["What happens to parallel resistance?","The equivalent resistance is less than the smallest individual branch resistance."]
 ];
+let flashDeck=[];
+let flashRoundComplete=false;
 
 const classProfiles={
 6:{label:'Class 6',subjects:[
@@ -1849,9 +1889,63 @@ function quickAsk(t){document.getElementById('chatInput').value=t;sendChat()}
 function clearChat(){document.getElementById('messages').innerHTML='';aiHistory=[];localStorage.removeItem('studypilotChat');appendMsg("New study session started. What would you like to learn?")}
 function newChat(){clearChat();toast('New conversation started')}
 function answer(btn,correct){document.querySelectorAll('.option').forEach(x=>x.disabled=true);btn.classList.add(correct?'correct':'wrong');if(!correct){const opts=[...document.querySelectorAll('.option')];const answerIndex=questionBank[state.practiceIndex]?.a;if(Number.isInteger(answerIndex)&&opts[answerIndex])opts[answerIndex].classList.add('correct')}document.getElementById('explain').classList.add('show');document.getElementById('nextBtn').disabled=false;state.questions++;if(correct)state.correct++;markStudy();toast(correct?'Correct! Great work 🎉':'Not quite — review the explanation.')}
-function nextQuestion(){if(!questionBank.length)return;state.practiceIndex=(state.practiceIndex+1)%questionBank.length;renderPracticeQuestion()}
-function flipCard(){state.flipped=!state.flipped;document.getElementById('flashDefinition').classList.toggle('hidden',!state.flipped);document.getElementById('flashTerm').style.opacity=state.flipped?.25:1}
-function flashRate(level){state.flashIndex=(state.flashIndex+1)%flashcards.length;const f=flashcards[state.flashIndex];document.getElementById('flashLabel').textContent=`QUESTION · CARD ${state.flashIndex+1} / 12`;document.getElementById('flashTerm').textContent=f[0];document.getElementById('flashDefinition').textContent=f[1];document.getElementById('flashDefinition').classList.add('hidden');state.flipped=false;document.getElementById('flashTerm').style.opacity=1;toast(level==='easy'?'Card mastered ✓':level==='hard'?'Scheduled for another review':'Will repeat soon ↻')}
+function nextQuestion(){
+  if(!questionBank.length)return;
+  if(practiceRoundComplete){loadPracticeQuestions();return;}
+  if(state.practiceIndex<questionBank.length-1){
+    state.practiceIndex++;
+    renderPracticeQuestion();
+  }else{
+    finishPracticeRound();
+  }
+}
+function flipCard(){
+  if(flashRoundComplete)return;
+  state.flipped=!state.flipped;
+  document.getElementById('flashDefinition').classList.toggle('hidden',!state.flipped);
+  document.getElementById('flashTerm').style.opacity=state.flipped?.25:1;
+}
+function renderCurrentFlashcard(){
+  if(flashRoundComplete)return;
+  const card=flashDeck[state.flashIndex];
+  if(!card)return;
+  document.getElementById('flashLabel').textContent='QUESTION · CARD '+(state.flashIndex+1)+' / '+flashDeck.length;
+  document.getElementById('flashTerm').textContent=card[0];
+  document.getElementById('flashDefinition').textContent=card[1];
+  document.getElementById('flashDefinition').classList.add('hidden');
+  state.flipped=false;
+  document.getElementById('flashTerm').style.opacity=1;
+}
+function finishFlashcardRound(){
+  flashRoundComplete=true;
+  document.getElementById('flashLabel').textContent='ROUND COMPLETE · '+flashDeck.length+' / '+flashDeck.length;
+  document.getElementById('flashTerm').textContent='Great work — all cards reviewed!';
+  document.getElementById('flashDefinition').textContent='You reached the end of this shuffled set. Start a new round when you are ready.';
+  document.getElementById('flashDefinition').classList.remove('hidden');
+  document.getElementById('flashTerm').style.opacity=1;
+  document.getElementById('flashRatingActions').classList.add('hidden');
+  document.getElementById('flashRestartBtn').classList.remove('hidden');
+}
+function startFlashcardRound(){
+  const previousFirst=localStorage.getItem('studypilotFlashLastFirst')||'';
+  flashDeck=shuffleStudyItems(flashcards);
+  if(flashDeck.length>1 && flashDeck[0][0]===previousFirst)flashDeck.push(flashDeck.shift());
+  if(flashDeck.length)try{localStorage.setItem('studypilotFlashLastFirst',flashDeck[0][0]);}catch(e){}
+  state.flashIndex=0;
+  state.flipped=false;
+  flashRoundComplete=false;
+  document.getElementById('flashRatingActions').classList.remove('hidden');
+  document.getElementById('flashRestartBtn').classList.add('hidden');
+  renderCurrentFlashcard();
+}
+function flashRate(level){
+  if(flashRoundComplete)return;
+  const rating=level==='easy'?'Easy':level==='hard'?'Hard':'Needs review';
+  toast(rating+' · this card will not repeat in this round');
+  state.flashIndex++;
+  if(state.flashIndex>=flashDeck.length)finishFlashcardRound();
+  else renderCurrentFlashcard();
+}
 function resetProgress(){if(!confirm("Reset this device's StudyPilot progress?"))return;localStorage.removeItem('studypilotState');location.reload();}
 
 
@@ -1888,6 +1982,7 @@ function toggleFocusTimer(){const btn=document.getElementById('focusStartBtn');i
 function resetFocusTimer(){if(focusTimerInterval)clearInterval(focusTimerInterval);focusTimerInterval=null;const mins=Math.max(1,Math.min(180,Number(document.getElementById('focusMinutes')?.value)||25));focusTimerSeconds=focusTimerInitial=mins*60;paintFocusTimer();const btn=document.getElementById('focusStartBtn');if(btn)btn.textContent='Start focus';const st=document.getElementById('focusTimerStatus');if(st)st.textContent='Ready when you are'}
 function saveDailyGoal(value){const d=studyToolsData();d.goalMinutes=Math.max(5,Math.min(600,Number(value)||25));writeStudyTools(d);renderStudyTools()}
 
+startFlashcardRound();
 renderStudyTools();
 paintFocusTimer();
 applyClassProfile();
