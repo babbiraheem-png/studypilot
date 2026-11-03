@@ -1021,13 +1021,17 @@ function choosePracticeCategory(type){
   const subj=currentProfile().subjects.find(s=>subjectType(s.name)===type);
   if(!subj)return;
   selectedSubject=subj.name;
+  selectedChapterIndex=0;
   localStorage.setItem('studypilotSubject',selectedSubject);
+  renderContinueLearning();
   renderClassChapters();
   loadPracticeQuestions();
 }
 function setStudentSubject(value){
   selectedSubject=value;
+  selectedChapterIndex=0;
   localStorage.setItem('studypilotSubject',selectedSubject);
+  renderContinueLearning();
   renderClassChapters();
   loadPracticeQuestions();
 }
@@ -1168,13 +1172,25 @@ function renderClassChapters(){
   renderPracticeCategories();
   if(document.getElementById('practice')?.classList.contains('active')) loadPracticeQuestions();
 }
+function renderContinueLearning(){
+  const p=currentProfile();
+  const subj=currentSubject();
+  const featured=String(p.hero||'').match(/^([^:]+):\s*(.+)$/);
+  const featuredSubject=featured?.[1]?.trim();
+  const featuredChapter=featured?.[2]?.trim();
+  // A class profile's featured chapter may belong to a different subject.
+  // Reuse it only for that subject; otherwise select a chapter from the active subject.
+  const chapter=featuredSubject===subj.name?featuredChapter:(subj.chapters[0]||'Choose a chapter');
+  const title=document.getElementById('continueTitle');
+  if(title)title.textContent=p.label+' · '+subj.name+': '+chapter;
+}
 function applyClassProfile(){
   const p=currentProfile();
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
   const sel=document.getElementById('classSelector'); if(sel)sel.value=studentClass;
   selectedSubject=p.subjects.some(s=>s.name===selectedSubject)?selectedSubject:p.subjects[0].name;
   const subj=currentSubject();
-  set('continueTitle',p.label+' · '+subj.name+': '+p.hero.replace(/^.*?:\s*/,''));
+  renderContinueLearning();
   set('planOneTitle',p.plan[0][0]); set('planOneMeta',p.plan[0][1]);
   set('planTwoTitle',p.plan[1][0]); set('planTwoMeta',p.plan[1][1]);
   set('planThreeTitle',p.plan[2][0]); set('planThreeMeta',p.plan[2][1]);
