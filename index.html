@@ -816,6 +816,17 @@ input:focus,textarea:focus,select:focus{
 .exam-day-card ul{margin:0;padding-left:20px;color:#172337;line-height:1.65}
 .exam-day-card li{margin:4px 0}
 @media(max-width:680px){.exam-plan-form .grid.two{grid-template-columns:1fr!important}.exam-form-actions{align-items:flex-start}.exam-form-actions button{width:100%}}
+.exam-question-panel{margin-top:16px;padding:14px;border:1px solid #cbdff4;border-radius:14px;background:#edf6ff}
+.exam-question-panel h4{margin:0 0 9px;color:#172337!important}
+.exam-question-list{display:grid;gap:10px;margin-top:12px}
+.exam-question-card{padding:13px;border:1px solid #d4e4f5;border-radius:12px;background:#fff;color:#172337}
+.exam-question-card p{color:#172337!important;line-height:1.6;margin:6px 0}
+.exam-question-meta{font-size:12px;color:#52647a!important;margin-bottom:5px}
+.exam-question-card details{margin-top:10px;border-top:1px solid #e2edf8;padding-top:9px;color:#172337}
+.exam-question-card summary{cursor:pointer;font-weight:700;color:#225b91!important}
+.exam-question-answer{white-space:pre-wrap;line-height:1.6;color:#172337!important}
+.exam-question-error{margin-top:10px;padding:10px;border-radius:10px;background:#fff4f4;border:1px solid #efcaca;color:#6b2929}
+.exam-question-loading{color:#52647a!important;font-size:13px;margin-top:10px}
 </style>
 </head>
 <body>
@@ -988,6 +999,7 @@ input:focus,textarea:focus,select:focus{
     <div class="card exam-plan-form">
       <div class="grid two" style="margin-top:0">
         <div class="field"><label for="examExamDate"><b>Exam date</b></label><input class="exam-input" id="examExamDate" type="date" required></div>
+        <div class="field"><label for="examSubject"><b>Subject</b></label><select class="exam-input" id="examSubject"><option>Mathematics</option><option>Science</option><option>Social Science</option><option>English</option><option>Physics</option><option>Chemistry</option><option>Biology</option><option>Other</option></select></div>
         <div class="field"><label for="examDailyHours"><b>Study time each day</b></label><select class="exam-input" id="examDailyHours"><option value="1">1 hour</option><option value="2" selected>2 hours</option><option value="3">3 hours</option><option value="4">4 hours</option><option value="5">5 hours</option></select></div>
       </div>
       <div class="field"><label for="examSyllabus"><b>Your syllabus</b></label><textarea class="exam-input" id="examSyllabus" rows="7" maxlength="6000" placeholder="Enter one chapter or topic per line. You can paste your syllabus here." required></textarea><div class="small">Enter the topics from your teacher's syllabus, up to 80 topics.</div></div>
@@ -1718,6 +1730,59 @@ function examPlanParseTopics(raw){
  const seen=new Set();
  return items.map(x=>x.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').trim()).filter(x=>{const k=x.toLowerCase();if(!x||seen.has(k))return false;seen.add(k);return true});
 }
+let examPlanQuestionDays=[];
+let examPlanQuestionClass=6;
+let examPlanQuestionSubject='Mathematics';
+function examReadQuestionHistory(key){
+ try{const data=JSON.parse(localStorage.getItem('studypilotExamQuestionHistory')||'{}')||{};return Array.isArray(data[key])?data[key].filter(x=>typeof x==='string').slice(-60):[]}catch(e){return []}
+}
+function examSaveQuestionHistory(key,questions){
+ try{const data=JSON.parse(localStorage.getItem('studypilotExamQuestionHistory')||'{}')||{};data[key]=questions.slice(-60);localStorage.setItem('studypilotExamQuestionHistory',JSON.stringify(data))}catch(e){}
+}
+async function generateExamDayQuestions(dayIndex){
+ const day=examPlanQuestionDays[dayIndex];
+ if(!day)return;
+ const topics=Array.isArray(day.topics)&&day.topics.length?day.topics:[];
+ if(!topics.length)return;
+ const button=document.getElementById('examQuestionButton-'+dayIndex);
+ const result=document.getElementById('examQuestionResults-'+dayIndex);
+ if(!button||!result)return;
+ button.disabled=true;
+ button.textContent='Creating questions…';
+ result.innerHTML='<div class="exam-question-loading">Generating three new questions for '+escapeHtml(topics.join(', '))+'…</div>';
+ const historyKey=examPlanQuestionClass+'::'+examPlanQuestionSubject;
+ const recent=examReadQuestionHistory(historyKey);
+ try{
+  const response=await fetch('/api/exam-questions',{
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   credentials:'same-origin',
+   body:JSON.stringify({
+    studentClass:examPlanQuestionClass,
+    subject:examPlanQuestionSubject,
+    topics:topics.slice(0,8),
+    stage:day.title||'Exam revision',
+    recentQuestions:recent.slice(-30)
+   })
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.message||'Question generation is temporarily unavailable.');
+  const questions=Array.isArray(data.questions)?data.questions:[];
+  if(questions.length!==3||questions.some(q=>!q||typeof q.question!=='string'||typeof q.answer!=='string'||typeof q.solution!=='string'||!topics.some(t=>t.toLowerCase()===String(q.topic||'').toLowerCase())))throw new Error('The question service returned an incomplete set. Please try again.');
+  examSaveQuestionHistory(historyKey,recent.concat(questions.map(q=>q.question)));
+  result.innerHTML='<div class="exam-question-list">'+questions.map((q,index)=>{
+   const marks=Number.isInteger(Number(q.marks))?Number(q.marks):2;
+   return '<article class="exam-question-card"><div class="exam-question-meta">Question '+(index+1)+' · '+escapeHtml(q.topic)+' · '+marks+' mark(s)</div><p><b>'+escapeHtml(q.question)+'</b></p><details><summary>Show answer and worked solution</summary><p class="exam-question-answer"><b>Answer:</b> '+escapeHtml(q.answer)+'</p><p class="exam-question-answer"><b>Working / explanation:</b> '+escapeHtml(q.solution)+'</p></details></article>';
+  }).join('')+'</div>';
+  button.textContent='Generate 3 different questions ↻';
+  button.disabled=false;
+ }catch(error){
+  result.innerHTML='<div class="exam-question-error">'+escapeHtml(error.message||'Could not generate questions.')+' Your revision timetable is still saved. Try again when the question service is available.</div>';
+  button.textContent='Try generating questions again';
+  button.disabled=false;
+ }
+}
+
 function generateExamRevisionPlan(){
  const dateValue=document.getElementById('examExamDate').value,raw=document.getElementById('examSyllabus').value,goal=document.getElementById('examGoal').value.trim(),hours=Math.max(1,Math.min(5,Number(document.getElementById('examDailyHours').value)||2)),status=document.getElementById('examPlannerStatus'),out=document.getElementById('examPlanOutput'),dateMatch=dateValue.match(/^(\d{4})-(\d{2})-(\d{2})$/);
  const fail=(msg,el)=>{status.textContent=msg;out.classList.add('hidden');if(el)el.focus()};
