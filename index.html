@@ -1702,6 +1702,16 @@ async function loadNews(force=false){
     if(loading)loading.style.display='none';
   }
 }
+function examIndiaToday(){
+ const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const values={};
+ parts.forEach(part=>{if(part.type!=='literal')values[part.type]=part.value});
+ return new Date(Number(values.year),Number(values.month)-1,Number(values.day));
+}
+function examIndiaDateKey(){
+ const d=examIndiaToday();
+ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 function examPlanParseTopics(raw){
  const lines=String(raw||'').replace(/\r/g,'').trim().split('\n');
  const items=lines.length>1?lines.flatMap(x=>x.split(';')):lines[0].split(/[,;]+/);
@@ -1714,7 +1724,7 @@ function generateExamRevisionPlan(){
  if(!dateMatch)return fail('Please choose your exam date.',document.getElementById('examExamDate'));
  const examDate=new Date(+dateMatch[1],+dateMatch[2]-1,+dateMatch[3]);examDate.setHours(0,0,0,0);
  if(examDate.getFullYear()!==+dateMatch[1]||examDate.getMonth()!==+dateMatch[2]-1||examDate.getDate()!==+dateMatch[3])return fail('Please choose a valid date.',document.getElementById('examExamDate'));
- const today=new Date();today.setHours(0,0,0,0);const days=Math.round((examDate-today)/86400000),topics=examPlanParseTopics(raw);
+ const today=examIndiaToday();today.setHours(0,0,0,0);const days=Math.round((Date.UTC(examDate.getFullYear(),examDate.getMonth(),examDate.getDate())-Date.UTC(today.getFullYear(),today.getMonth(),today.getDate()))/86400000),topics=examPlanParseTopics(raw);
  if(days<0)return fail('That exam date has passed. Choose today or a future date.');
  if(!topics.length)return fail('Please enter at least one syllabus topic.',document.getElementById('examSyllabus'));
  if(topics.length>80)return fail('Please enter no more than 80 topics.',document.getElementById('examSyllabus'));
@@ -2243,7 +2253,7 @@ function toggleFocusTimer(){const btn=document.getElementById('focusStartBtn');i
 function resetFocusTimer(){if(focusTimerInterval)clearInterval(focusTimerInterval);focusTimerInterval=null;const mins=Math.max(1,Math.min(180,Number(document.getElementById('focusMinutes')?.value)||25));focusTimerSeconds=focusTimerInitial=mins*60;paintFocusTimer();const btn=document.getElementById('focusStartBtn');if(btn)btn.textContent='Start focus';const st=document.getElementById('focusTimerStatus');if(st)st.textContent='Ready when you are'}
 function saveDailyGoal(value){const d=studyToolsData();d.goalMinutes=Math.max(5,Math.min(600,Number(value)||25));writeStudyTools(d);renderStudyTools()}
 
-document.getElementById('examExamDate').min=todayKey();
+document.getElementById('examExamDate').min=examIndiaDateKey();
 try{const savedExamPlan=JSON.parse(localStorage.getItem('studypilotExamRevisionPlan')||'null');if(savedExamPlan){document.getElementById('examExamDate').value=savedExamPlan.examDate||'';document.getElementById('examSyllabus').value=savedExamPlan.syllabus||'';document.getElementById('examGoal').value=savedExamPlan.goal||'';document.getElementById('examDailyHours').value=String(savedExamPlan.hours||2);if(savedExamPlan.examDate&&savedExamPlan.syllabus&&savedExamPlan.goal)generateExamRevisionPlan();}}catch(e){}
 startFlashcardRound();
 renderStudyTools();
