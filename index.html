@@ -800,6 +800,22 @@ input:focus,textarea:focus,select:focus{
   #chat .chat-layout{min-height:540px!important}
 }
 
+/* Exam revision planner — light-blue and white theme */
+.exam-plan-form{background:#fff!important;border:1px solid #d8e6f5!important}
+.exam-input{width:100%;padding:12px 13px;border:1px solid #cbdced;border-radius:12px;background:#fff;color:#172337;font:inherit;line-height:1.5;min-width:0}
+.exam-input:focus{outline:2px solid #9bc9f2;outline-offset:1px}
+.exam-plan-form label{color:#172337!important;font-size:14px}
+.exam-form-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px}
+.exam-plan-output{margin-top:18px}
+.exam-plan-summary{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0 18px}
+.exam-summary-chip{padding:9px 12px;border:1px solid #cbdff4;border-radius:12px;background:#edf6ff;color:#172337;font-size:13px;font-weight:700}
+.exam-plan-schedule{display:grid;gap:12px}
+.exam-day-card{padding:16px 18px;border:1px solid #d5e4f5;border-radius:15px;background:#f8fbff}
+.exam-day-card h3{margin:0 0 5px;color:#172337;font-size:16px}
+.exam-day-date{font-size:12px;color:#52647a;margin-bottom:11px}
+.exam-day-card ul{margin:0;padding-left:20px;color:#172337;line-height:1.65}
+.exam-day-card li{margin:4px 0}
+@media(max-width:680px){.exam-plan-form .grid.two{grid-template-columns:1fr!important}.exam-form-actions{align-items:flex-start}.exam-form-actions button{width:100%}}
 </style>
 </head>
 <body>
@@ -883,6 +899,7 @@ input:focus,textarea:focus,select:focus{
     <button data-view="chat">◉ <span>AI Tutor</span></button>
     <button data-view="news">📰 <span>News</span></button>
     <button data-view="revision">↻ <span>Revision</span></button>
+    <button data-view="examplan">🗓️ <span>Exam Plan</span></button>
     <button data-view="practice">✓ <span>Practice</span></button>
     <button data-view="flashcards">▣ <span>Flashcards</span></button>
     <button data-view="progress">◈ <span>Progress</span></button>
@@ -964,6 +981,20 @@ input:focus,textarea:focus,select:focus{
     <div id="newsError" class="card news-empty" style="display:none"><b>News could not be loaded right now.</b><div class="small" style="margin-top:6px">Try Refresh again.</div></div>
     <div id="newsList" class="news-list"></div>
     <div class="small news-footnote">Sources: official CBSE Academic, Examination, and CBSE Notices pages. Open the source for the complete notice.</div>
+  </section>
+
+  <section id="examplan" class="view">
+    <div class="topbar"><div><h1>Exam Revision Planner</h1><p>Enter your exam date, syllabus and goal to get an instant revision timetable.</p></div><span class="badge">Instant planner</span></div>
+    <div class="card exam-plan-form">
+      <div class="grid two" style="margin-top:0">
+        <div class="field"><label for="examExamDate"><b>Exam date</b></label><input class="exam-input" id="examExamDate" type="date" required></div>
+        <div class="field"><label for="examDailyHours"><b>Study time each day</b></label><select class="exam-input" id="examDailyHours"><option value="1">1 hour</option><option value="2" selected>2 hours</option><option value="3">3 hours</option><option value="4">4 hours</option><option value="5">5 hours</option></select></div>
+      </div>
+      <div class="field"><label for="examSyllabus"><b>Your syllabus</b></label><textarea class="exam-input" id="examSyllabus" rows="7" maxlength="6000" placeholder="Enter one chapter or topic per line. You can paste your syllabus here." required></textarea><div class="small">Enter the topics from your teacher's syllabus, up to 80 topics.</div></div>
+      <div class="field"><label for="examGoal"><b>Your goal</b></label><input class="exam-input" id="examGoal" maxlength="140" placeholder="For example: score 90%, pass confidently, or improve weak topics." required></div>
+      <div class="exam-form-actions"><button class="btn primary" type="button" onclick="generateExamRevisionPlan()">Create my revision plan →</button><span id="examPlannerStatus" class="small" role="status" aria-live="polite">Your plan is created instantly in this browser.</span></div>
+    </div>
+    <div id="examPlanOutput" class="exam-plan-output hidden"><div class="card"><div class="card-title"><h2>Your revision timetable</h2><span id="examPlanMeta"></span></div><div id="examPlanSummary" class="exam-plan-summary"></div><div id="examPlanSchedule" class="exam-plan-schedule"></div><p class="small">This plan follows the topics you entered. Check it against your teacher's latest syllabus and adjust it if your school timetable changes.</p></div></div>
   </section>
 
   <section id="revision" class="view">
@@ -1671,6 +1702,41 @@ async function loadNews(force=false){
     if(loading)loading.style.display='none';
   }
 }
+function examPlanParseTopics(raw){
+ const lines=String(raw||'').replace(/\r/g,'').trim().split('\n');
+ const items=lines.length>1?lines.flatMap(x=>x.split(';')):lines[0].split(/[,;]+/);
+ const seen=new Set();
+ return items.map(x=>x.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').trim()).filter(x=>{const k=x.toLowerCase();if(!x||seen.has(k))return false;seen.add(k);return true});
+}
+function generateExamRevisionPlan(){
+ const dateValue=document.getElementById('examExamDate').value,raw=document.getElementById('examSyllabus').value,goal=document.getElementById('examGoal').value.trim(),hours=Math.max(1,Math.min(5,Number(document.getElementById('examDailyHours').value)||2)),status=document.getElementById('examPlannerStatus'),out=document.getElementById('examPlanOutput'),dateMatch=dateValue.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+ const fail=(msg,el)=>{status.textContent=msg;out.classList.add('hidden');if(el)el.focus()};
+ if(!dateMatch)return fail('Please choose your exam date.',document.getElementById('examExamDate'));
+ const examDate=new Date(+dateMatch[1],+dateMatch[2]-1,+dateMatch[3]);examDate.setHours(0,0,0,0);
+ if(examDate.getFullYear()!==+dateMatch[1]||examDate.getMonth()!==+dateMatch[2]-1||examDate.getDate()!==+dateMatch[3])return fail('Please choose a valid date.',document.getElementById('examExamDate'));
+ const today=new Date();today.setHours(0,0,0,0);const days=Math.round((examDate-today)/86400000),topics=examPlanParseTopics(raw);
+ if(days<0)return fail('That exam date has passed. Choose today or a future date.');
+ if(!topics.length)return fail('Please enter at least one syllabus topic.',document.getElementById('examSyllabus'));
+ if(topics.length>80)return fail('Please enter no more than 80 topics.',document.getElementById('examSyllabus'));
+ if(goal.length<3)return fail('Please enter your revision goal.',document.getElementById('examGoal'));
+ let focus='Cover each topic and write a short summary of its key points.',practice='Use active recall and answer questions without looking at your notes.';
+ if(/weak|improv|difficult/.test(goal.toLowerCase())){focus='Rate topics green, amber or red and give extra time to amber and red topics.';practice='Test yourself on weak topics and correct each mistake.'}
+ else if(/90|95|100|high|score|mark|rank/.test(goal.toLowerCase())){focus='Review key ideas, formulas and definitions.';practice='Solve timed exam-style questions and review every lost mark.'}
+ else if(/pass|basic|confidence/.test(goal.toLowerCase())){focus='Secure definitions, basic concepts, formulas and standard examples.';practice='Practise common question types and explain the steps without notes.'}
+ else if(/understand|concept|learn|master/.test(goal.toLowerCase())){focus='Explain each topic in your own words and work through an example.';practice='Use active recall and solve questions without looking at notes.'}
+ const fmt=d=>d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'}),add=(n)=>{const d=new Date(today);d.setDate(d.getDate()+n);return d},split=(n)=>Array.from({length:n},(_,i)=>topics.slice(Math.floor(i*topics.length/n),Math.floor((i+1)*topics.length/n)));
+ let plan=[];
+ if(days===0)plan=[{title:'Exam day',date:today,tasks:['Do a calm 20–30 minute scan of summary notes and key formulas.','Do not try to learn large new topics at the last minute.','Check exam details, then take a proper break.']}];
+ else if(days===1)plan=[{title:'Rapid full-syllabus review',date:today,tasks:['Quickly review all topics: '+topics.join('; ')+'.',focus,practice,'Take breaks and finish with a light recap.']}];
+ else if(days<=35){const groups=split(days-1),mins=hours*60,a=Math.round(mins*.55),b=Math.round(mins*.25);plan=groups.map((g,i)=>({title:'Study day '+(i+1),date:add(i),tasks:[(g.length?'Revise: '+g.join('; ')+'.':'Recall topics already covered.')+' ('+a+' min)',focus+' ('+b+' min)',practice+' ('+(mins-a-b)+' min)','Take short breaks between study blocks.']}));plan.push({title:'Final revision day',date:add(days-1),tasks:['Quickly revisit all topics: '+topics.join('; ')+'.','Attempt a timed practice set or past-paper section.','Correct mistakes, prepare exam materials and get enough sleep.']})}
+ else{const coverage=Math.max(1,Math.floor(days*.65)),weeks=Math.max(1,Math.ceil(coverage/7)),groups=split(weeks),finalDays=Math.min(7,Math.max(1,Math.floor(days*.2)));groups.forEach((g,i)=>{const start=i*7,end=Math.min(coverage-1,start+6);plan.push({title:'Syllabus coverage · Week '+(i+1),range:fmt(add(start))+' – '+fmt(add(end)),tasks:['Cover: '+(g.join('; ')||'review earlier topics')+'.',focus,practice+' Aim for '+hours+' hour(s) daily.']})});if(days-finalDays>coverage)plan.push({title:'Strengthen and practise',range:fmt(add(coverage))+' – '+fmt(add(days-finalDays-1)),tasks:['Revisit difficult topics and explain them without notes.','Complete mixed exam questions and keep an error list.',practice]});plan.push({title:'Final revision phase',range:fmt(add(days-finalDays))+' – '+fmt(add(days-1)),tasks:['Use active recall across all '+topics.length+' topics.','Attempt a timed paper or realistic mixed practice set.','Review mistakes and key notes; avoid starting large new topics at the last minute.']})}
+ const esc=escapeHtml,cls=document.getElementById('classSelector')?.value||'Not selected';
+ document.getElementById('examPlanSummary').innerHTML=['<span class="exam-summary-chip">'+(days===0?'Exam day':days+' day(s) remaining')+'</span>','<span class="exam-summary-chip">'+topics.length+' syllabus topics</span>','<span class="exam-summary-chip">'+hours+' study hour(s) daily</span>','<span class="exam-summary-chip">Class '+esc(cls)+'</span>'].join('');
+ document.getElementById('examPlanMeta').textContent='Exam · '+fmt(examDate);
+ document.getElementById('examPlanSchedule').innerHTML=plan.map(x=>'<article class="exam-day-card"><h3>'+esc(x.title)+'</h3><div class="exam-day-date">'+esc(x.date?fmt(x.date):x.range)+'</div><ul>'+x.tasks.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul></article>').join('');
+ out.classList.remove('hidden');status.textContent='Your revision plan is ready. Change an input and generate it again whenever needed.';
+ try{localStorage.setItem('studypilotExamRevisionPlan',JSON.stringify({examDate:dateValue,syllabus:raw,goal,hours}))}catch(e){}
+}
 function showView(id){
  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
  document.getElementById(id).classList.add('active');
@@ -2177,6 +2243,8 @@ function toggleFocusTimer(){const btn=document.getElementById('focusStartBtn');i
 function resetFocusTimer(){if(focusTimerInterval)clearInterval(focusTimerInterval);focusTimerInterval=null;const mins=Math.max(1,Math.min(180,Number(document.getElementById('focusMinutes')?.value)||25));focusTimerSeconds=focusTimerInitial=mins*60;paintFocusTimer();const btn=document.getElementById('focusStartBtn');if(btn)btn.textContent='Start focus';const st=document.getElementById('focusTimerStatus');if(st)st.textContent='Ready when you are'}
 function saveDailyGoal(value){const d=studyToolsData();d.goalMinutes=Math.max(5,Math.min(600,Number(value)||25));writeStudyTools(d);renderStudyTools()}
 
+document.getElementById('examExamDate').min=todayKey();
+try{const savedExamPlan=JSON.parse(localStorage.getItem('studypilotExamRevisionPlan')||'null');if(savedExamPlan){document.getElementById('examExamDate').value=savedExamPlan.examDate||'';document.getElementById('examSyllabus').value=savedExamPlan.syllabus||'';document.getElementById('examGoal').value=savedExamPlan.goal||'';document.getElementById('examDailyHours').value=String(savedExamPlan.hours||2);if(savedExamPlan.examDate&&savedExamPlan.syllabus&&savedExamPlan.goal)generateExamRevisionPlan();}}catch(e){}
 startFlashcardRound();
 renderStudyTools();
 paintFocusTimer();
