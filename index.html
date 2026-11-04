@@ -1797,11 +1797,12 @@ async function generateExamDayQuestions(dayIndex){
  const historyKey=examPlanQuestionClass+'::'+examPlanQuestionSubject;
  const recent=examReadQuestionHistory(historyKey);
  try{
-  const response=await fetch('/api/exam-questions',{
+  const response=await fetch('/api/chat',{
    method:'POST',
    headers:{'Content-Type':'application/json'},
    credentials:'same-origin',
    body:JSON.stringify({
+    action:'exam-questions',
     studentClass:examPlanQuestionClass,
     subject:examPlanQuestionSubject,
     topics:topics.slice(0,8),
