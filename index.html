@@ -847,7 +847,17 @@ input:focus,textarea:focus,select:focus{
 #studypilotQrAccessLayer p{font-size:14px;line-height:1.65;color:#62738a;margin:8px 0 16px}
 #studypilotQrAccessLayer .qr-field{display:grid;gap:7px;margin:14px 0}
 #studypilotQrAccessLayer .qr-field label{font-size:13px;font-weight:800;color:#344962}
-#studypilotQrAccessLayer input,#studypilotQrAccessLayer select{width:100%;min-height:46px;border:1px solid #cfdced;border-radius:11px;background:#fbfdff;padding:11px 12px;color:#243950}
+#studypilotQrAccessLayer input,#studypilotQrAccessLayer select,#studypilotQrAccessLayer textarea{width:100%;min-height:46px;border:1px solid #cfdced;border-radius:11px;background:#fbfdff;padding:11px 12px;color:#243950}
+#studypilotQrAccessLayer textarea{min-height:112px;resize:vertical}
+#studypilotQrAccessLayer .qr-section-title{font-size:17px;color:#243950;margin:25px 0 10px}
+#studypilotQrAccessLayer .qr-review-list{display:grid;gap:10px;margin-top:12px}
+#studypilotQrAccessLayer .qr-review{padding:14px;border:1px solid #dfe9f5;border-radius:14px;background:#fbfdff}
+#studypilotQrAccessLayer .qr-review-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+#studypilotQrAccessLayer .qr-review strong{color:#263c56;font-size:14px}
+#studypilotQrAccessLayer .qr-review p{margin:10px 0 7px;white-space:pre-wrap;overflow-wrap:anywhere}
+#studypilotQrAccessLayer .qr-review small{font-size:11px;color:#78889c}
+#studypilotQrAccessLayer .qr-stars{color:#d79420;letter-spacing:2px}
+#studypilotQrAccessLayer .qr-muted-review{color:#8792a1;font-style:italic}
 #studypilotQrAccessLayer button{border:0;border-radius:11px;padding:11px 15px;background:#3578d4;color:#fff;font-weight:800;cursor:pointer}
 #studypilotQrAccessLayer button:disabled{opacity:.55;cursor:wait}
 #studypilotQrAccessLayer button.qr-secondary{background:#edf4fc;color:#28598f;border:1px solid #d6e5f7}
@@ -2108,6 +2118,51 @@ function studypilotQrPendingScreen(){
     '<div class="qr-actions"><button class="qr-secondary" type="button" onclick="studypilotQrCancelRequest()">Cancel request</button></div></section>'
   );
 }
+function studypilotQrReviewScreen(message){
+  studypilotQrStopVisitorTimers();
+  studypilotQrShow(
+    '<section class="qr-card"><div class="qr-brand">StudyPilot</div><h1>Your demo access has ended</h1>'+
+    '<p>The project owner has revoked access for this browser. Before you leave, please rate your StudyPilot experience.</p>'+
+    (message?'<div class="qr-alert">'+escapeHtml(message)+'</div>':'')+
+    '<form id="studypilotQrReviewForm">'+
+      '<div class="qr-field"><label for="studypilotQrReviewRating">How was your experience?</label>'+
+      '<select id="studypilotQrReviewRating" required><option value="">Choose a rating</option><option value="5">★★★★★ — Excellent</option><option value="4">★★★★☆ — Very good</option><option value="3">★★★☆☆ — Good</option><option value="2">★★☆☆☆ — Could be better</option><option value="1">★☆☆☆☆ — Needs improvement</option></select></div>'+
+      '<div class="qr-field"><label for="studypilotQrReviewText">Your feedback (optional)</label><textarea id="studypilotQrReviewText" maxlength="500" placeholder="What did you like? What could be improved?"></textarea></div>'+
+      '<div id="studypilotQrReviewMessage" class="qr-alert" style="display:none" role="status"></div>'+
+      '<button id="studypilotQrReviewButton" type="submit">Send review</button>'+
+    '</form>'+
+    '<div class="qr-note">One review per visitor request. Please do not include private information.</div></section>'
+  );
+  document.getElementById('studypilotQrReviewForm')?.addEventListener('submit',studypilotQrSubmitReview);
+}
+async function studypilotQrSubmitReview(event){
+  event.preventDefault();
+  const token=localStorage.getItem(STUDYPILOT_QR_TOKEN_KEY)||'';
+  const rating=Number(document.getElementById('studypilotQrReviewRating')?.value||0);
+  const reviewText=document.getElementById('studypilotQrReviewText')?.value||'';
+  const button=document.getElementById('studypilotQrReviewButton');
+  const message=document.getElementById('studypilotQrReviewMessage');
+  if(button){button.disabled=true;button.textContent='Sending review…'}
+  if(message){message.style.display='none';message.textContent=''}
+  try{
+    const result=await studypilotQrApi('review-submit',{visitor_token:token,rating:rating,review_text:reviewText});
+    if(result.ok){studypilotQrReviewThanksScreen();return}
+    throw new Error('Your review could not be saved. Please try again.');
+  }catch(error){
+    if(message){message.textContent=error.message||'Your review could not be sent. Please try again.';message.style.display='block'}
+    if(button){button.disabled=false;button.textContent='Send review'}
+  }
+}
+function studypilotQrReviewThanksScreen(){
+  studypilotQrStopVisitorTimers();
+  studypilotQrShow(
+    '<section class="qr-card"><div class="qr-brand">StudyPilot</div><h1>Thank you for your review!</h1>'+
+    '<div class="qr-alert qr-success">Your feedback has been sent to the StudyPilot project owner.</div>'+
+    '<p>Thanks for taking part in the science-fair demo and helping improve StudyPilot.</p>'+
+    '<div class="qr-note">This review has been submitted once for this visitor request.</div></section>'
+  );
+}
+
 function studypilotQrClosedScreen(){
   studypilotQrStopVisitorTimers();
   studypilotQrShow(
@@ -2150,6 +2205,12 @@ function studypilotQrStartHeartbeat(){
   },20000);
 }
 function studypilotQrHandleStatus(result){
+  if(result.status==='revoked'){
+    studypilotQrStopVisitorTimers();
+    if(result.review_submitted){studypilotQrReviewThanksScreen()}
+    else{studypilotQrReviewScreen()}
+    return;
+  }
   if(result.access_enabled===false){studypilotQrClosedScreen();return}
   if(result.status==='approved'){
     studypilotQrHide();
@@ -2163,8 +2224,7 @@ function studypilotQrHandleStatus(result){
     return;
   }
   try{localStorage.removeItem(STUDYPILOT_QR_TOKEN_KEY)}catch(e){}
-  const message=result.status==='revoked'?'The owner has revoked access for this browser. You may submit a new request.':
-    result.status==='rejected'?'The owner did not approve the previous request.':
+  const message=result.status==='rejected'?'The owner did not approve the previous request.':
     'This access request could not be found. Please request access again.';
   studypilotQrRequestScreen(message);
 }
@@ -2222,9 +2282,10 @@ async function studypilotQrAdminLogin(event){
 async function studypilotQrLoadAdminRequests(silent){
   const data=await studypilotQrApi('admin-list',{admin_pin:studypilotQrAdminPin});
   studypilotQrAccessEnabled=data.access_enabled===true;
-  studypilotQrRenderAdmin(data.requests||[]);
+  studypilotQrRenderAdmin(data.requests||[],data.reviews||[]);
 }
-function studypilotQrRenderAdmin(requests){
+function studypilotQrRenderAdmin(requests,reviews){
+  reviews=reviews||[];
   const pending=requests.filter(r=>r.status==='pending').length;
   const approved=requests.filter(r=>r.status==='approved').length;
   const closed=!studypilotQrAccessEnabled;
@@ -2242,6 +2303,14 @@ function studypilotQrRenderAdmin(requests){
     return '<article class="qr-request"><div><strong>'+escapeHtml(r.visitor_name)+' <span class="qr-status '+escapeHtml(r.status)+'">'+escapeHtml(r.status)+'</span></strong>'+
       '<small>'+escapeHtml(r.visitor_role)+' · Requested '+escapeHtml(when)+'</small></div><div class="qr-request-actions">'+actions+'</div></article>';
   }).join(''):'<div class="qr-alert">No visitor requests yet.</div>';
+  const average=reviews.length?(reviews.reduce((sum,r)=>sum+Number(r.rating||0),0)/reviews.length).toFixed(1):'—';
+  const reviewCards=reviews.length?reviews.map(r=>{
+    const when=new Date(r.created_at).toLocaleString('en-IN');
+    const comment=r.review_text?'<p>'+escapeHtml(r.review_text)+'</p>':'<p class="qr-muted-review">No written comment.</p>';
+    return '<article class="qr-review"><div class="qr-review-top"><strong>'+escapeHtml(r.visitor_name)+' <span class="qr-status">'+escapeHtml(r.visitor_role)+'</span></strong>'+
+      '<span class="qr-stars">'+('★'.repeat(Number(r.rating||0)))+('☆'.repeat(5-Number(r.rating||0)))+'</span></div>'+
+      comment+'<small>'+escapeHtml(when)+'</small></article>';
+  }).join(''):'<div class="qr-alert">No reviews yet. Reviews appear here after you revoke a visitor’s access.</div>';
   studypilotQrShow(
     '<section class="qr-card qr-wide"><div class="qr-brand">StudyPilot · Owner</div><h1>Visitor access manager</h1>'+
     '<p>Approve people before they enter the demo. You can revoke an approved browser at any time.</p>'+
@@ -2250,9 +2319,10 @@ function studypilotQrRenderAdmin(requests){
     '<button class="qr-secondary" type="button" onclick="studypilotQrLoadAdminRequests(false)">Refresh requests</button>'+
     '<button class="qr-secondary" type="button" onclick="studypilotQrOwnerPreview()">Preview StudyPilot</button>'+
     '<button class="qr-secondary" type="button" onclick="studypilotQrAdminLogout()">Lock manager</button></div>'+
-    '<div class="qr-note">Pending: '+pending+' · Approved: '+approved+' · Showing latest '+requests.length+' requests. The approval is tied to the visitor’s browser and device; another device needs its own request.</div>'+
-    '<div class="qr-request-list">'+cards+'</div>'+
-    '<div class="qr-note">Tip: use “Revoke access” beside a person to remove their approval. “Close access for everyone” blocks all visitors, including people already approved.</div></section>'
+    '<div class="qr-note">Pending: '+pending+' · Approved: '+approved+' · Reviews: '+reviews.length+' · Average rating: '+average+'/5. Showing latest '+requests.length+' requests.</div>'+
+    '<h2 class="qr-section-title">Visitor requests</h2><div class="qr-request-list">'+cards+'</div>'+
+    '<h2 class="qr-section-title">Visitor reviews</h2><div class="qr-review-list">'+reviewCards+'</div>'+
+    '<div class="qr-note">A revoked visitor sees a one-time review form on the same browser. Your owner preview stays separate from the visitor review flow.</div></section>'
   );
 }
 async function studypilotQrAdminUpdate(id,status){
