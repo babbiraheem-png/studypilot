@@ -827,6 +827,14 @@ input:focus,textarea:focus,select:focus{
 .exam-question-answer{white-space:pre-wrap;line-height:1.6;color:#172337!important}
 .exam-question-error{margin-top:10px;padding:10px;border-radius:10px;background:#fff4f4;border:1px solid #efcaca;color:#6b2929}
 .exam-question-loading{color:#52647a!important;font-size:13px;margin-top:10px}
+.chapter-explain-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.chapter-explain-actions button:disabled{opacity:.6;cursor:wait}
+.chapter-ai-explanation{margin-top:14px;padding:18px;border:1px solid #cbdff4;border-radius:14px;background:#f7fbff;color:#172337!important;line-height:1.75;white-space:normal}
+.chapter-ai-explanation b{color:#172337!important}
+.chapter-ai-explanation.hidden{display:none}
+.exam-question-panel p{color:#52647a!important;font-size:13px;line-height:1.55;margin:5px 0 10px}
+.exam-question-panel .btn{margin-top:4px}
+@media(max-width:600px){.chapter-explain-actions button{flex:1 1 100%}.chapter-ai-explanation{padding:13px}}
 </style>
 </head>
 <body>
@@ -1552,14 +1560,50 @@ function chapterRulePack(subject,chapter){
   }
   return {summary:'This chapter is part of your CBSE/NCERT-aligned StudyPilot revision path. Learn the definitions, central ideas, examples, and application questions.',points:['Start with the chapter’s key terms.','Understand the main idea before memorising details.','Make a short mind map or comparison table.','Practise explaining the topic without looking at notes.'],remember:['Use your own words when making revision notes.','Review difficult points again after practice.'],practice:['What is the chapter mainly about?','What are three things you must remember?','Can you explain one example from memory?']};
 }
+let activeChapterNoteContext=null;
 function renderChapterPack(subject,chapter,pack){
   const el=document.getElementById('chapterContent'); if(!el)return;
+  activeChapterNoteContext={subject,chapter,pack,classValue:Number(studentClass)};
   const esc=escapeHtml;
-  el.innerHTML='<section class="chapter-section"><h3>Chapter at a glance</h3><p>'+esc(pack.summary)+'</p></section>'+
-    '<section class="chapter-section"><h3>Core revision</h3><ul>'+pack.points.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></section>'+
-    '<section class="chapter-section"><h3>Remember</h3><div class="chapter-chip-row">'+pack.remember.map(x=>'<span class="chapter-chip">'+esc(x)+'</span>').join('')+'</div></section>'+
-    '<section class="chapter-section"><h3>Quick self-check</h3>'+pack.practice.map(x=>'<div class="chapter-question">• '+esc(x)+'</div>').join('')+'</section>'+
-    '<section class="chapter-section"><h3>Revision method</h3><p>Read the overview → cover the notes → explain the topic aloud → answer the self-check questions → mark the chapter reviewed when you can recall the main ideas without looking.</p></section>';
+  el.innerHTML='<section class="chapter-section"><h3>Chapter overview</h3><p>'+esc(pack.summary)+'</p><p>This is the starting overview. For the full lesson, use the detailed explanation button below. It can cover definitions, concepts, step-by-step examples, applications, common mistakes and exam preparation for this exact chapter.</p></section>'+
+    '<section class="chapter-section"><h3>Detailed core points</h3><ul>'+pack.points.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><p>As you study each point, connect it to a textbook example. Write down the rule or idea, explain why it works, and then try using it in a new question.</p></section>'+
+    '<section class="chapter-section"><h3>Key facts, rules and formulas</h3><div class="chapter-chip-row">'+pack.remember.map(x=>'<span class="chapter-chip">'+esc(x)+'</span>').join('')+'</div><p>Do not only memorise these lines. Make sure you can explain what each one means and when it should be used.</p></section>'+
+    '<section class="chapter-section"><h3>Check your understanding</h3>'+pack.practice.map((x,i)=>'<div class="chapter-question"><b>Think '+(i+1)+':</b> '+esc(x)+'</div>').join('')+'</section>'+
+    '<section class="chapter-section"><h3>How to study this chapter</h3><ol><li>Read the matching textbook section carefully.</li><li>Write definitions and important ideas in your own words.</li><li>Work through solved examples, following every step.</li><li>Attempt exercise questions without looking at the answers.</li><li>Review mistakes and test yourself again later.</li></ol></section>'+
+    '<section class="chapter-section"><h3>Learn this chapter in more detail</h3><p>Choose a full lesson for a longer explanation, or use Briefly for a compact recap.</p><div class="chapter-explain-actions"><button class="btn primary" type="button" onclick="loadChapterExplanation(\'detailed\')">Full detailed explanation</button><button class="btn" type="button" onclick="loadChapterExplanation(\'brief\')">Briefly</button></div><div id="chapterAiExplanation" class="chapter-ai-explanation hidden" aria-live="polite"></div></section>'+
+    '<section class="chapter-section"><h3>Revision checklist</h3><p>You are ready to mark this chapter reviewed when you can explain its main ideas without notes, solve a new example, use the important rules correctly, and explain any mistakes you made.</p></section>';
+}
+async function loadChapterExplanation(mode){
+  const context=activeChapterNoteContext;
+  const output=document.getElementById('chapterAiExplanation');
+  const buttons=document.querySelectorAll('.chapter-explain-actions button');
+  if(!context||!output)return;
+  if(mode!=='brief'&&mode!=='detailed')return;
+  const cacheKey='studypilotChapterExplanation::'+context.classValue+'::'+context.subject+'::'+context.chapter+'::'+mode;
+  try{
+    const cached=localStorage.getItem(cacheKey);
+    if(cached){
+      output.classList.remove('hidden');
+      output.innerHTML=formatAI(cached);
+      return;
+    }
+  }catch(e){}
+  buttons.forEach(button=>button.disabled=true);
+  output.classList.remove('hidden');
+  output.textContent=mode==='brief'?'Preparing your short, clear recap…':'Preparing a detailed lesson for this chapter…';
+  const prompt=mode==='brief'
+    ? 'Explain the chapter "'+context.chapter+'" for Class '+context.classValue+' '+context.subject+' in a very concise but genuinely clear way. Aim for about 100–140 words. State the central idea, the most important concepts or process, and what a student should remember. Use simple language without losing accuracy. Do not add unrelated syllabus topics.'
+    : 'Create a substantial, well-organised teaching lesson for the chapter "'+context.chapter+'" for Class '+context.classValue+' '+context.subject+'. The student needs more than a short overview. Aim for roughly 600–850 words when the topic supports it. Teach from the basics in clear language. Include: (1) what the chapter is about and why it matters, (2) detailed explanations of the main concepts, (3) important definitions, rules or formulas and what they mean, (4) at least two worked examples or concrete illustrations with reasoning where suitable, (5) real-life or curriculum examples, (6) common misunderstandings and how to avoid them, (7) exam-answer tips, and (8) a short recap. For history, geography, civics, economics or languages, use suitable explanations, timelines, comparisons, case examples or writing examples instead of forcing equations. Keep the explanation appropriate to the named class and subject. Do not pretend to quote the official syllabus. Be accurate, and say when a detail depends on the teacher or textbook.';
+  try{
+    const answer=await callGemini(prompt);
+    output.innerHTML=formatAI(answer);
+    try{localStorage.setItem(cacheKey,answer)}catch(e){}
+  }catch(error){
+    output.textContent='The explanation could not be loaded right now. Please try again, or use Ask AI Tutor for this chapter.';
+    toast(error.message||'Chapter explanation unavailable');
+  }finally{
+    buttons.forEach(button=>button.disabled=false);
+  }
 }
 function openChapter(index){
   const p=currentProfile(),subj=currentSubject();
@@ -1823,15 +1867,15 @@ function generateExamRevisionPlan(){
   return [selected[0]+' ('+first+' min)',selected[1]+' ('+second+' min)',selected[2]+' ('+third+' min)','Take a 5–10 minute break between study blocks.'];
  };
  let plan=[];
- if(days===0)plan=[{title:'Exam day',date:today,tasks:['Do a calm 20–30 minute scan of summary notes and key formulas.','Do not try to learn large new topics at the last minute.','Check exam details, then take a proper break.']}];
- else if(days===1)plan=[{title:'Rapid full-syllabus review',date:today,tasks:['Quickly review all topics: '+topics.join('; ')+'.',focus,practice,'Take breaks and finish with a light recap.']}];
+ if(days===0)plan=[{title:'Exam day',date:today,topics:topics,tasks:['Do a calm 20–30 minute scan of summary notes and key formulas.','Do not try to learn large new topics at the last minute.','Check exam details, then take a proper break.']}];
+ else if(days===1)plan=[{title:'Rapid full-syllabus review',date:today,topics:topics,tasks:['Quickly review all topics: '+topics.join('; ')+'.',focus,practice,'Take breaks and finish with a light recap.']}];
  else if(days<=35){
   const studyDayCount=days-1,groups=splitTopics(studyDayCount);
   plan=groups.map((group,index)=>{
    const dayTopics=group.length?group:[topics[index%topics.length]];
-   return {title:'Study day '+(index+1)+' · '+dayTopics.join(', '),date:add(index),tasks:studyTasks(dayTopics,index)};
+   return {title:'Study day '+(index+1)+' · '+dayTopics.join(', '),date:add(index),topics:dayTopics,tasks:studyTasks(dayTopics,index)};
   });
-  plan.push({title:'Final revision day',date:add(days-1),tasks:[
+  plan.push({title:'Final revision day',date:add(days-1),topics:topics,tasks:[
    'Revise these exact syllabus topics: '+topics.join('; ')+'.',
    'Complete a timed mixed test using questions from: '+topics.join('; ')+'.',
    'Check every answer, correct mistakes from these topics, and review your own summary notes.',
@@ -1842,18 +1886,18 @@ function generateExamRevisionPlan(){
   const coverage=Math.max(1,Math.floor(days*.65)),weeks=Math.max(1,Math.ceil(coverage/7)),groups=splitTopics(weeks),finalDays=Math.min(7,Math.max(1,Math.floor(days*.2)));
   groups.forEach((group,index)=>{
    const start=index*7,end=Math.min(coverage-1,start+6),weekTopics=group.length?group:[topics[index%topics.length]];
-   plan.push({title:'Syllabus coverage · Week '+(index+1)+' · '+weekTopics.join(', '),range:fmt(add(start))+' – '+fmt(add(end)),tasks:[
+   plan.push({title:'Syllabus coverage · Week '+(index+1)+' · '+weekTopics.join(', '),range:fmt(add(start))+' – '+fmt(add(end)),topics:weekTopics,tasks:[
     'Study these exact chapters: '+weekTopics.join('; ')+'. Use the chapter headings in your textbook to make a checklist.',
     'Work through the solved examples and exercises for: '+weekTopics.join('; ')+'.',
     'At the end of the week, answer closed-book questions on: '+weekTopics.join('; ')+'. Correct and record mistakes.'
    ]});
   });
-  if(days-finalDays>coverage)plan.push({title:'Strengthen and practise',range:fmt(add(coverage))+' – '+fmt(add(days-finalDays-1)),tasks:[
+  if(days-finalDays>coverage)plan.push({title:'Strengthen and practise',range:fmt(add(coverage))+' – '+fmt(add(days-finalDays-1)),topics:topics, tasks:[
    'Revisit the topics you marked difficult: '+topics.join('; ')+'.',
    'Complete mixed exam questions drawn only from these syllabus topics: '+topics.join('; ')+'.',
    'Keep an error list and redo every incorrect question without looking at the solution.'
   ]});
-  plan.push({title:'Final revision phase',range:fmt(add(days-finalDays))+' – '+fmt(add(days-1)),tasks:[
+  plan.push({title:'Final revision phase',range:fmt(add(days-finalDays))+' – '+fmt(add(days-1)),topics:topics,tasks:[
    'Use active recall for every listed topic: '+topics.join('; ')+'.',
    'Attempt a timed paper or mixed practice set using these topics.',
    'Review your mistakes and summary notes; do not start large new topics on the last day.'
@@ -1862,9 +1906,12 @@ function generateExamRevisionPlan(){
  const esc=escapeHtml,cls=document.getElementById('classSelector')?.value||'Not selected';
  document.getElementById('examPlanSummary').innerHTML=['<span class="exam-summary-chip">'+(days===0?'Exam day':days+' day(s) remaining')+'</span>','<span class="exam-summary-chip">'+topics.length+' syllabus topics</span>','<span class="exam-summary-chip">'+hours+' study hour(s) daily</span>','<span class="exam-summary-chip">Class '+esc(cls)+'</span>'].join('');
  document.getElementById('examPlanMeta').textContent='Exam · '+fmt(examDate);
- document.getElementById('examPlanSchedule').innerHTML=plan.map(x=>'<article class="exam-day-card"><h3>'+esc(x.title)+'</h3><div class="exam-day-date">'+esc(x.date?fmt(x.date):x.range)+'</div><ul>'+x.tasks.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul></article>').join('');
+ examPlanQuestionClass=Number(document.getElementById('classSelector')?.value||6);
+ examPlanQuestionSubject=document.getElementById('examSubject')?.value||'Mathematics';
+ examPlanQuestionDays=plan.map(x=>({title:x.title,topics:Array.isArray(x.topics)&&x.topics.length?x.topics:topics}));
+ document.getElementById('examPlanSchedule').innerHTML=plan.map((x,index)=>'<article class="exam-day-card"><h3>'+esc(x.title)+'</h3><div class="exam-day-date">'+esc(x.date?fmt(x.date):x.range)+'</div><ul>'+x.tasks.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul><div class="exam-question-panel"><h4>Questions to solve</h4><p>Try three new questions based on '+esc((x.topics&&x.topics.length?x.topics:topics).join(', '))+'. Answers and worked solutions stay hidden until you open them.</p><button class="btn" type="button" id="examQuestionButton-'+index+'" onclick="generateExamDayQuestions('+index+')">Generate 3 questions →</button><div id="examQuestionResults-'+index+'"></div></div></article>').join('');
  out.classList.remove('hidden');status.textContent='Your revision plan is ready. Change an input and generate it again whenever needed.';
- try{localStorage.setItem('studypilotExamRevisionPlan',JSON.stringify({examDate:dateValue,syllabus:raw,goal,hours}))}catch(e){}
+ try{localStorage.setItem('studypilotExamRevisionPlan',JSON.stringify({examDate:dateValue,syllabus:raw,goal,hours,subject:examPlanQuestionSubject}))}catch(e){}
 }
 function showView(id){
  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -2373,7 +2420,7 @@ function resetFocusTimer(){if(focusTimerInterval)clearInterval(focusTimerInterva
 function saveDailyGoal(value){const d=studyToolsData();d.goalMinutes=Math.max(5,Math.min(600,Number(value)||25));writeStudyTools(d);renderStudyTools()}
 
 document.getElementById('examExamDate').min=examIndiaDateKey();
-try{const savedExamPlan=JSON.parse(localStorage.getItem('studypilotExamRevisionPlan')||'null');if(savedExamPlan){document.getElementById('examExamDate').value=savedExamPlan.examDate||'';document.getElementById('examSyllabus').value=savedExamPlan.syllabus||'';document.getElementById('examGoal').value=savedExamPlan.goal||'';document.getElementById('examDailyHours').value=String(savedExamPlan.hours||2);if(savedExamPlan.examDate&&savedExamPlan.syllabus&&savedExamPlan.goal)generateExamRevisionPlan();}}catch(e){}
+try{const savedExamPlan=JSON.parse(localStorage.getItem('studypilotExamRevisionPlan')||'null');if(savedExamPlan){document.getElementById('examExamDate').value=savedExamPlan.examDate||'';document.getElementById('examSyllabus').value=savedExamPlan.syllabus||'';document.getElementById('examGoal').value=savedExamPlan.goal||'';document.getElementById('examDailyHours').value=String(savedExamPlan.hours||2);if(savedExamPlan.subject)document.getElementById('examSubject').value=savedExamPlan.subject;if(savedExamPlan.examDate&&savedExamPlan.syllabus&&savedExamPlan.goal)generateExamRevisionPlan();}}catch(e){}
 startFlashcardRound();
 renderStudyTools();
 paintFocusTimer();
