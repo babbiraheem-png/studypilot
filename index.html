@@ -1734,12 +1734,66 @@ function generateExamRevisionPlan(){
  else if(/90|95|100|high|score|mark|rank/.test(goal.toLowerCase())){focus='Review key ideas, formulas and definitions.';practice='Solve timed exam-style questions and review every lost mark.'}
  else if(/pass|basic|confidence/.test(goal.toLowerCase())){focus='Secure definitions, basic concepts, formulas and standard examples.';practice='Practise common question types and explain the steps without notes.'}
  else if(/understand|concept|learn|master/.test(goal.toLowerCase())){focus='Explain each topic in your own words and work through an example.';practice='Use active recall and solve questions without looking at notes.'}
- const fmt=d=>d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'}),add=(n)=>{const d=new Date(today);d.setDate(d.getDate()+n);return d},split=(n)=>Array.from({length:n},(_,i)=>topics.slice(Math.floor(i*topics.length/n),Math.floor((i+1)*topics.length/n)));
+ const fmt=d=>d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'}),add=(n)=>{const d=new Date(today);d.setDate(d.getDate()+n);return d};
+ const splitTopics=(count)=>{
+  const base=Math.floor(topics.length/count),remainder=topics.length%count;
+  let cursor=0;
+  return Array.from({length:count},(_,index)=>{
+   const size=base+(index<remainder?1:0);
+   const group=topics.slice(cursor,cursor+size);
+   cursor+=size;
+   return group;
+  });
+ };
+ const studyTasks=(dayTopics,dayIndex)=>{
+  const chapter=dayTopics.join(', ');
+  const minutes=hours*60,first=Math.round(minutes*.4),second=Math.round(minutes*.35),third=minutes-first-second;
+  const activities=[
+   ['Read the textbook sections for '+chapter+'. Write down the key definitions, rules and formulas, and mark anything you do not understand.','Go through the solved examples for '+chapter+'. Write each method step by step in your own words.','Attempt the first exercise questions for '+chapter+ without looking at the worked solutions. Mark questions you cannot solve.'],
+   ['Recall the key definitions, rules and formulas for '+chapter+' from memory, then check your notes.','Solve the next set of textbook questions for '+chapter+'. Show every step in your working.','Check your answers for '+chapter+'. Correct mistakes and write down why each correction is needed.'],
+   ['Review every section of '+chapter+' and make sure your notes cover the whole chapter.','Answer mixed questions from different sections of '+chapter+' without using notes.','Identify the parts of '+chapter+' where you lost marks and relearn those parts from your textbook.'],
+   ['Take a timed chapter test on '+chapter+' using your textbook exercises or teacher-provided questions.','Mark the test for '+chapter+' and list the questions you got wrong or could not complete.','Redo those '+chapter+' questions without looking at the answers, then prepare a short final-revision sheet.']
+  ];
+  const selected=activities[Math.min(dayIndex,activities.length-1)];
+  return [selected[0]+' ('+first+' min)',selected[1]+' ('+second+' min)',selected[2]+' ('+third+' min)','Take a 5–10 minute break between study blocks.'];
+ };
  let plan=[];
  if(days===0)plan=[{title:'Exam day',date:today,tasks:['Do a calm 20–30 minute scan of summary notes and key formulas.','Do not try to learn large new topics at the last minute.','Check exam details, then take a proper break.']}];
  else if(days===1)plan=[{title:'Rapid full-syllabus review',date:today,tasks:['Quickly review all topics: '+topics.join('; ')+'.',focus,practice,'Take breaks and finish with a light recap.']}];
- else if(days<=35){const groups=split(days-1),mins=hours*60,a=Math.round(mins*.55),b=Math.round(mins*.25);plan=groups.map((g,i)=>({title:'Study day '+(i+1),date:add(i),tasks:[(g.length?'Revise: '+g.join('; ')+'.':'Recall topics already covered.')+' ('+a+' min)',focus+' ('+b+' min)',practice+' ('+(mins-a-b)+' min)','Take short breaks between study blocks.']}));plan.push({title:'Final revision day',date:add(days-1),tasks:['Quickly revisit all topics: '+topics.join('; ')+'.','Attempt a timed practice set or past-paper section.','Correct mistakes, prepare exam materials and get enough sleep.']})}
- else{const coverage=Math.max(1,Math.floor(days*.65)),weeks=Math.max(1,Math.ceil(coverage/7)),groups=split(weeks),finalDays=Math.min(7,Math.max(1,Math.floor(days*.2)));groups.forEach((g,i)=>{const start=i*7,end=Math.min(coverage-1,start+6);plan.push({title:'Syllabus coverage · Week '+(i+1),range:fmt(add(start))+' – '+fmt(add(end)),tasks:['Cover: '+(g.join('; ')||'review earlier topics')+'.',focus,practice+' Aim for '+hours+' hour(s) daily.']})});if(days-finalDays>coverage)plan.push({title:'Strengthen and practise',range:fmt(add(coverage))+' – '+fmt(add(days-finalDays-1)),tasks:['Revisit difficult topics and explain them without notes.','Complete mixed exam questions and keep an error list.',practice]});plan.push({title:'Final revision phase',range:fmt(add(days-finalDays))+' – '+fmt(add(days-1)),tasks:['Use active recall across all '+topics.length+' topics.','Attempt a timed paper or realistic mixed practice set.','Review mistakes and key notes; avoid starting large new topics at the last minute.']})}
+ else if(days<=35){
+  const studyDayCount=days-1,groups=splitTopics(studyDayCount);
+  plan=groups.map((group,index)=>{
+   const dayTopics=group.length?group:[topics[index%topics.length]];
+   return {title:'Study day '+(index+1)+' · '+dayTopics.join(', '),date:add(index),tasks:studyTasks(dayTopics,index)};
+  });
+  plan.push({title:'Final revision day',date:add(days-1),tasks:[
+   'Revise these exact syllabus topics: '+topics.join('; ')+'.',
+   'Complete a timed mixed test using questions from: '+topics.join('; ')+'.',
+   'Check every answer, correct mistakes from these topics, and review your own summary notes.',
+   'Prepare exam materials and get enough sleep.'
+  ]});
+ }
+ else{
+  const coverage=Math.max(1,Math.floor(days*.65)),weeks=Math.max(1,Math.ceil(coverage/7)),groups=splitTopics(weeks),finalDays=Math.min(7,Math.max(1,Math.floor(days*.2)));
+  groups.forEach((group,index)=>{
+   const start=index*7,end=Math.min(coverage-1,start+6),weekTopics=group.length?group:[topics[index%topics.length]];
+   plan.push({title:'Syllabus coverage · Week '+(index+1)+' · '+weekTopics.join(', '),range:fmt(add(start))+' – '+fmt(add(end)),tasks:[
+    'Study these exact chapters: '+weekTopics.join('; ')+'. Use the chapter headings in your textbook to make a checklist.',
+    'Work through the solved examples and exercises for: '+weekTopics.join('; ')+'.',
+    'At the end of the week, answer closed-book questions on: '+weekTopics.join('; ')+'. Correct and record mistakes.'
+   ]});
+  });
+  if(days-finalDays>coverage)plan.push({title:'Strengthen and practise',range:fmt(add(coverage))+' – '+fmt(add(days-finalDays-1)),tasks:[
+   'Revisit the topics you marked difficult: '+topics.join('; ')+'.',
+   'Complete mixed exam questions drawn only from these syllabus topics: '+topics.join('; ')+'.',
+   'Keep an error list and redo every incorrect question without looking at the solution.'
+  ]});
+  plan.push({title:'Final revision phase',range:fmt(add(days-finalDays))+' – '+fmt(add(days-1)),tasks:[
+   'Use active recall for every listed topic: '+topics.join('; ')+'.',
+   'Attempt a timed paper or mixed practice set using these topics.',
+   'Review your mistakes and summary notes; do not start large new topics on the last day.'
+  ]});
+ }
  const esc=escapeHtml,cls=document.getElementById('classSelector')?.value||'Not selected';
  document.getElementById('examPlanSummary').innerHTML=['<span class="exam-summary-chip">'+(days===0?'Exam day':days+' day(s) remaining')+'</span>','<span class="exam-summary-chip">'+topics.length+' syllabus topics</span>','<span class="exam-summary-chip">'+hours+' study hour(s) daily</span>','<span class="exam-summary-chip">Class '+esc(cls)+'</span>'].join('');
  document.getElementById('examPlanMeta').textContent='Exam · '+fmt(examDate);
