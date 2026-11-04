@@ -41,7 +41,7 @@ export default async function handler(req, res) {
 
     for (const model of models) {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 12000);
+      const timeout = setTimeout(() => controller.abort(), 18000);
 
       try {
         const response = await fetch(
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
                 thinkingConfig: {
                   thinkingLevel: 'minimal'
                 },
-                maxOutputTokens: 700
+                maxOutputTokens: 1600
               }
             })
           }
