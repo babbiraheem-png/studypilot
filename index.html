@@ -837,6 +837,37 @@ input:focus,textarea:focus,select:focus{
 @media(max-width:600px){.chapter-explain-actions button{flex:1 1 100%}.chapter-ai-explanation{padding:13px}}
 .katex-display{max-width:100%;overflow-x:auto;overflow-y:hidden;padding:.3rem 0}
 .katex{font-size:1.04em}
+
+/* StudyPilot science-fair approval gate */
+#studypilotQrAccessLayer{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;overflow:auto;padding:22px;background:linear-gradient(145deg,#eef5ff,#f9fbff 55%,#f4f8ff);color:#21344d}
+#studypilotQrAccessLayer .qr-card{width:min(560px,100%);max-height:calc(100vh - 44px);overflow:auto;padding:28px;background:#fff;border:1px solid #d7e5f6;border-radius:24px;box-shadow:0 25px 80px rgba(46,83,130,.16)}
+#studypilotQrAccessLayer .qr-card.qr-wide{width:min(880px,100%)}
+#studypilotQrAccessLayer .qr-brand{font-size:22px;font-weight:900;letter-spacing:-.04em;color:#3578d4;margin-bottom:18px}
+#studypilotQrAccessLayer h1{font-size:29px;line-height:1.15;letter-spacing:-.04em;margin:0 0 10px;color:#21344d}
+#studypilotQrAccessLayer p{font-size:14px;line-height:1.65;color:#62738a;margin:8px 0 16px}
+#studypilotQrAccessLayer .qr-field{display:grid;gap:7px;margin:14px 0}
+#studypilotQrAccessLayer .qr-field label{font-size:13px;font-weight:800;color:#344962}
+#studypilotQrAccessLayer input,#studypilotQrAccessLayer select{width:100%;min-height:46px;border:1px solid #cfdced;border-radius:11px;background:#fbfdff;padding:11px 12px;color:#243950}
+#studypilotQrAccessLayer button{border:0;border-radius:11px;padding:11px 15px;background:#3578d4;color:#fff;font-weight:800;cursor:pointer}
+#studypilotQrAccessLayer button:disabled{opacity:.55;cursor:wait}
+#studypilotQrAccessLayer button.qr-secondary{background:#edf4fc;color:#28598f;border:1px solid #d6e5f7}
+#studypilotQrAccessLayer .qr-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}
+#studypilotQrAccessLayer .qr-note{font-size:12px;color:#7a899c;margin-top:18px}
+#studypilotQrAccessLayer .qr-alert{padding:11px 13px;border-radius:11px;background:#fff8e9;border:1px solid #f2dfb6;color:#77551e;font-size:13px;line-height:1.5;margin:12px 0}
+#studypilotQrAccessLayer .qr-success{background:#effaf5;border-color:#ccebdd;color:#286349}
+#studypilotQrAccessLayer .qr-request-list{display:grid;gap:10px;margin-top:16px}
+#studypilotQrAccessLayer .qr-request{padding:14px;border:1px solid #dfe9f5;border-radius:14px;background:#fbfdff;display:flex;justify-content:space-between;gap:14px;align-items:center}
+#studypilotQrAccessLayer .qr-request strong{display:block;color:#263c56;font-size:14px}
+#studypilotQrAccessLayer .qr-request small{display:block;color:#78889c;font-size:12px;margin-top:4px}
+#studypilotQrAccessLayer .qr-request-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+#studypilotQrAccessLayer .qr-request-actions button{font-size:12px;padding:8px 10px}
+#studypilotQrAccessLayer .qr-request-actions button.qr-danger{background:#fff0f1;border:1px solid #f1d1d5;color:#9a3b49}
+#studypilotQrAccessLayer .qr-status{display:inline-block;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:800;background:#edf4fc;color:#3d648f;text-transform:capitalize}
+#studypilotQrAccessLayer .qr-status.approved{background:#eaf8f0;color:#28734f}
+#studypilotQrAccessLayer .qr-status.pending{background:#fff5df;color:#916516}
+#studypilotQrAccessLayer .qr-status.rejected,#studypilotQrAccessLayer .qr-status.revoked{background:#fff0f1;color:#9a3b49}
+@media(max-width:620px){#studypilotQrAccessLayer{padding:12px}#studypilotQrAccessLayer .qr-card{padding:22px 18px;max-height:calc(100vh - 24px)}#studypilotQrAccessLayer .qr-request{display:block}#studypilotQrAccessLayer .qr-request-actions{justify-content:flex-start;margin-top:12px}#studypilotQrAccessLayer h1{font-size:25px}}
+
 </style>
 <!-- Render LaTeX maths in AI Tutor and chapter explanations. -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/katex.min.css" crossorigin="anonymous" />
@@ -844,6 +875,7 @@ input:focus,textarea:focus,select:focus{
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="window.dispatchEvent(new Event('studypilot-math-ready'))"></script>
 </head>
 <body>
+<div id="studypilotQrAccessLayer" aria-live="polite"></div>
 <div class="access-gate" id="accessGate">
   <div class="access-decoration" aria-hidden="true">
     <span class="orb one"></span><span class="orb two"></span><span class="orb three"></span>
@@ -2000,6 +2032,251 @@ function appendMsg(text,user=false){
   typesetStudyPilotMath(m.querySelector('.bubble'));
   wrap.scrollTop=wrap.scrollHeight
 }
+
+const STUDYPILOT_QR_API = 'https://mxnhfvhvwqxjfctgfejf.supabase.co/functions/v1/studypilot-qr-access';
+const STUDYPILOT_QR_KEY = 'sb_publishable_UdCozB9L-cEedEJgOq_t9w_Sl4aooYc';
+const STUDYPILOT_QR_TOKEN_KEY = 'studypilotFairAccessToken';
+let studypilotQrAdminPin = '';
+let studypilotQrAccessEnabled = true;
+let studypilotQrPollTimer = null;
+let studypilotQrHeartbeat = null;
+let studypilotQrAdminTimer = null;
+
+async function studypilotQrApi(action, extra){
+  const response = await fetch(STUDYPILOT_QR_API,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','apikey':STUDYPILOT_QR_KEY},
+    body:JSON.stringify(Object.assign({action:action},extra||{}))
+  });
+  const data = await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error||'Could not contact the approval service.');
+  return data;
+}
+function studypilotQrLayer(){return document.getElementById('studypilotQrAccessLayer')}
+function studypilotQrShow(html){
+  const layer=studypilotQrLayer();
+  if(!layer)return;
+  layer.innerHTML=html;
+  layer.style.display='flex';
+}
+function studypilotQrHide(){
+  const layer=studypilotQrLayer();
+  if(layer)layer.style.display='none';
+}
+function studypilotQrStopVisitorTimers(){
+  if(studypilotQrPollTimer){clearInterval(studypilotQrPollTimer);studypilotQrPollTimer=null}
+  if(studypilotQrHeartbeat){clearInterval(studypilotQrHeartbeat);studypilotQrHeartbeat=null}
+}
+function studypilotQrRequestScreen(message){
+  studypilotQrStopVisitorTimers();
+  studypilotQrShow(
+    '<section class="qr-card"><div class="qr-brand">StudyPilot</div><h1>Request access</h1>'+
+    '<p>This science-fair demo requires the project owner to approve visitors before the website opens.</p>'+
+    (message?'<div class="qr-alert">'+escapeHtml(message)+'</div>':'')+
+    '<form id="studypilotQrRequestForm">'+
+      '<div class="qr-field"><label for="studypilotQrVisitorName">Your name</label><input id="studypilotQrVisitorName" maxlength="50" autocomplete="name" required placeholder="Enter your name"></div>'+
+      '<div class="qr-field"><label for="studypilotQrVisitorRole">I am a</label><select id="studypilotQrVisitorRole"><option>Teacher</option><option>Parent</option><option>Judge</option><option>Visitor</option></select></div>'+
+      '<button id="studypilotQrRequestButton" type="submit">Send access request</button>'+
+    '</form>'+
+    '<div class="qr-note">Only your name and visitor type are requested. No email address or phone number is needed. Approval is remembered in this browser on this device.</div>'+
+  '</section>'
+  );
+  document.getElementById('studypilotQrRequestForm')?.addEventListener('submit',studypilotQrSubmitRequest);
+}
+async function studypilotQrSubmitRequest(event){
+  event.preventDefault();
+  const name=document.getElementById('studypilotQrVisitorName')?.value.trim()||'';
+  const role=document.getElementById('studypilotQrVisitorRole')?.value||'Visitor';
+  const button=document.getElementById('studypilotQrRequestButton');
+  if(button){button.disabled=true;button.textContent='Sending request…'}
+  try{
+    const result=await studypilotQrApi('request',{name:name,role:role});
+    if(result.access_enabled===false){studypilotQrClosedScreen();return}
+    localStorage.setItem(STUDYPILOT_QR_TOKEN_KEY,result.visitor_token);
+    studypilotQrPendingScreen();
+    studypilotQrStartPolling();
+  }catch(error){
+    studypilotQrRequestScreen(error.message||'Your request could not be sent. Please try again.');
+  }
+}
+function studypilotQrPendingScreen(){
+  studypilotQrShow(
+    '<section class="qr-card"><div class="qr-brand">StudyPilot</div><h1>Request sent</h1>'+
+    '<div class="qr-alert">Your request is pending. The owner must approve it before you can enter StudyPilot.</div>'+
+    '<p>This page checks for approval automatically. Please keep it open or reopen the same link on this device.</p>'+
+    '<div class="qr-note">Access will be available only in this browser. If you use a different phone or browser, you will need to request access again.</div>'+
+    '<div class="qr-actions"><button class="qr-secondary" type="button" onclick="studypilotQrCancelRequest()">Cancel request</button></div></section>'
+  );
+}
+function studypilotQrClosedScreen(){
+  studypilotQrStopVisitorTimers();
+  studypilotQrShow(
+    '<section class="qr-card"><div class="qr-brand">StudyPilot</div><h1>Access is closed</h1>'+
+    '<p>The project owner has temporarily closed visitor access. Approved visitors cannot enter while access is closed.</p>'+
+    '<div class="qr-note">Please ask the project owner at the science-fair desk.</div></section>'
+  );
+}
+function studypilotQrOfflineScreen(){
+  studypilotQrShow(
+    '<section class="qr-card"><div class="qr-brand">StudyPilot</div><h1>Approval service unavailable</h1>'+
+    '<p>StudyPilot could not check access right now. No new approval has been granted.</p>'+
+    '<div class="qr-actions"><button type="button" onclick="initStudyPilotQrApproval()">Try again</button></div></section>'
+  );
+}
+function studypilotQrCancelRequest(){
+  try{localStorage.removeItem(STUDYPILOT_QR_TOKEN_KEY)}catch(e){}
+  studypilotQrRequestScreen('Your previous request was cleared. You may send a new request.');
+}
+function studypilotQrStartPolling(){
+  studypilotQrStopVisitorTimers();
+  studypilotQrPollTimer=setInterval(async()=>{
+    try{
+      const token=localStorage.getItem(STUDYPILOT_QR_TOKEN_KEY);
+      if(!token){studypilotQrRequestScreen();return}
+      const result=await studypilotQrApi('status',{visitor_token:token});
+      studypilotQrHandleStatus(result);
+    }catch(error){console.warn('StudyPilot approval check failed:',error)}
+  },6000);
+}
+function studypilotQrStartHeartbeat(){
+  studypilotQrStopVisitorTimers();
+  studypilotQrHeartbeat=setInterval(async()=>{
+    try{
+      const token=localStorage.getItem(STUDYPILOT_QR_TOKEN_KEY);
+      if(!token){studypilotQrRequestScreen();return}
+      const result=await studypilotQrApi('status',{visitor_token:token});
+      studypilotQrHandleStatus(result);
+    }catch(error){console.warn('StudyPilot access refresh failed:',error)}
+  },20000);
+}
+function studypilotQrHandleStatus(result){
+  if(result.access_enabled===false){studypilotQrClosedScreen();return}
+  if(result.status==='approved'){
+    studypilotQrHide();
+    studypilotQrStartHeartbeat();
+    return;
+  }
+  if(result.status==='pending'){
+    if(studypilotQrHeartbeat){clearInterval(studypilotQrHeartbeat);studypilotQrHeartbeat=null}
+    if(!studypilotQrPollTimer)studypilotQrPendingScreen();
+    studypilotQrStartPolling();
+    return;
+  }
+  try{localStorage.removeItem(STUDYPILOT_QR_TOKEN_KEY)}catch(e){}
+  const message=result.status==='revoked'?'The owner has revoked access for this browser. You may submit a new request.':
+    result.status==='rejected'?'The owner did not approve the previous request.':
+    'This access request could not be found. Please request access again.';
+  studypilotQrRequestScreen(message);
+}
+async function initStudyPilotQrApproval(){
+  const mode=new URLSearchParams(window.location.search).get('fair');
+  if(mode==='admin'){studypilotQrAdminLoginScreen();return}
+  try{
+    if(sessionStorage.getItem('studypilotQrOwnerPreview')==='1'){
+      sessionStorage.removeItem('studypilotQrOwnerPreview');
+      studypilotQrHide();
+      return;
+    }
+  }catch(e){}
+  studypilotQrShow('<section class="qr-card"><div class="qr-brand">StudyPilot</div><h1>Checking access…</h1><p>Connecting to the approval service.</p></section>');
+  try{
+    const settings=await studypilotQrApi('settings');
+    if(settings.access_enabled===false){studypilotQrClosedScreen();return}
+    const token=localStorage.getItem(STUDYPILOT_QR_TOKEN_KEY);
+    if(!token){studypilotQrRequestScreen();return}
+    const result=await studypilotQrApi('status',{visitor_token:token});
+    studypilotQrHandleStatus(result);
+  }catch(error){
+    console.error('StudyPilot approval service:',error);
+    studypilotQrOfflineScreen();
+  }
+}
+function studypilotQrAdminLoginScreen(message){
+  if(studypilotQrAdminTimer){clearInterval(studypilotQrAdminTimer);studypilotQrAdminTimer=null}
+  studypilotQrAdminPin='';
+  studypilotQrShow(
+    '<section class="qr-card"><div class="qr-brand">StudyPilot · Owner</div><h1>Access manager</h1>'+
+    '<p>Enter your private owner code to review visitor requests and manage access.</p>'+
+    (message?'<div class="qr-alert">'+escapeHtml(message)+'</div>':'')+
+    '<form id="studypilotQrAdminForm"><div class="qr-field"><label for="studypilotQrAdminPin">Owner code</label><input id="studypilotQrAdminPin" type="password" autocomplete="current-password" required placeholder="Enter your private code"></div>'+
+    '<button id="studypilotQrAdminUnlock" type="submit">Open access manager</button></form>'+
+    '<div class="qr-note">Do not share this owner code with visitors.</div></section>'
+  );
+  document.getElementById('studypilotQrAdminForm')?.addEventListener('submit',studypilotQrAdminLogin);
+}
+async function studypilotQrAdminLogin(event){
+  event.preventDefault();
+  const pin=document.getElementById('studypilotQrAdminPin')?.value||'';
+  const button=document.getElementById('studypilotQrAdminUnlock');
+  if(button){button.disabled=true;button.textContent='Checking…'}
+  try{
+    studypilotQrAdminPin=pin;
+    await studypilotQrLoadAdminRequests(false);
+    if(!studypilotQrAdminPin)throw new Error('The owner code is incorrect.');
+    if(studypilotQrAdminTimer)clearInterval(studypilotQrAdminTimer);
+    studypilotQrAdminTimer=setInterval(()=>studypilotQrLoadAdminRequests(true),12000);
+  }catch(error){
+    studypilotQrAdminLoginScreen(error.message||'Could not open the access manager.');
+  }
+}
+async function studypilotQrLoadAdminRequests(silent){
+  const data=await studypilotQrApi('admin-list',{admin_pin:studypilotQrAdminPin});
+  studypilotQrAccessEnabled=data.access_enabled===true;
+  studypilotQrRenderAdmin(data.requests||[]);
+}
+function studypilotQrRenderAdmin(requests){
+  const pending=requests.filter(r=>r.status==='pending').length;
+  const approved=requests.filter(r=>r.status==='approved').length;
+  const closed=!studypilotQrAccessEnabled;
+  const cards=requests.length?requests.map(r=>{
+    const when=new Date(r.created_at).toLocaleString('en-IN');
+    let actions='';
+    if(r.status==='pending'){
+      actions='<button type="button" onclick="studypilotQrAdminUpdate(\''+escapeHtml(r.id)+'\',\'approved\')">Approve</button>'+
+        '<button class="qr-danger" type="button" onclick="studypilotQrAdminUpdate(\''+escapeHtml(r.id)+'\',\'rejected\')">Reject</button>';
+    }else if(r.status==='approved'){
+      actions='<button class="qr-danger" type="button" onclick="studypilotQrAdminUpdate(\''+escapeHtml(r.id)+'\',\'revoked\')">Revoke access</button>';
+    }else{
+      actions='<button class="qr-secondary" type="button" onclick="studypilotQrAdminUpdate(\''+escapeHtml(r.id)+'\',\'approved\')">Approve again</button>';
+    }
+    return '<article class="qr-request"><div><strong>'+escapeHtml(r.visitor_name)+' <span class="qr-status '+escapeHtml(r.status)+'">'+escapeHtml(r.status)+'</span></strong>'+
+      '<small>'+escapeHtml(r.visitor_role)+' · Requested '+escapeHtml(when)+'</small></div><div class="qr-request-actions">'+actions+'</div></article>';
+  }).join(''):'<div class="qr-alert">No visitor requests yet.</div>';
+  studypilotQrShow(
+    '<section class="qr-card qr-wide"><div class="qr-brand">StudyPilot · Owner</div><h1>Visitor access manager</h1>'+
+    '<p>Approve people before they enter the demo. You can revoke an approved browser at any time.</p>'+
+    '<div class="qr-alert '+(closed?'':'qr-success')+'">'+(closed?'Visitor access is closed. No one can enter.':'Visitor approval is active. New visitors can request access.')+'</div>'+
+    '<div class="qr-actions"><button type="button" onclick="studypilotQrAdminToggle()">'+(closed?'Reopen visitor access':'Close access for everyone')+'</button>'+
+    '<button class="qr-secondary" type="button" onclick="studypilotQrLoadAdminRequests(false)">Refresh requests</button>'+
+    '<button class="qr-secondary" type="button" onclick="studypilotQrOwnerPreview()">Preview StudyPilot</button>'+
+    '<button class="qr-secondary" type="button" onclick="studypilotQrAdminLogout()">Lock manager</button></div>'+
+    '<div class="qr-note">Pending: '+pending+' · Approved: '+approved+' · Showing latest '+requests.length+' requests. The approval is tied to the visitor’s browser and device; another device needs its own request.</div>'+
+    '<div class="qr-request-list">'+cards+'</div>'+
+    '<div class="qr-note">Tip: use “Revoke access” beside a person to remove their approval. “Close access for everyone” blocks all visitors, including people already approved.</div></section>'
+  );
+}
+async function studypilotQrAdminUpdate(id,status){
+  try{
+    await studypilotQrApi('admin-update',{admin_pin:studypilotQrAdminPin,id:id,status:status});
+    await studypilotQrLoadAdminRequests(false);
+  }catch(error){alert(error.message||'Could not update visitor access.')}
+}
+async function studypilotQrAdminToggle(){
+  try{
+    const next=!studypilotQrAccessEnabled;
+    await studypilotQrApi('admin-toggle',{admin_pin:studypilotQrAdminPin,enabled:next});
+    await studypilotQrLoadAdminRequests(false);
+  }catch(error){alert(error.message||'Could not change visitor access.')}
+}
+function studypilotQrAdminLogout(){
+  if(studypilotQrAdminTimer){clearInterval(studypilotQrAdminTimer);studypilotQrAdminTimer=null}
+  studypilotQrAdminLoginScreen();
+}
+function studypilotQrOwnerPreview(){
+  try{sessionStorage.setItem('studypilotQrOwnerPreview','1')}catch(e){}
+  window.location.href='/';
+}
+
 const accountState={authenticated:false,plan:'free',credits:20,email:''};
 
 function setAccessState(){
@@ -2466,12 +2743,12 @@ paintFocusTimer();
 applyClassProfile();
 setAccessState(true);
 handleAuthCallback().finally(()=>{
-  // Keep the public science-fair dashboard in guest mode; do not display an old
+  // Keep the science-fair dashboard in guest mode; do not display an old
   // browser account on a shared device. Auth handlers remain available for later.
   accountState.authenticated=false;
   accountState.email='';
   renderAccount();
-});
+}).finally(()=>initStudyPilotQrApproval());
 </script>
 </body>
 </html>
