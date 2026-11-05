@@ -1270,22 +1270,23 @@ input:focus,textarea:focus,select:focus{
 
   <section id="news" class="view">
     <div class="topbar">
-      <div><h1>Education News</h1><p>Fresh official CBSE updates, exam notices, opportunities, and student resources.</p></div>
+      <div><h1>Education News</h1><p>Student-friendly updates on learning, exams, opportunities, science and technology.</p></div>
       <div class="actions"><span class="badge" id="newsUpdated">Not loaded</span><button class="btn" onclick="loadNews(true)">↻ Refresh</button></div>
     </div>
     <div class="card news-hero">
-      <div><span class="badge">News Mode</span><h2 id="newsClassTitle">For your class</h2><p>StudyPilot automatically checks official CBSE sources and highlights updates that matter to your class.</p></div>
+      <div><span class="badge">News Mode</span><h2 id="newsClassTitle">For your class</h2><p>Live CBSE notices plus selected education and science stories, with a short note on why each update matters to students.</p></div>
       <div class="news-filters">
         <button class="btn primary news-filter active" data-news-filter="all" onclick="setNewsFilter('all')">All</button>
         <button class="btn news-filter" data-news-filter="class" onclick="setNewsFilter('class')">My class</button>
         <button class="btn news-filter" data-news-filter="exam" onclick="setNewsFilter('exam')">Exams</button>
         <button class="btn news-filter" data-news-filter="opportunity" onclick="setNewsFilter('opportunity')">Opportunities</button>
+        <button class="btn news-filter" data-news-filter="science" onclick="setNewsFilter('science')">Science &amp; Tech</button>
       </div>
     </div>
     <div id="newsLoading" class="card news-empty" style="display:none"><div class="news-spinner">↻</div><b>Checking the latest education updates…</b><div class="small">Official CBSE sources are being refreshed.</div></div>
     <div id="newsError" class="card news-empty" style="display:none"><b>News could not be loaded right now.</b><div class="small" style="margin-top:6px">Try Refresh again.</div></div>
     <div id="newsList" class="news-list"></div>
-    <div class="small news-footnote">Sources: official CBSE Academic, Examination, and CBSE Notices pages. Open the source for the complete notice.</div>
+    <div class="small news-footnote">Sources include official CBSE notices and selected reporting from NDTV Education, The Indian Express, the National Council of Science Museums and NASA. Open each source for full details; always check the relevant official organisation for final dates and eligibility.</div>
   </section>
 
   <section id="examplan" class="view">
@@ -2000,8 +2001,10 @@ function setNewsFilter(filter){
 }
 function newsCategory(item){
   const t=(item.title||'').toLowerCase();
+  const kind=String(item.kind||'').toLowerCase();
   if(/sample question|loc|list of candidates|examination|admit card|result|supplementary|datesheet|paper pattern|board/.test(t))return 'exam';
   if(/scholarship|competition|quiz|olympiad|webinar|nielit|career|expo|award|programme|portal|nomination/.test(t))return 'opportunity';
+  if(/science|technology|stem/.test(kind)||/science|technology|stem|nasa|astronaut|energy future|aicte|idea lab|modrobs|margdarshan|research|innovation/.test(t))return 'science';
   return 'class';
 }
 function renderNews(){
@@ -2013,17 +2016,21 @@ function renderNews(){
   if(newsFilter==='class')items=items.filter(x=>Number(x.score||0)>=2);
   if(newsFilter==='exam')items=items.filter(x=>newsCategory(x)==='exam');
   if(newsFilter==='opportunity')items=items.filter(x=>newsCategory(x)==='opportunity');
+  if(newsFilter==='science')items=items.filter(x=>newsCategory(x)==='science');
   if(!items.length){
     list.innerHTML='<div class="card news-empty"><b>No matching updates right now.</b><div class="small">Try another filter or refresh the news feed.</div></div>';
     return;
   }
   list.innerHTML=items.map(item=>{
     const safeTitle=escapeHtml(item.title||'Education update');
-    const safeWhy=escapeHtml(item.why||'Current official education update.');
-    const safeSource=escapeHtml(item.source||'Official source');
+    const safeWhy=escapeHtml(item.why||'Current education update.');
+    const safeSource=escapeHtml(item.source||'Source');
     const safeDate=escapeHtml(item.date||'Latest');
     const safeLink=escapeHtml(item.link||'#');
-    return '<article class="news-card"><div><div class="news-meta"><span class="news-source">'+safeSource+'</span><span class="news-date">'+safeDate+'</span><span class="badge">'+escapeHtml(newsCategory(item))+'</span></div><h3>'+safeTitle+'</h3><p>'+safeWhy+'</p></div><a class="btn news-open" href="'+safeLink+'" target="_blank" rel="noopener noreferrer">Open notice ↗</a></article>';
+    const category=newsCategory(item);
+    const categoryLabel=category==='science'?'Science & Tech':category==='class'?'Education':category==='exam'?'Exams':'Opportunities';
+    const featured=item.featured?'<span class="badge">Featured</span>':'';
+    return '<article class="news-card"><div><div class="news-meta"><span class="news-source">'+safeSource+'</span><span class="news-date">'+safeDate+'</span><span class="badge">'+categoryLabel+'</span>'+featured+'</div><h3>'+safeTitle+'</h3><p>'+safeWhy+'</p></div><a class="btn news-open" href="'+safeLink+'" target="_blank" rel="noopener noreferrer">Read story ↗</a></article>';
   }).join('');
 }
 async function loadNews(force=false){
