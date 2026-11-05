@@ -1116,6 +1116,34 @@ input:focus,textarea:focus,select:focus{
   .sidebar, .sidebar *, main * { scroll-behavior:auto !important; transition:none !important; animation:none !important; }
 }
 
+/* Education News: responsive layouts for phones, tablets and desktops. */
+#news .topbar .actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#news .news-hero{min-width:0}
+#news .news-filters{min-width:0}
+#news .news-card{min-width:0;grid-template-columns:minmax(0,1fr) auto}
+#news .news-card>div{min-width:0}
+#news .news-card h3{overflow-wrap:anywhere}
+#news .news-open{justify-self:end}
+#news .news-footnote{line-height:1.6}
+@media(max-width:760px){
+  #news .topbar{gap:12px;flex-wrap:wrap}
+  #news .topbar>div:first-child{min-width:0;flex:1 1 100%}
+  #news .topbar .actions{width:100%;justify-content:space-between}
+  #news .news-hero{display:flex;flex-direction:column;align-items:stretch;gap:16px;padding:18px}
+  #news .news-hero h2{font-size:21px}
+  #news .news-filters{display:flex;justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding:2px 1px 9px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+  #news .news-filter{flex:0 0 auto;min-height:40px}
+  #news .news-card{grid-template-columns:minmax(0,1fr);gap:14px;padding:16px}
+  #news .news-card h3{font-size:16px;line-height:1.45}
+  #news .news-open{justify-self:stretch;width:100%;text-align:center;min-height:42px;display:flex;align-items:center;justify-content:center}
+  #news .news-empty{padding:28px 16px}
+  #news .news-footnote{font-size:11px;padding-bottom:8px}
+}
+@media(min-width:761px) and (max-width:1100px){
+  #news .news-hero{align-items:flex-start;flex-direction:column}
+  #news .news-filters{justify-content:flex-start}
+}
+
 </style>
 <!-- Render LaTeX maths in AI Tutor and chapter explanations. -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/katex.min.css" crossorigin="anonymous" />
@@ -1994,6 +2022,14 @@ function applyClassProfile(){
 let newsItems=[];
 let newsFilter='all';
 let newsLastLoaded=0;
+// A small saved set keeps the News page useful if the live CBSE feed is temporarily unavailable.
+const newsFallbackItems=[
+  {title:'NCERT adds personal finance and entrepreneurship chapters to the Class 9 textbook',date:'4 Nov 2026',link:'https://www.ndtv.com/education/ncert-adds-personal-finance-entrepreneurship-chapters-to-class-9-social-science-textbook-12282323',source:'NDTV Education',kind:'Education',featured:true,score:2,why:'Class 9 students can explore budgeting, saving, financial concepts and the basics of planning a business.'},
+  {title:'AICTE announces four schemes to strengthen technical education in 2026–27',date:'1 Nov 2026',link:'https://indianexpress.com/article/education/aicte-launches-four-schemes-2026-27-idea-lab-modrobs-margdarshan-details-10945006/',source:'The Indian Express',kind:'Science & Tech',featured:true,score:2,why:'AICTE announced support for practical labs, infrastructure upgrades and institutional mentoring.'},
+  {title:'National Science Seminar 2026 celebrates student ideas on India’s energy future',date:'3 Nov 2026',link:'https://ncsm.gov.in/media/press-release/soumyashree-thanapati-from-odisha-was-declared-winner-of-the-national-science-seminar-2026',source:'National Council of Science Museums',kind:'Science & Tech',featured:true,score:2,why:'Students from across India discussed the country’s future energy needs, sustainability and energy security.'},
+  {title:'NASA connects students with an astronaut aboard the International Space Station for STEM Day',date:'3 Nov 2026',link:'https://www.nasa.gov/learning-resources/nasa-astronaut-stem-creator-connect-with-students-for-stem-day/',source:'NASA',kind:'Science & Tech',featured:true,score:2,why:'A student-focused NASA programme connected spaceflight with science, engineering and career exploration.'},
+  {title:'NCERT plans to release new Class 10 textbooks ahead of the 2027 academic session',date:'1 Nov 2026',link:'https://www.ndtv.com/education/ncert-to-introduce-new-class-10-textbooks-three-months-before-2027-session-12265861',source:'NDTV Education',kind:'Education',featured:true,score:2,why:'A report says revised Class 10 textbooks are planned ahead of the 2027 session; check NCERT for final details.'}
+];
 function setNewsFilter(filter){
   newsFilter=filter;
   document.querySelectorAll('.news-filter').forEach(b=>b.classList.toggle('active',b.dataset.newsFilter===filter));
@@ -2048,8 +2084,15 @@ async function loadNews(force=false){
     if(stamp)stamp.textContent='Updated '+new Date(data.updatedAt||Date.now()).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
     renderNews();
   }catch(e){
-    newsItems=[];
-    if(error)error.style.display='grid';
+    newsItems=newsFallbackItems.slice();
+    const stamp=document.getElementById('newsUpdated');
+    if(stamp)stamp.textContent='Saved updates';
+    if(error){
+      error.style.display='grid';
+      const note=error.querySelector('.small');
+      if(note)note.textContent='Live updates are temporarily unavailable, so these saved education stories are shown instead. Try Refresh again later.';
+    }
+    renderNews();
   }finally{
     if(loading)loading.style.display='none';
   }
