@@ -36,6 +36,9 @@ function fallbackLinks(html,base,source,kind){
 }
 function relevance(item,cls){
   const t=(item.title||'').toLowerCase();
+  if(/personal finance|entrepreneurship/.test(t)&&/class 9/.test(t))return cls==='9'?3:2;
+  if(/class 10 textbooks/.test(t))return cls==='9'||cls==='10'?3:2;
+  if(/aicte|national science seminar|nasa|stem day|energy future/.test(t))return 2;
   if(/classes? x|class xii|class 10|class 12|loc|board examination|sample question paper|admit card|result|supplementary/i.test(t))return cls==='10'||cls==='12'?3:2;
   if(/scholarship|inspire|nielit|career|cyber|competition|quiz|skill|webinar|national education|textbook|curriculum|student/i.test(t))return 2;
   return 1;
