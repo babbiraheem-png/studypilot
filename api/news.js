@@ -42,13 +42,18 @@ function relevance(item,cls){
 }
 function whyItMatters(title,cls){
   const t=title.toLowerCase();
+  if(/personal finance|entrepreneurship/.test(t))return 'Class 9 students can explore budgeting, saving, financial concepts and the basics of planning a business.';
+  if(/class 10 textbooks/.test(t))return 'A report says revised Class 10 textbooks are planned ahead of the 2027 session; check NCERT for the final release and syllabus.';
+  if(/aicte|idea lab|modrobs|margdarshan/.test(t))return 'AICTE announced support for practical labs, infrastructure upgrades and institutional mentoring. These are schemes for institutions, not direct student grants.';
+  if(/national science seminar/.test(t))return 'Students from across India discussed the country’s future energy needs, sustainability and energy security.';
+  if(/nasa|stem day|astronaut/.test(t))return 'A student-focused NASA programme connected spaceflight with science, engineering and career exploration.';
   if(/loc|list of candidates/.test(t))return 'Important for Class '+cls+' exam registration and school-side candidate submission.';
   if(/sample question paper/.test(t))return 'Useful for Class '+cls+' exam preparation and understanding the current paper pattern.';
   if(/scholarship|inspire|nielit|career/.test(t))return 'May help students discover scholarships, courses, careers, or learning opportunities.';
   if(/cyber/.test(t))return 'Useful practical guidance for staying safer online while studying and using digital services.';
   if(/competition|quiz|expo|olympiad/.test(t))return 'May offer a student competition, activity, or enrichment opportunity.';
   if(/curriculum|textbook|syllabus/.test(t))return 'Helps students track curriculum or textbook changes for the current session.';
-  return 'A current official education update that may be useful to students or schools.';
+  return 'A current education update that may be useful to students or schools.';
 }
 export default async function handler(req,res){
   if(req.method!=='GET')return res.status(405).json({message:'Method not allowed'});
@@ -70,12 +75,55 @@ export default async function handler(req,res){
         collected.push(...items.slice(0,30));
       }catch{}
     }
+    // Hand-curated recent education and science stories complement the live CBSE notices above.
+    const featured=[
+      {
+        title:'NCERT adds personal finance and entrepreneurship chapters to the Class 9 textbook',
+        date:'4 Nov 2026',
+        link:'https://www.ndtv.com/education/ncert-adds-personal-finance-entrepreneurship-chapters-to-class-9-social-science-textbook-12282323',
+        source:'NDTV Education',
+        kind:'Education',
+        featured:true
+      },
+      {
+        title:'AICTE announces four schemes to strengthen technical education in 2026–27',
+        date:'1 Nov 2026',
+        link:'https://indianexpress.com/article/education/aicte-launches-four-schemes-2026-27-idea-lab-modrobs-margdarshan-details-10945006/',
+        source:'The Indian Express',
+        kind:'Science & Tech',
+        featured:true
+      },
+      {
+        title:'National Science Seminar 2026 celebrates student ideas on India’s energy future',
+        date:'3 Nov 2026',
+        link:'https://ncsm.gov.in/media/press-release/soumyashree-thanapati-from-odisha-was-declared-winner-of-the-national-science-seminar-2026',
+        source:'National Council of Science Museums',
+        kind:'Science & Tech',
+        featured:true
+      },
+      {
+        title:'NASA connects students with an astronaut aboard the International Space Station for STEM Day',
+        date:'3 Nov 2026',
+        link:'https://www.nasa.gov/learning-resources/nasa-astronaut-stem-creator-connect-with-students-for-stem-day/',
+        source:'NASA',
+        kind:'Science & Tech',
+        featured:true
+      },
+      {
+        title:'NCERT plans to release new Class 10 textbooks ahead of the 2027 academic session',
+        date:'1 Nov 2026',
+        link:'https://www.ndtv.com/education/ncert-to-introduce-new-class-10-textbooks-three-months-before-2027-session-12265861',
+        source:'NDTV Education',
+        kind:'Education',
+        featured:true
+      }
+    ];
     const seen=new Set();
-    const items=collected
+    const items=[...featured,...collected]
       .filter(x=>x.link&&!seen.has(x.link)&&seen.add(x.link))
       .map(x=>({...x,score:relevance(x,cls),why:whyItMatters(x.title,cls)}))
-      .sort((a,b)=>b.score-a.score)
-      .slice(0,24);
+      .sort((a,b)=>Number(Boolean(b.featured))-Number(Boolean(a.featured))||b.score-a.score)
+      .slice(0,32);
     res.setHeader('Cache-Control','s-maxage=300, stale-while-revalidate=900');
     return res.status(200).json({class:cls,updatedAt:new Date().toISOString(),items});
   }catch(e){
