@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StudyPilot · QR Approval Admin</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:24px;background:linear-gradient(145deg,#eef5ff,#f9fbff 55%,#f4f8ff);font-family:Inter,system-ui,sans-serif;color:#21344d}
+main{max-width:920px;margin:5vh auto;background:#fff;border:1px solid #d7e5f6;border-radius:22px;padding:28px;box-shadow:0 25px 80px #2e53821c}
+.brand{font-size:21px;font-weight:900;color:#3578d4;margin-bottom:16px}h1{font-size:28px;margin:0 0 10px}p{color:#62738a;line-height:1.6}
+input{width:100%;padding:13px;border:1px solid #cfdced;border-radius:10px;font:inherit;margin:8px 0 14px}
+button{border:0;border-radius:10px;padding:11px 15px;background:#3578d4;color:white;font-weight:800;cursor:pointer;margin:3px}button:disabled{opacity:.5}
+.secondary{background:#edf4fc;color:#28598f;border:1px solid #d6e5f7}.danger{background:#fff0f1!important;color:#9a3b49!important;border:1px solid #f1d1d5!important}
+.alert{padding:12px;border-radius:10px;background:#fff8e9;border:1px solid #f2dfb6;color:#77551e;margin:15px 0}.good{background:#effaf5;border-color:#ccebdd;color:#286349}
+.item{padding:14px;border:1px solid #dfe9f5;border-radius:12px;margin:10px 0;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+small{display:block;color:#78889c;margin-top:5px}.status{font-size:11px;font-weight:800;text-transform:capitalize;background:#edf4fc;border-radius:99px;padding:4px 8px}
+.review{padding:14px;border:1px solid #dfe9f5;border-radius:12px;margin:10px 0}.hidden{display:none!important}
+@media(max-width:600px){body{padding:12px}main{margin:2vh auto;padding:20px}h1{font-size:24px}}
+</style></head>
+<body><main><div class="brand">StudyPilot · Owner</div><div id="app"><h1>Access manager</h1><p>Enter your owner code to review science-fair visitor requests.</p><form id="login"><label for="pin">Owner code</label><input id="pin" type="password" autocomplete="current-password" required><button id="unlock">Open approval manager</button></form></div></main>
+<script>
+const API='https://mxnhfvhvwqxjfctgfejf.supabase.co/functions/v1/studypilot-qr-access';
+const KEY='sb_publishable_UdCozB9L-cEedEJgOq_t9w_Sl4aooYc';
+let pin='',enabled=true,timer=null;
+const app=document.getElementById('app');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function api(action,extra={}){const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify({action,...extra})});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Approval service unavailable');return d}
+function login(message=''){if(timer)clearInterval(timer);timer=null;app.innerHTML='<h1>Access manager</h1><p>Enter your owner code to review science-fair visitor requests.</p>'+(message?'<div class="alert">'+esc(message)+'</div>':'')+'<form id="login"><label for="pin">Owner code</label><input id="pin" type="password" autocomplete="current-password" required><button id="unlock">Open approval manager</button></form>';document.getElementById('login').addEventListener('submit',unlock)}
+async function unlock(e){e.preventDefault();const b=document.getElementById('unlock');b.disabled=true;b.textContent='Checking…';pin=document.getElementById('pin').value;try{await load();timer=setInterval(()=>load(true).catch(()=>{}),12000)}catch(err){pin='';login(err.message)}}
+async function load(silent=false){const d=await api('admin-list',{admin_pin:pin});enabled=d.access_enabled===true;render(d.requests||[],d.reviews||[])}
+function render(requests,reviews){const pending=requests.filter(x=>x.status==='pending').length,approved=requests.filter(x=>x.status==='approved').length;
+const rows=requests.map(x=>{let actions='';if(x.status==='pending')actions='<button data-id="'+esc(x.id)+'" data-status="approved">Approve</button><button class="danger" data-id="'+esc(x.id)+'" data-status="rejected">Reject</button>';else if(x.status==='approved')actions='<button class="danger" data-id="'+esc(x.id)+'" data-status="revoked">Revoke access</button>';else actions='<button class="secondary" data-id="'+esc(x.id)+'" data-status="approved">Approve again</button>';return '<article class="item"><div><b>'+esc(x.visitor_name)+'</b> <span class="status">'+esc(x.status)+'</span><small>'+esc(x.visitor_role)+' · '+esc(new Date(x.created_at).toLocaleString('en-IN'))+'</small></div><div>'+actions+'</div></article>'}).join('')||'<div class="alert">No visitor requests yet.</div>';
+const rev=reviews.map(x=>'<article class="review"><b>'+esc(x.visitor_name)+'</b> · '+esc(x.visitor_role)+'<p>'+esc(x.review_text||'No written comment.')+'</p><small>'+('★'.repeat(Number(x.rating||0)))+' · '+esc(new Date(x.created_at).toLocaleString('en-IN'))+'</small></article>').join('')||'<p>No reviews yet.</p>';
+app.innerHTML='<h1>Visitor access manager</h1><p>Review requests and control who can enter the StudyPilot demo.</p><div class="alert '+(enabled?'good':'')+'">'+(enabled?'Visitor approval is active.':'Visitor access is closed.')+' Pending: '+pending+' · Approved: '+approved+'</div><button id="toggle">'+(enabled?'Close access for everyone':'Reopen visitor access')+'</button><button class="secondary" id="refresh">Refresh</button><button class="secondary" id="lock">Lock manager</button><h2>Visitor requests</h2>'+rows+'<h2>Visitor reviews</h2>'+rev;
+app.querySelectorAll('[data-id]').forEach(b=>b.addEventListener('click',async()=>{b.disabled=true;try{await api('admin-update',{admin_pin:pin,id:b.dataset.id,status:b.dataset.status});await load()}catch(e){alert(e.message);b.disabled=false}}));
+document.getElementById('toggle').addEventListener('click',async()=>{try{await api('admin-toggle',{admin_pin:pin,enabled:!enabled});await load()}catch(e){alert(e.message)}});
+document.getElementById('refresh').addEventListener('click',()=>load().catch(e=>alert(e.message)));
+document.getElementById('lock').addEventListener('click',()=>{pin='';login()});
+}
+document.getElementById('login').addEventListener('submit',unlock);
+</script></body></html>
