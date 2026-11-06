@@ -3179,13 +3179,20 @@ renderStudyTools();
 paintFocusTimer();
 applyClassProfile();
 setAccessState(true);
+// Open the private science-fair admin screen immediately; it must not wait
+// for an unrelated authentication callback to finish.
+const studyPilotFairMode=new URLSearchParams(window.location.search).get('fair');
+if(studyPilotFairMode==='admin')initStudyPilotQrApproval();
+
 handleAuthCallback().finally(()=>{
   // Keep the science-fair dashboard in guest mode; do not display an old
   // browser account on a shared device. Auth handlers remain available for later.
   accountState.authenticated=false;
   accountState.email='';
   renderAccount();
-}).finally(()=>initStudyPilotQrApproval());
+}).finally(()=>{
+  if(studyPilotFairMode!=='admin')initStudyPilotQrApproval();
+});
 </script>
 </body>
 </html>
