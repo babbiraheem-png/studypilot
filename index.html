@@ -2451,8 +2451,8 @@ function studypilotQrRequestScreen(message){
     '<p>This science-fair demo requires the project owner to approve visitors before the website opens.</p>'+
     (message?'<div class="qr-alert">'+escapeHtml(message)+'</div>':'')+
     '<form id="studypilotQrRequestForm">'+
-      '<div class="qr-field"><label for="studypilotQrVisitorName">Your name</label><input id="studypilotQrVisitorName" maxlength="50" autocomplete="name" required placeholder="Enter your name"></div>'+
-      '<div class="qr-field"><label for="studypilotQrVisitorRole">I am a</label><select id="studypilotQrVisitorRole"><option>Teacher</option><option>Parent</option><option>Judge</option><option>Visitor</option></select></div>'+
+      '<div class="qr-field"><label for="studypilotQrVisitorName">Your full name</label><input id="studypilotQrVisitorName" maxlength="50" autocomplete="name" required placeholder="Enter your full name"></div>'+
+      '<div class="qr-field"><label for="studypilotQrVisitorRole">I am a</label><select id="studypilotQrVisitorRole" required><option value="" disabled selected>Select your role</option><option>Teacher</option><option>Judge</option><option>Student</option><option>Parent</option></select></div>'+
       '<button id="studypilotQrRequestButton" type="submit">Send access request</button>'+
     '</form>'+
     '<div class="qr-note">Only your name and visitor type are requested. No email address or phone number is needed. Approval is remembered in this browser on this device.</div>'+
