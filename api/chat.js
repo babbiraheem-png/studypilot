@@ -136,15 +136,18 @@ export default async function handler(req, res) {
       'For math and science, show the essential formula and calculation. ' +
       'For simple questions, keep the answer concise. Never invent facts.';
 
+    // Keep total execution comfortably inside Vercel's function limit.
+    // A 404 means a model is unavailable to this API key, so try the next model.
     const models = [
       'gemini-3.8-flash',
       'gemini-3.5-flash-lite',
       'gemini-3.1-flash-lite'
     ];
+    let lastMessage = 'The AI service is temporarily busy. Please try again.';
 
     for (const model of models) {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 18000);
+      const timeout = setTimeout(() => controller.abort(), 12000);
 
       try {
         const response = await fetch(
@@ -162,14 +165,14 @@ export default async function handler(req, res) {
                 parts: [{ text: systemInstruction }]
               },
               generationConfig: {
-                maxOutputTokens: 1600
+                maxOutputTokens: 1200,
+                temperature: 0.4
               }
             })
           }
         );
 
-        clearTimeout(timeout);
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
 
         if (response.ok) {
           const answer = data?.candidates?.[0]?.content?.parts
@@ -177,27 +180,27 @@ export default async function handler(req, res) {
             ?.join('')
             ?.trim();
 
-          if (answer) {
-            return res.status(200).json({ answer, model });
-          }
+          if (answer) return res.status(200).json({ answer, model });
+          lastMessage = 'The AI model returned an empty answer. Trying another model.';
+          continue;
         }
 
-        if (![429, 500, 502, 503, 504].includes(response.status)) {
-          return res.status(response.status).json({
-            message: data?.error?.message || 'Gemini request failed.'
-          });
-        }
+        lastMessage = data?.error?.message || ('Gemini returned HTTP ' + response.status + '.');
+        // Model-not-found and temporary capacity errors can be recovered by fallback.
+        if ([404, 429, 500, 502, 503, 504].includes(response.status)) continue;
+
+        // Authentication, permission, and request errors need a clear diagnosis.
+        return res.status(response.status).json({ message: lastMessage });
       } catch (error) {
+        lastMessage = error?.name === 'AbortError'
+          ? 'The AI model took too long to respond. Trying another model.'
+          : 'Could not connect to the AI service. Trying another model.';
+      } finally {
         clearTimeout(timeout);
-        if (error?.name !== 'AbortError') {
-          // Try the next current Gemini model before failing.
-        }
       }
     }
 
-    return res.status(503).json({
-      message: 'The AI service is temporarily busy. Please try again.'
-    });
+    return res.status(503).json({ message: lastMessage });
   } catch (error) {
     return res.status(500).json({
       message: 'Server error while contacting the AI service.'
