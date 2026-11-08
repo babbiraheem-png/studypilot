@@ -151,6 +151,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   background:linear-gradient(90deg,#edf4ff,#f5fbff);color:#245da9;border-color:#d8e6fa;
   box-shadow:inset 3px 0 #3578d4,0 8px 22px rgba(63,91,125,.07)
 }
+.nav .nav-visitor-link{display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid #d9e7f8;border-radius:12px;background:#f5f9ff;color:#2b68b4;text-decoration:none;font-size:13px;font-weight:800;transition:.18s ease}
+.nav .nav-visitor-link:hover{background:#eaf3ff;transform:translateX(2px)}
 .side-bottom{position:absolute;bottom:20px;left:16px;right:16px}
 .profile{
   padding:13px;border:1px solid var(--line);background:#fffdf8;border-radius:15px;
@@ -1276,6 +1278,7 @@ input:focus,textarea:focus,select:focus{
     <button data-view="flashcards">▣ <span>Flashcards</span></button>
     <button data-view="progress">◈ <span>Progress</span></button>
     <button data-view="tools">✦ <span>Study Tools</span></button>
+    <a class="nav-visitor-link" href="/qr-visitor.html">▣ <span>Science Fair Visitor</span></a>
   </nav>
   <div class="side-bottom"><div class="profile" id="accountProfile">
   <div class="avatar" id="accountAvatar">S</div>
@@ -1290,7 +1293,7 @@ input:focus,textarea:focus,select:focus{
     <div class="grid two">
       <div class="card" style="grid-column:1/-1">
         <div class="card-title"><h2>Start</h2><span>Personalized</span></div>
-        <div class="hero"><h2 id="continueTitle">Class 11 · Physics: Current Electricity</h2><p id="continueText">Start your first topic. Work through a question or ask your AI tutor for a simple explanation.</p><div class="hero-actions"><button class="btn primary" id="continueLearningBtn" onclick="continueLearning()">Start learning</button><button class="btn" onclick="showView('chat')">Ask tutor</button></div></div>
+        <div class="hero"><h2 id="continueTitle">Class 11 · Physics: Current Electricity</h2><p id="continueText">Start your first topic. Work through a question or ask your AI tutor for a simple explanation.</p><div class="hero-actions"><button class="btn primary" id="continueLearningBtn" onclick="continueLearning()">Start learning</button><button class="btn" onclick="showView('chat')">Ask tutor</button><a class="btn" href="/qr-visitor.html" style="text-decoration:none;display:inline-flex;align-items:center">Science Fair Visitor Access</a></div></div>
         <div style="margin-top:18px"><div class="subject-row"><b>Chapter progress</b><span class="small" id="chapterProgressText">0%</span></div><div class="progress"><i id="chapterProgress" style="width:0%"></i></div></div>
       </div>
     </div>
