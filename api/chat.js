@@ -36,7 +36,7 @@ async function generateExamQuestions(res, body) {
   let lastMessage = 'The AI could not create a verified question set.';
   for (const model of models) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 18000);
+    const timeout = setTimeout(() => controller.abort(), 22000);
     try {
       const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
         method: 'POST',
@@ -95,6 +95,8 @@ async function generateExamQuestions(res, body) {
   return res.status(503).json({ message: lastMessage });
 }
 
+export const config = { maxDuration: 50 };
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
 
@@ -135,9 +137,9 @@ export default async function handler(req, res) {
       'For simple questions, keep the answer concise. Never invent facts.';
 
     const models = [
+      'gemini-3.8-flash',
       'gemini-3.5-flash-lite',
-      'gemini-3.1-flash-lite',
-      'gemini-3.5-flash'
+      'gemini-3.1-flash-lite'
     ];
 
     for (const model of models) {
@@ -160,9 +162,6 @@ export default async function handler(req, res) {
                 parts: [{ text: systemInstruction }]
               },
               generationConfig: {
-                thinkingConfig: {
-                  thinkingLevel: 'minimal'
-                },
                 maxOutputTokens: 1600
               }
             })
