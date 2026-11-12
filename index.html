@@ -1355,22 +1355,42 @@ input:focus,textarea:focus,select:focus{
   (function(){
     if(window.__studyPilotTutorEventsBound)return;
     window.__studyPilotTutorEventsBound=true;
-    document.addEventListener('click',function(event){
-      const button=event.target.closest('#sendChatBtn');
-      if(!button)return;
-      event.preventDefault();
-      if(typeof window.sendChat==='function'){window.sendChat();}
-      else{
-        const messages=document.getElementById('messages');
-        if(messages){const note=document.createElement('div');note.className='msg';note.innerHTML='<div class="bubble">The Tutor is still starting. Please refresh this page and try again.</div>';messages.appendChild(note);}
+    let busy=false;
+    async function sendStandaloneTutorMessage(){
+      const input=document.getElementById('chatInput');
+      const button=document.getElementById('sendChatBtn');
+      const messages=document.getElementById('messages');
+      if(!input||!button||!messages||busy)return;
+      const question=input.value.trim();
+      if(!question)return;
+      busy=true;button.disabled=true;button.textContent='Sending…';
+      const addMessage=(text,isUser)=>{
+        const item=document.createElement('div');item.className='msg';
+        if(!isUser){const icon=document.createElement('div');icon.className='bot-icon';icon.textContent='✦';item.appendChild(icon);}
+        const bubble=document.createElement('div');bubble.className='bubble';bubble.textContent=text;item.appendChild(bubble);
+        messages.appendChild(item);messages.scrollTop=messages.scrollHeight;return item;
+      };
+      addMessage(question,true);input.value='';
+      const loading=addMessage('Connecting to your AI Tutor…',false);
+      try{
+        const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:question,history:[]})});
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok)throw new Error(data.message||('AI service returned HTTP '+response.status));
+        if(!data.answer)throw new Error('The AI service returned an empty answer.');
+        loading.querySelector('.bubble').textContent=data.answer;
+      }catch(error){
+        loading.querySelector('.bubble').textContent='Tutor error: '+(error.message||'Please try again.');
+      }finally{
+        busy=false;button.disabled=false;button.textContent='Send ↑';input.focus();
       }
+    }
+    document.addEventListener('click',function(event){
+      if(event.target.closest('#sendChatBtn')){event.preventDefault();sendStandaloneTutorMessage();}
     });
     document.addEventListener('keydown',function(event){
-      if(event.target&&event.target.id==='chatInput'&&event.key==='Enter'){
-        event.preventDefault();
-        if(typeof window.sendChat==='function'){window.sendChat();}
-      }
+      if(event.target&&event.target.id==='chatInput'&&event.key==='Enter'){event.preventDefault();sendStandaloneTutorMessage();}
     });
+    window.studyPilotStandaloneTutorSend=sendStandaloneTutorMessage;
   })();
   </script>
 
