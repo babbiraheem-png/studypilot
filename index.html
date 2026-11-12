@@ -208,6 +208,21 @@ main{min-width:0;padding:30px;max-width:1540px;width:100%;margin:auto}
 .hero p{color:#607087;max-width:650px;line-height:1.6;position:relative;z-index:1}.hero-actions{display:flex;gap:10px;margin-top:20px;position:relative;z-index:1}
 
 .chat-layout{display:grid;grid-template-columns:280px 1fr;gap:16px;height:calc(100vh - 145px);min-height:600px}
+.sp-tutor-layout{height:calc(100vh - 155px);min-height:560px}
+.sp-tutor-window{background:#fff; border:1px solid #dce8f7;border-radius:18px;box-shadow:0 14px 38px rgba(56,102,160,.08)}
+.sp-tutor-head{background:#fff;padding:15px 18px;border-bottom:1px solid #e5edf8}
+.sp-tutor-head .bot-icon{background:linear-gradient(135deg,#397bd0,#76b7f4)}
+.sp-tutor-window .messages{background:linear-gradient(180deg,#f8fbff,#f2f7ff)}
+.sp-tutor-window .bubble{background:#fff;border-color:#e1eaf6;color:#24364e}
+.sp-tutor-window .user .bubble{background:linear-gradient(135deg,#397bd0,#6aa6e8);color:#fff}
+.sp-tutor-quick{background:#fff;padding:12px 16px 8px}
+.sp-tutor-quick button{background:#f7faff;border-color:#dce8f7;color:#405c7d}
+.sp-tutor-input{background:#fff;border-top:1px solid #e5edf8}
+.sp-tutor-input input{background:#f8fbff;border-color:#d7e4f4}
+.sp-tutor-sidebar{background:#fff;border:1px solid #e1eaf6;border-radius:18px}
+.sp-tutor-side-note{padding:12px;color:#71839a;line-height:1.5}
+@media(max-width:760px){.sp-tutor-layout{display:flex;flex-direction:column;height:auto;min-height:0}.sp-tutor-sidebar{display:none}.sp-tutor-window{height:calc(100dvh - 190px);min-height:470px}.sp-tutor-head{padding:12px}.sp-tutor-head .actions{gap:5px}.sp-tutor-head .actions .btn{padding:7px 9px;font-size:11px}.sp-tutor-window .messages{padding:14px}.sp-tutor-window .msg{max-width:94%}.sp-tutor-quick{padding:9px 10px 5px}.sp-tutor-input{padding:10px}.sp-tutor-input input{min-width:0}}
+
 .chat-list,.chat-window{min-height:0}.chat-list{overflow:auto}
 .chat-item{padding:13px;border:1px solid transparent;border-radius:13px;cursor:pointer;margin-bottom:6px;transition:.16s ease}
 .chat-item:hover,.chat-item.active{background:#f2f6fb;border-color:#e0e8f2}
@@ -1308,20 +1323,31 @@ input:focus,textarea:focus,select:focus{
   </section>
 
   <section id="chat" class="view">
-    <div class="topbar"><div><h1>AI Tutor</h1><p>Ask questions, get hints, simplify concepts, or generate study plans.</p></div></div>
-    <div class="chat-layout">
-      <div class="card chat-list"><div class="card-title"><h2>Conversations</h2><button class="btn" onclick="newChat()">＋</button></div>
-        <div class="chat-item active"><b>Physics — Kirchhoff's laws</b><p>Can you explain the loop rule?</p></div>
-        <div class="chat-item"><b>Calculus practice</b><p>Help me understand integration...</p></div>
-        <div class="chat-item"><b>Biology revision</b><p>Quiz me on cell biology.</p></div>
-      </div>
-      <div class="card chat-window">
-        <div class="chat-head"><div class="bot"><div class="bot-icon">✦</div><div><b>StudyPilot Tutor</b><div class="small" id="aiStatus">AI Tutor · Secure server</div></div></div><div class="actions"><button class="btn" onclick="openAISetup()">AI status</button><button class="btn" onclick="clearChat()">Clear</button></div></div>
-        <div class="messages" id="messages">
-          <div class="msg"><div class="bot-icon">✦</div><div class="bubble">Hi! I'm your study tutor. I can <b>explain</b> concepts, give <b>hints</b>, create quizzes, make revision plans, or check your answer. What are you studying?</div></div>
+    <div class="topbar"><div><h1>AI Tutor</h1><p>Your personal study assistant — ask questions, get hints, simplify concepts, or create study plans.</p></div></div>
+    <div class="chat-layout sp-tutor-layout">
+      <aside class="card chat-list sp-tutor-sidebar">
+        <div class="card-title"><h2>Conversations</h2><button class="btn" type="button" onclick="newChat()">＋</button></div>
+        <div class="chat-item active"><b>StudyPilot Tutor</b><p>Your learning conversation</p></div>
+        <div class="small sp-tutor-side-note">Your recent questions stay in this chat on this device.</div>
+      </aside>
+      <div class="card chat-window sp-tutor-window">
+        <div class="chat-head sp-tutor-head">
+          <div class="bot"><div class="bot-icon">✦</div><div><b>StudyPilot Tutor</b><div class="small" id="aiStatus">AI Tutor · Secure server</div></div></div>
+          <div class="actions"><button class="btn" type="button" onclick="openAISetup()">AI status</button><button class="btn" type="button" onclick="clearChat()">Clear chat</button></div>
         </div>
-        <div class="quick"><button onclick="quickAsk('Give me a hint')">💡 Give me a hint</button><button onclick="quickAsk('Quiz me on this')">🧠 Quiz me</button><button onclick="quickAsk('Explain it simpler')">✨ Simpler</button><button onclick="quickAsk('Make revision notes')">📝 Notes</button></div>
-        <div class="chat-input"><input id="chatInput" placeholder="Ask your tutor anything..."/><button id="sendChatBtn" class="btn primary" type="button">Send ↑</button></div>
+        <div class="messages" id="messages">
+          <div class="msg"><div class="bot-icon">✦</div><div class="bubble">Hi! I'm your StudyPilot Tutor. I can explain lessons, give hints, create quizzes, make revision plans, and check your answers. What are you studying today?</div></div>
+        </div>
+        <div class="quick sp-tutor-quick">
+          <button type="button" onclick="quickAsk('Give me a hint')">💡 Give me a hint</button>
+          <button type="button" onclick="quickAsk('Quiz me on this topic')">🧠 Quiz me</button>
+          <button type="button" onclick="quickAsk('Explain it in simpler words')">✨ Explain simply</button>
+          <button type="button" onclick="quickAsk('Make revision notes')">📝 Revision notes</button>
+        </div>
+        <div class="chat-input sp-tutor-input">
+          <input id="chatInput" type="text" autocomplete="off" placeholder="Ask your tutor anything..."/>
+          <button id="sendChatBtn" class="btn primary" type="button">Send ↑</button>
+        </div>
       </div>
     </div>
   </section>
@@ -3077,25 +3103,65 @@ async function sendChat(){
     appendMsg('The AI Tutor could not finish this request. '+escapeHtml(e.message)+'<br><br>Please try the question again.',false);
   }
 }
-// Bind the Tutor controls directly instead of relying on inline HTML handlers.
+// Fresh StudyPilot Tutor controller: independent send flow with visible status and errors.
+let spTutorSending=false;
+async function sendChat(){
+  const input=document.getElementById('chatInput');
+  const button=document.getElementById('sendChatBtn');
+  const messages=document.getElementById('messages');
+  if(!input||!messages||spTutorSending)return;
+  const question=input.value.trim();
+  if(!question)return;
+  spTutorSending=true;
+  if(button){button.disabled=true;button.textContent='Sending…';}
+  appendMsg(question,true);
+  input.value='';
+  const simple=solveSimpleMath(question);
+  if(simple!==null){
+    appendMsg('The answer is <b>'+escapeHtml(simple)+'</b>.',false);
+    spTutorSending=false;
+    if(button){button.disabled=false;button.textContent='Send ↑';}
+    markStudy();
+    return;
+  }
+  if(accountState.email&&accountState.credits<=0){
+    appendMsg('Your AI usage limit has been reached for now.',false);
+    spTutorSending=false;
+    if(button){button.disabled=false;button.textContent='Send ↑';}
+    return;
+  }
+  const loading=document.createElement('div');
+  loading.className='msg';loading.id='aiLoading';
+  loading.innerHTML='<div class="bot-icon">✦</div><div class="bubble">Thinking…</div>';
+  messages.appendChild(loading);messages.scrollTop=messages.scrollHeight;
+  try{
+    const answer=await Promise.race([
+      callGemini(question),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('The AI is taking longer than expected. Please try again.')),45000))
+    ]);
+    loading.remove();appendMsg(answer,false);
+    if(accountState.email){accountState.credits=Math.max(0,accountState.credits-1);renderAccount();}
+  }catch(error){
+    loading.remove();
+    appendMsg('The AI Tutor could not finish this request. '+escapeHtml(error.message||'Please try again.')+'<br><br>Please try your question again.',false);
+    console.error('[StudyPilot Tutor] Request failed:',error);
+  }finally{
+    spTutorSending=false;
+    if(button){button.disabled=false;button.textContent='Send ↑';}
+    input.focus();
+  }
+}
 window.sendChat=sendChat;
+function quickAsk(question){const input=document.getElementById('chatInput');if(!input)return;input.value=question;sendChat();}
+window.quickAsk=quickAsk;
 (function bindTutorSend(){
   const input=document.getElementById('chatInput');
   const button=document.getElementById('sendChatBtn');
   if(!input||!button)return;
-  const submit=()=>{
-    button.disabled=true;
-    Promise.resolve(sendChat()).catch(error=>{
-      const messages=document.getElementById('messages');
-      if(messages)appendMsg('The Tutor could not start. Please try again.',false);
-      console.error('[StudyPilot Tutor] Send handler failed:',error);
-    }).finally(()=>{button.disabled=false;});
-  };
-  button.addEventListener('click',event=>{event.preventDefault();submit();});
-  input.addEventListener('keydown',event=>{
-    if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submit();}
-  });
+  button.addEventListener('click',event=>{event.preventDefault();sendChat();});
+  input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();sendChat();}});
 })();
+
 function quickAsk(t){document.getElementById('chatInput').value=t;sendChat()}
 function clearChat(){document.getElementById('messages').innerHTML='';aiHistory=[];localStorage.removeItem('studypilotChat');appendMsg("New study session started. What would you like to learn?")}
 function newChat(){clearChat();toast('New conversation started')}
