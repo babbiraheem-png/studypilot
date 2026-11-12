@@ -2314,7 +2314,7 @@ function showView(id){
  window.scrollTo({top:0,behavior:'smooth'});
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>showView(b.dataset.view));
-document.getElementById('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+const todayLabel=document.getElementById('today');if(todayLabel)todayLabel.textContent=new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
 
 function renderEnhancedProgress(){
  const el=id=>document.getElementById(id); if(!el('spWeeklyChart'))return;
