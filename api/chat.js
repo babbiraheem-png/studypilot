@@ -181,7 +181,8 @@ export default async function handler(req, res) {
             ?.trim();
 
           if (answer) return res.status(200).json({ answer, model });
-          lastMessage = 'The AI model returned an empty answer. Trying another model.';
+          lastMessage = 'The AI model returned no text' + (data?.candidates?.[0]?.finishReason ? ' (finish reason: ' + data.candidates[0].finishReason + ')' : '') + '. Trying another model.';
+          console.error('[StudyPilot AI] Empty model response', { model, finishReason: data?.candidates?.[0]?.finishReason, promptFeedback: data?.promptFeedback?.blockReason });
           continue;
         }
 
@@ -195,6 +196,7 @@ export default async function handler(req, res) {
         lastMessage = error?.name === 'AbortError'
           ? 'The AI model took too long to respond. Trying another model.'
           : 'Could not connect to the AI service. Trying another model.';
+        console.error('[StudyPilot AI] Gemini connection error', { model, name: error?.name, message: String(error?.message || error) });
       } finally {
         clearTimeout(timeout);
       }
