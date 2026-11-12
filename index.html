@@ -1351,6 +1351,28 @@ input:focus,textarea:focus,select:focus{
       </div>
     </div>
   </section>
+  <script>
+  (function(){
+    if(window.__studyPilotTutorEventsBound)return;
+    window.__studyPilotTutorEventsBound=true;
+    document.addEventListener('click',function(event){
+      const button=event.target.closest('#sendChatBtn');
+      if(!button)return;
+      event.preventDefault();
+      if(typeof window.sendChat==='function'){window.sendChat();}
+      else{
+        const messages=document.getElementById('messages');
+        if(messages){const note=document.createElement('div');note.className='msg';note.innerHTML='<div class="bubble">The Tutor is still starting. Please refresh this page and try again.</div>';messages.appendChild(note);}
+      }
+    });
+    document.addEventListener('keydown',function(event){
+      if(event.target&&event.target.id==='chatInput'&&event.key==='Enter'){
+        event.preventDefault();
+        if(typeof window.sendChat==='function'){window.sendChat();}
+      }
+    });
+  })();
+  </script>
 
   <section id="news" class="view">
     <div class="topbar">
@@ -3154,13 +3176,8 @@ async function sendChat(){
 window.sendChat=sendChat;
 function quickAsk(question){const input=document.getElementById('chatInput');if(!input)return;input.value=question;sendChat();}
 window.quickAsk=quickAsk;
-(function bindTutorSend(){
-  const input=document.getElementById('chatInput');
-  const button=document.getElementById('sendChatBtn');
-  if(!input||!button)return;
-  button.addEventListener('click',event=>{event.preventDefault();sendChat();});
-  input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();sendChat();}});
-})();
+// The Tutor button is also wired by a separate early event-delegation script.
+
 
 function quickAsk(t){document.getElementById('chatInput').value=t;sendChat()}
 function clearChat(){document.getElementById('messages').innerHTML='';aiHistory=[];localStorage.removeItem('studypilotChat');appendMsg("New study session started. What would you like to learn?")}
