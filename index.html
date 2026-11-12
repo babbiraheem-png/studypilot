@@ -1321,7 +1321,7 @@ input:focus,textarea:focus,select:focus{
           <div class="msg"><div class="bot-icon">✦</div><div class="bubble">Hi! I'm your study tutor. I can <b>explain</b> concepts, give <b>hints</b>, create quizzes, make revision plans, or check your answer. What are you studying?</div></div>
         </div>
         <div class="quick"><button onclick="quickAsk('Give me a hint')">💡 Give me a hint</button><button onclick="quickAsk('Quiz me on this')">🧠 Quiz me</button><button onclick="quickAsk('Explain it simpler')">✨ Simpler</button><button onclick="quickAsk('Make revision notes')">📝 Notes</button></div>
-        <div class="chat-input"><input id="chatInput" placeholder="Ask your tutor anything..." onkeydown="if(event.key==='Enter')sendChat()"/><button class="btn primary" onclick="sendChat()">Send ↑</button></div>
+        <div class="chat-input"><input id="chatInput" placeholder="Ask your tutor anything..."/><button id="sendChatBtn" class="btn primary" type="button">Send ↑</button></div>
       </div>
     </div>
   </section>
@@ -3077,6 +3077,25 @@ async function sendChat(){
     appendMsg('The AI Tutor could not finish this request. '+escapeHtml(e.message)+'<br><br>Please try the question again.',false);
   }
 }
+// Bind the Tutor controls directly instead of relying on inline HTML handlers.
+window.sendChat=sendChat;
+(function bindTutorSend(){
+  const input=document.getElementById('chatInput');
+  const button=document.getElementById('sendChatBtn');
+  if(!input||!button)return;
+  const submit=()=>{
+    button.disabled=true;
+    Promise.resolve(sendChat()).catch(error=>{
+      const messages=document.getElementById('messages');
+      if(messages)appendMsg('The Tutor could not start. Please try again.',false);
+      console.error('[StudyPilot Tutor] Send handler failed:',error);
+    }).finally(()=>{button.disabled=false;});
+  };
+  button.addEventListener('click',event=>{event.preventDefault();submit();});
+  input.addEventListener('keydown',event=>{
+    if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submit();}
+  });
+})();
 function quickAsk(t){document.getElementById('chatInput').value=t;sendChat()}
 function clearChat(){document.getElementById('messages').innerHTML='';aiHistory=[];localStorage.removeItem('studypilotChat');appendMsg("New study session started. What would you like to learn?")}
 function newChat(){clearChat();toast('New conversation started')}
