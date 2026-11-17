@@ -1473,7 +1473,8 @@ a{color:#222}
       <div><div class="small">Curriculum source</div><b id="curriculumLabel">CBSE 2026–27 / NCERT-aligned</b></div>
       <select id="revisionSubject" class="select" onchange="setStudentSubject(this.value)" aria-label="Revision subject"></select>
     </div>
-    <div class="grid revision-grid" id="chapterList"></div>
+    <div class="card revision-syllabus-summary" id="revisionSyllabusSummary" style="margin-bottom:14px"><b id="revisionSyllabusTitle">Class 11 syllabus</b><span id="revisionSyllabusCount" class="small">Loading chapters…</span></div>
+    <div class="grid revision-grid" id="chapterList" aria-live="polite"></div>
     <div class="card" style="margin-top:16px"><div class="card-title"><h2>Smart review queue</h2><span>0 items due</span></div><div class="task"><div class="task-icon">✓</div><div><b>Your review queue is empty</b><div class="small">Answer practice questions or review flashcards to build your first study history.</div></div><button class="btn" style="margin-left:auto" onclick="showView('practice')">Start practice</button></div></div>
   </section>
 
@@ -1878,8 +1879,11 @@ const classProfiles={
 {name:'Biology',chapters:['Sexual Reproduction in Flowering Plants','Human Reproduction','Reproductive Health','Principles of Inheritance and Variation','Molecular Basis of Inheritance','Evolution','Human Health and Disease','Microbes in Human Welfare','Biotechnology: Principles and Processes','Biotechnology and its Applications','Organisms and Populations','Ecosystem','Biodiversity and Conservation']}
 ],hero:'Physics: Current Electricity',plan:[['Physics revision','25 min · Current Electricity'],['Math practice','15 questions · Integrals'],['Chemistry recall','20 cards · Electrochemistry']]}
 };
-let studentClass=localStorage.getItem('studypilotClass')||'11';
+let studentClass=String(localStorage.getItem('studypilotClass')||'11').replace(/^Class\s*/i,'').trim();
+if(!Object.prototype.hasOwnProperty.call(classProfiles,studentClass))studentClass='11';
 let selectedSubject=localStorage.getItem('studypilotSubject')||'';
+if(!classProfiles[studentClass].subjects.some(s=>s.name===selectedSubject))selectedSubject=classProfiles[studentClass].subjects[0].name;
+try{localStorage.setItem('studypilotClass',studentClass);localStorage.setItem('studypilotSubject',selectedSubject)}catch(e){}
 function currentProfile(){return classProfiles[studentClass]||classProfiles['11']}
 function currentSubject(){
   const p=currentProfile();
@@ -2115,17 +2119,28 @@ function markChapterReviewed(){
 function renderClassChapters(){
   const p=currentProfile();
   const subj=currentSubject();
+  const chapters=Array.isArray(subj?.chapters)?subj.chapters.filter(ch=>typeof ch==='string'&&ch.trim()):[];
   const select=document.getElementById('revisionSubject');
   if(select){
     select.innerHTML=p.subjects.map(s=>'<option value="'+escapeHtml(s.name)+'">'+escapeHtml(s.name)+'</option>').join('');
     select.value=subj.name;
   }
+  const syllabusTitle=document.getElementById('revisionSyllabusTitle');
+  const syllabusCount=document.getElementById('revisionSyllabusCount');
+  if(syllabusTitle)syllabusTitle.textContent=p.label+' · '+subj.name+' syllabus';
+  if(syllabusCount)syllabusCount.textContent=chapters.length
+    ? chapters.length+' chapters / units · CBSE 2026–27 / NCERT-aligned study list'
+    : 'The chapter list for this subject is not available yet.';
   const list=document.getElementById('chapterList');
   if(list){
-    list.innerHTML=subj.chapters.map((ch,i)=>{
-      const progress=getChapterProgress(studentClass,subj.name,ch);
-      return '<div class="card chapter" role="button" tabindex="0" onclick="openChapter('+i+')"><span class="badge">Chapter / Unit '+(i+1)+'</span><h3>'+escapeHtml(ch)+'</h3><p>'+escapeHtml(p.label+' · '+subj.name)+'</p><div class="meter"><span>Progress</span><b>'+progress+'%</b></div><div class="progress"><i style="width:'+progress+'%"></i></div><button class="btn chapter-action" type="button" onclick="event.stopPropagation();openChapter('+i+')">Open chapter →</button></div>';
-    }).join('');
+    if(!chapters.length){
+      list.innerHTML='<div class="card"><h3>Syllabus unavailable</h3><p class="small">There are no chapters listed for '+escapeHtml(p.label)+' · '+escapeHtml(subj.name)+' yet. Choose another subject or refresh the page.</p></div>';
+    }else{
+      list.innerHTML=chapters.map((ch,i)=>{
+        const progress=getChapterProgress(studentClass,subj.name,ch);
+        return '<div class="card chapter" role="button" tabindex="0" onclick="openChapter('+i+')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openChapter('+i+')}"><span class="badge">Chapter / Unit '+(i+1)+'</span><h3>'+escapeHtml(ch)+'</h3><p>'+escapeHtml(p.label+' · '+subj.name)+'</p><div class="meter"><span>Progress</span><b>'+progress+'%</b></div><div class="progress"><i style="width:'+progress+'%"></i></div><button class="btn chapter-action" type="button" onclick="event.stopPropagation();openChapter('+i+')">Open chapter →</button></div>';
+      }).join('');
+    }
   }
   const practiceSelect=document.getElementById('practiceSubject');
   if(practiceSelect){
@@ -2133,7 +2148,7 @@ function renderClassChapters(){
     practiceSelect.value=subj.name;
   }
   renderPracticeCategories();
-  if(document.getElementById('practice')?.classList.contains('active')) loadPracticeQuestions();
+  if(document.getElementById('practice')?.classList.contains('active'))loadPracticeQuestions();
 }
 function renderContinueLearning(){
   const p=currentProfile();
