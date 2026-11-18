@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="google-site-verification" content="3XSNthrlMvi6eaMK6ev6kuO3aIp9Bzu95fuD5z-3ehw" />
 <meta name="description" content="StudyPilot is a student learning workspace with AI tutoring, revision tools, practice questions, flashcards, progress tracking, and educational updates." />
-<meta name="theme-color" content="#090b18" />
+<meta name="theme-color" content="#f6f0e6" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="alternate icon" href="/favicon.svg" />
 <link rel="apple-touch-icon" href="/favicon.svg" />
@@ -1201,42 +1201,78 @@ input:focus,textarea:focus,select:focus{
 @media(max-width:900px){#progress .sp-progress-stats{grid-template-columns:repeat(2,minmax(0,1fr))}#progress .sp-progress-grid,#progress .sp-progress-grid.equal{grid-template-columns:1fr}}
 @media(max-width:600px){#progress .sp-progress-card{padding:13px;border-radius:14px}#progress .sp-progress-stat-value{font-size:23px}#progress .sp-progress-chart{height:125px;gap:5px}#progress .sp-week-calendar{gap:4px}#progress .sp-week-day{padding:8px 1px}#progress .sp-week-day b{font-size:10px}#progress .sp-week-dot{width:23px;height:23px;font-size:11px}#progress .sp-subject-row{grid-template-columns:86px 1fr 34px;gap:6px;font-size:11px}}
 
-/* STUDYPILOT THEME 1 — PURE BLACK & WHITE */
-:root{
- --bg:#fff!important;--panel:#fff!important;--panel2:#f5f5f5!important;
- --text:#111!important;--muted:#666!important;--line:#e5e5e5!important;
- --primary:#111!important;--primary2:#555!important;--green:#333!important;
- --orange:#444!important;--red:#333!important;--shadow:0 12px 32px rgba(0,0,0,.055)!important;
- color-scheme:light!important;accent-color:#111!important;
-}
-body,.access-gate{background:#fff!important;color:#111!important}
-.sidebar,.profile,.card,.info-section,.access-card,.sp-tutor-window,.sp-tutor-head,
-.sp-tutor-quick,.sp-tutor-sidebar,.sp-tutor-input{background:#fff!important;border-color:#e5e5e5!important;color:#111!important}
-.logo-word-study,.logo-word-pilot,.topbar h1,.card-title h2,.hero h2,.stat .num,.streak,
-.access-card h1,.info-section h2,.info-box h3{color:#111!important}
-.nav button,.nav button:hover,.nav button.active,.nav .nav-visitor-link{
- background:#f5f5f5!important;color:#111!important;border-color:#e5e5e5!important;
- box-shadow:none!important
-}
-.nav button.active{border-left:3px solid #111!important}
-.btn,.btn.primary,.hero-actions .btn,.access-actions .btn{
- background:#111!important;color:#fff!important;border:1px solid #111!important;box-shadow:none!important
-}
-.badge,.task-icon,.info-icon,.subject,.info-box,.heat i,.sp-tutor-quick button{
- background:#f4f4f4!important;color:#222!important;border-color:#e5e5e5!important
-}
-.progress{background:#e8e8e8!important}.progress i{background:#222!important}
-.hero{background:#f5f5f5!important;border-color:#e5e5e5!important}
-.hero:before,.hero:after{display:none!important}
-.sp-tutor-window .messages{background:#fafafa!important}
-.sp-tutor-window .bubble{background:#f1f1f1!important;border-color:#e5e5e5!important;color:#111!important}
-.sp-tutor-window .user .bubble,.sp-tutor-head .bot-icon{background:#222!important;color:#fff!important}
-.sp-tutor-input input,.sp-tutor-input textarea{background:#fafafa!important;color:#111!important;border-color:#ddd!important}
-button,input,textarea,select{accent-color:#111}
-button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline-color:#111!important}
-a{color:#222}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 
+/* StudyPilot layout polish — original blue and warm-white identity */
+:root{
+  --bg:#f6f0e6;--panel:#fffdf8;--panel2:#eef5ff;--text:#1c2a3a;--muted:#6d7a89;
+  --line:#e5ddd0;--primary:#3578d4;--primary2:#67a7f4;--green:#238e6c;
+  --orange:#c98225;--red:#cc5268;--shadow:0 14px 38px rgba(50,78,112,.085);--radius:18px;
+  color-scheme:light;accent-color:#3578d4;
+}
+body{background:radial-gradient(circle at 8% 0%,rgba(103,167,244,.15),transparent 25%),radial-gradient(circle at 95% 8%,rgba(230,220,194,.34),transparent 28%),linear-gradient(180deg,#faf7f1 0%,#f3ecdf 100%);color:var(--text)}
+.app{grid-template-columns:248px minmax(0,1fr)}
+.sidebar{background:rgba(255,253,248,.94);border-right:1px solid #e4eaf2;box-shadow:8px 0 30px rgba(42,70,108,.035)}
+.logo{padding-bottom:30px}
+.nav{gap:7px}
+.nav button{padding:12px 13px;border-radius:13px;color:#607188}
+.nav button.active{background:linear-gradient(100deg,#eaf3ff,#f6faff);border-color:#d6e6fa;box-shadow:inset 3px 0 #3578d4,0 5px 16px rgba(53,120,212,.07);color:#245da9}
+main{padding:32px clamp(20px,3vw,44px) 48px;max-width:1600px}
+.topbar{align-items:flex-start;margin-bottom:24px}
+.topbar h1{font-size:clamp(25px,2.2vw,32px);letter-spacing:-.045em}
+.topbar p{line-height:1.55}
+.card{border-color:#e7e4dd;box-shadow:0 10px 30px rgba(50,78,112,.065);transition:box-shadow .2s ease,border-color .2s ease}
+.card:hover{border-color:#d9e4f2;box-shadow:0 14px 34px rgba(50,78,112,.09)}
+.hero{border-color:#d8e6f7;box-shadow:inset 0 1px rgba(255,255,255,.8)}
+.hero h2{font-size:clamp(25px,2.2vw,32px)}
+.hero-actions{flex-wrap:wrap}
+.btn{border-color:#e1e5eb}
+.btn.primary{background:linear-gradient(135deg,#2f70ca,#68a8ef)}
+.btn:focus-visible,.nav button:focus-visible{outline:3px solid rgba(53,120,212,.35);outline-offset:2px}
+.profile{background:#fff;border-color:#e2e8f0}
+.subject{background:#fffefa;border-color:#e7eaf0}
+.badge{background:#edf5ff;color:#2f67b3;border-color:#d8e7fb}
+#dashboard .grid.two{gap:18px}
+#dashboard .card{min-width:0}
+#dashboard .hero{padding:clamp(22px,3vw,32px)}
+#dashboard .subject{padding:16px}
+#dashboard .heat i{border-radius:5px}
+#dashboard .topbar .actions{flex-wrap:wrap;justify-content:flex-end}
+#dashboard .class-picker select{min-height:40px}
+@media(min-width:1200px){
+  #dashboard .grid.two:not(:first-of-type){grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr)}
+  .nav button{font-size:13px}
+}
+@media(max-width:1050px){
+  .app{grid-template-columns:218px minmax(0,1fr)}
+  main{padding:26px 22px 40px}
+  .sidebar{padding:18px 12px}
+  .side-bottom{left:12px;right:12px}
+}
+@media(max-width:760px){
+  .app{display:block;min-height:100vh}
+  .sidebar{position:sticky;top:0;z-index:30;height:auto;padding:9px 10px;border-right:0;border-bottom:1px solid #e3eaf3;box-shadow:0 5px 18px rgba(42,70,108,.06)}
+  .logo{padding:2px 5px 9px;font-size:17px}
+  .logo-mark{width:31px;height:31px}
+  .nav{display:flex;gap:6px;overflow-x:auto;padding:1px 0 4px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+  .nav button,.nav .nav-visitor-link{flex:0 0 auto;white-space:nowrap;padding:9px 11px;font-size:12px}
+  .nav button.active{box-shadow:inset 0 -3px #3578d4}
+  .side-bottom{display:none}
+  main{padding:20px 14px 34px}
+  .topbar{gap:12px;margin-bottom:18px;flex-wrap:wrap}
+  .topbar>div:first-child{min-width:0}
+  .topbar .actions{width:100%;justify-content:flex-start;flex-wrap:wrap}
+  #dashboard .topbar .actions{justify-content:flex-start}
+  #dashboard .grid.two{gap:13px}
+  .card{padding:16px;border-radius:16px}
+  .hero-actions .btn{flex:1 1 auto;justify-content:center}
+}
+@media(max-width:420px){
+  main{padding-left:11px;padding-right:11px}
+  .topbar h1{font-size:24px}
+  .nav button,.nav .nav-visitor-link{font-size:11px;padding:8px 9px}
+  #dashboard .hero{padding:19px}
+  #dashboard .hero h2{font-size:23px}
+}
 </style>
 <!-- Render LaTeX maths in AI Tutor and chapter explanations. -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/katex.min.css" crossorigin="anonymous" />
