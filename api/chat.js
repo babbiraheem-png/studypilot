@@ -118,16 +118,16 @@ export default async function handler(req, res) {
     const contents = Array.isArray(history)
       ? history
           .filter(x => x && (x.role === 'user' || x.role === 'model') && Array.isArray(x.parts))
-          .slice(-6)
+          .slice(-4)
           .map(x => ({
             role: x.role,
-            parts: [{ text: String(x.parts.map(p => p?.text || '').join(' ')).slice(0, 3500) }]
+            parts: [{ text: String(x.parts.map(p => p?.text || '').join(' ')).slice(0, 2200) }]
           }))
       : [];
 
     contents.push({
       role: 'user',
-      parts: [{ text: message.slice(0, 8000) }]
+      parts: [{ text: message.slice(0, 5000) }]
     });
 
     const systemInstruction =
@@ -139,10 +139,10 @@ export default async function handler(req, res) {
 
     // Keep total execution comfortably inside Vercel's function limit.
     // A 404 means a model is unavailable to this API key, so try the next model.
+    // Flash-Lite is tuned for low-latency tutoring; keep Flash as a fallback.
     const models = [
-      'gemini-3.8-flash',
       'gemini-3.5-flash-lite',
-      'gemini-3.1-flash-lite'
+      'gemini-3.8-flash'
     ];
     let lastMessage = 'The AI service is temporarily busy. Please try again.';
 
@@ -166,7 +166,7 @@ export default async function handler(req, res) {
                 parts: [{ text: systemInstruction }]
               },
               generationConfig: {
-                maxOutputTokens: 1200,
+                maxOutputTokens: 800,
                 temperature: 0.4
               }
             })
