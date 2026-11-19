@@ -131,6 +131,36 @@ function cleanDiagramSvg(raw) {
   return svg;
 }
 
+
+function escapeDiagramText(value) {
+  return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+}
+function textDiagramFallback(concept, raw) {
+  const plain = String(raw || '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\*\*/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (plain.length < 12) return '';
+  const words = plain.split(' ');
+  const lines = [];
+  let line = '';
+  for (const word of words) {
+    if ((line + ' ' + word).trim().length > 72) {
+      if (line) lines.push(line);
+      line = word;
+    } else line = (line + ' ' + word).trim();
+    if (lines.length >= 6) break;
+  }
+  if (line && lines.length < 7) lines.push(line);
+  const title = escapeDiagramText(concept.slice(0, 90));
+  const rows = lines.map((item, i) =>
+    '<rect x="55" y="' + (145 + i * 54) + '" width="790" height="42" rx="10" fill="#eef5ff" stroke="#8bb8ef"/>' +
+    '<text x="75" y="' + (172 + i * 54) + '" font-size="19" fill="#172b4d">' + escapeDiagramText(item) + '</text>'
+  ).join('');
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560"><rect width="900" height="560" fill="#ffffff"/><text x="55" y="75" font-size="30" font-weight="700" fill="#173b70">' + title + '</text><text x="55" y="112" font-size="17" fill="#45617f">Quick visual explanation</text>' + rows + '</svg>';
+}
+
 async function generateConceptDiagram(res, body) {
   const concept = typeof body.concept === 'string' ? body.concept.trim().slice(0, 500) : '';
   if (concept.length < 3) return res.status(400).json({ message: 'Enter a concept to illustrate.' });
@@ -168,13 +198,15 @@ async function generateConceptDiagram(res, body) {
         if ([429, 500, 502, 503, 504].includes(response.status)) continue;
         return res.status(response.status).json({ message: lastMessage });
       }
-      const raw = data?.candidates?.[0]?.content?.parts?.map(p => p?.text || '').join('') || '';
-      const svg = cleanDiagramSvg(raw);
+      const candidate = data?.candidates?.[0];
+      const raw = candidate?.content?.parts?.map(p => p?.text || '').join('') || '';
+      const svg = cleanDiagramSvg(raw) || textDiagramFallback(concept, raw);
       if (!svg) {
-        lastMessage = 'The AI could not create a safe diagram this time. Please try a shorter concept.';
+        const reason = candidate?.finishReason ? ' (' + candidate.finishReason + ')' : '';
+        lastMessage = 'The AI returned no usable diagram text' + reason + '. Please try again.';
         continue;
       }
-      return res.status(200).json({ svg, model });
+      return res.status(200).json({ svg, model, fallback: !cleanDiagramSvg(raw) });
     } catch (error) {
       lastMessage = error?.name === 'AbortError'
         ? 'The diagram request took too long.'
