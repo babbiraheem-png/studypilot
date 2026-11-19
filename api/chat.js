@@ -125,26 +125,44 @@ async function generateConceptDiagram(res, body) {
     'Return only a complete SVG document with viewBox="0 0 900 560". Make labels concise and readable.',
     'Keep the diagram scientifically and mathematically accurate. Do not add unsupported facts.'
   ].join('\n');
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 26000);
-  try {
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-      signal: controller.signal,
-      body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2, maxOutputTokens: 3000 } })
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) return res.status(response.status).json({ message: data?.error?.message || 'The diagram service is temporarily unavailable.' });
-    const raw = data?.candidates?.[0]?.content?.parts?.map(p => p?.text || '').join('') || '';
-    const svg = cleanDiagramSvg(raw);
-    if (!svg) return res.status(502).json({ message: 'The AI could not create a safe diagram this time. Please try a shorter concept.' });
-    return res.status(200).json({ svg, model: 'gemini-3.5-flash-lite' });
-  } catch (error) {
-    return res.status(503).json({ message: error?.name === 'AbortError' ? 'Diagram creation took too long. Please try again.' : 'Could not connect to the diagram service.' });
-  } finally {
-    clearTimeout(timeout);
+
+  const models = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
+  let lastMessage = 'The diagram service is temporarily busy. Please try again shortly.';
+  for (const model of models) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 18000);
+    try {
+      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+        signal: controller.signal,
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.2, maxOutputTokens: 3000 }
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        lastMessage = data?.error?.message || 'Gemini is temporarily unavailable.';
+        if ([429, 500, 502, 503, 504].includes(response.status)) continue;
+        return res.status(response.status).json({ message: lastMessage });
+      }
+      const raw = data?.candidates?.[0]?.content?.parts?.map(p => p?.text || '').join('') || '';
+      const svg = cleanDiagramSvg(raw);
+      if (!svg) {
+        lastMessage = 'The AI could not create a safe diagram this time. Please try a shorter concept.';
+        continue;
+      }
+      return res.status(200).json({ svg, model });
+    } catch (error) {
+      lastMessage = error?.name === 'AbortError'
+        ? 'The diagram request took too long.'
+        : 'Could not connect to the diagram service.';
+    } finally {
+      clearTimeout(timeout);
+    }
   }
+  return res.status(503).json({ message: lastMessage + ' Please try again in a little while.' });
 }
 
 export const config = { maxDuration: 50 };
