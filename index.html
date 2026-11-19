@@ -1325,14 +1325,30 @@ input::placeholder,textarea::placeholder{color:#829bb8!important}
 @media(max-width:760px){.sidebar{background:#0d2039!important}}
 
 
-/* Midnight Blue: make all website text white for consistent readability. */
-body, body :where(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,b,em,i,li,a,button,
+/* Automatic text contrast: light surfaces use dark text; dark surfaces use light text. */
+:root{color-scheme:dark;--contrast-dark:#111827;--contrast-light:#f8fbff}
+body{color:var(--contrast-light)!important}
+body :where(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,b,em,i,li,a,button,
 input,textarea,select,option,summary,td,th,div,section,article,figcaption,
-.card-title,.small,.muted,.description,.subtitle,.item-meta,.tool-empty) {
-  color:#ffffff !important;
+.card-title,.small,.muted,.description,.subtitle,.item-meta,.tool-empty){
+  color:inherit;
 }
-input::placeholder,textarea::placeholder { color:#d7e5f5 !important; opacity:1; }
-
+/* Explicit light/white surfaces and their contents. */
+body :where(.light-surface,.light-theme,[data-theme="light"],.bg-white,.white-bg,
+[style*="background:#fff"],[style*="background: #fff"],[style*="background-color:#fff"],
+[style*="background-color: #fff"],[style*="background:white"],[style*="background: white"]){
+  color:var(--contrast-dark)!important;
+}
+body :where(.light-surface,.light-theme,[data-theme="light"],.bg-white,.white-bg,
+[style*="background:#fff"],[style*="background: #fff"],[style*="background-color:#fff"],
+[style*="background-color: #fff"],[style*="background:white"],[style*="background: white"])
+:where(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,b,em,i,li,a,button,input,textarea,select,option,summary,td,th,div,section,article,figcaption){
+  color:var(--contrast-dark)!important;
+}
+/* Blue/action buttons keep their accessible white labels. */
+.btn.primary,.user .bubble,.sp-tutor-window .user .bubble,
+button.primary,[role="button"].primary{color:#fff!important}
+input::placeholder,textarea::placeholder{color:#aebed0!important;opacity:1}
 </style>
 <!-- Render LaTeX maths in AI Tutor and chapter explanations. -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/katex.min.css" crossorigin="anonymous" />
