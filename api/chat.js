@@ -232,7 +232,10 @@ function maleReproductiveSystemDiagram() {
 async function generateConceptDiagram(res, body) {
   const concept = typeof body.concept === 'string' ? body.concept.trim().slice(0, 500) : '';
   if (concept.length < 3) return res.status(400).json({ message: 'Enter a concept to illustrate.' });
-  if (/male\s+reproductive|reproductive\s+system\s+in\s+males|human\s+male\s+reproductive|testes|testis|vas\s+deferens/i.test(concept)) {\n    return res.status(200).json({ svg: maleReproductiveSystemDiagram(), model: 'StudyPilot educational diagram', fallback: false });\n  }\n  const key = process.env.GEMINI_API_KEY;
+  if (/male\s+reproductive|reproductive\s+system\s+in\s+males|human\s+male\s+reproductive|testes|testis|vas\s+deferens/i.test(concept)) {
+    return res.status(200).json({ svg: maleReproductiveSystemDiagram(), model: 'StudyPilot educational diagram', fallback: false });
+  }
+  const key = process.env.GEMINI_API_KEY;
   if (!key) return res.status(503).json({ message: 'AI diagrams are not configured on the server.' });
   const prompt = [
     'Design a polished, colorful, professional educational infographic as a single SVG diagram.',
