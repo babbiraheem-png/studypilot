@@ -103,10 +103,10 @@ function cleanDiagramSvg(raw) {
   const start = svg.indexOf('<svg'), end = svg.lastIndexOf('</svg>');
   if (start < 0 || end < start) return '';
   svg = svg.slice(start, end + 6);
-  if (svg.length > 12000 || /<script|foreignObject|image|use\\s|href\\s*=|url\\s*\\(|on\\w+\\s*=/i.test(svg)) return '';
-  const tags = svg.match(/<\\/?[a-zA-Z][^>]*>/g) || [];
-  if (!tags.length || tags.some(tag => !allowedTags.has((tag.match(/^<\\/?([a-zA-Z]+)/)||[])[1]))) return '';
-  const attrs = [...svg.matchAll(/\\s([a-zA-Z:-]+)\\s*=/g)].map(m => m[1]);
+  if (svg.length > 12000 || /<script|foreignObject|image|use\s|href\s*=|url\s*\(|on\w+\s*=/i.test(svg)) return '';
+  const tags = svg.match(/<\/?[a-zA-Z][^>]*>/g) || [];
+  if (!tags.length || tags.some(tag => !allowedTags.has((tag.match(/^<\/?([a-zA-Z]+)/)||[])[1]))) return '';
+  const attrs = [...svg.matchAll(/\s([a-zA-Z:-]+)\s*=/g)].map(m => m[1]);
   if (attrs.some(a => !allowedAttrs.has(a))) return '';
   return svg;
 }
@@ -124,7 +124,7 @@ async function generateConceptDiagram(res, body) {
     'Use only basic geometry and text. No CSS, style attributes, scripts, links, images, filters, gradients, animation or external resources.',
     'Return only a complete SVG document with viewBox="0 0 900 560". Make labels concise and readable.',
     'Keep the diagram scientifically and mathematically accurate. Do not add unsupported facts.'
-  ].join('\\n');
+  ].join('\n');
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 26000);
   try {
