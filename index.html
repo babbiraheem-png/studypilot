@@ -1349,6 +1349,56 @@ body :where(.light-surface,.light-theme,[data-theme="light"],.bg-white,.white-bg
 .btn.primary,.user .bubble,.sp-tutor-window .user .bubble,
 button.primary,[role="button"].primary{color:#fff!important}
 input::placeholder,textarea::placeholder{color:#aebed0!important;opacity:1}
+
+/* StudyPilot motion polish: subtle, quick, and respectful of reduced-motion settings. */
+@keyframes sp-view-enter{
+  from{opacity:0;transform:translateY(9px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes sp-orb-drift{
+  0%,100%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(-12px,9px,0) scale(1.06)}
+}
+@keyframes sp-soft-pulse{
+  0%,100%{opacity:.55;transform:scale(.96)}
+  50%{opacity:1;transform:scale(1.04)}
+}
+@keyframes sp-thinking-dot{
+  0%,60%,100%{opacity:.28;transform:translateY(0)}
+  30%{opacity:1;transform:translateY(-3px)}
+}
+.view.active{animation:sp-view-enter .28s ease-out both}
+.card,.subject,.info-box,.chapter,.option,.task-icon,.badge{
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease,background-color .2s ease;
+}
+.card:hover{transform:translateY(-2px);box-shadow:0 20px 48px rgba(53,89,137,.12)}
+.info-box:hover,.subject:hover{transform:translateY(-2px);border-color:#c9dcf4}
+.btn,.nav button,.nav .nav-visitor-link,.quick button,.sp-tutor-quick button{
+  transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease,border-color .18s ease;
+}
+.btn:hover,.quick button:hover,.sp-tutor-quick button:hover{
+  transform:translateY(-2px);box-shadow:0 8px 20px rgba(53,120,212,.12)
+}
+.btn:active,.nav button:active,.option:active{transform:scale(.98)}
+.hero:after{animation:sp-orb-drift 9s ease-in-out infinite}
+.access-decoration .orb.one{animation:sp-soft-pulse 7s ease-in-out infinite}
+.access-decoration .orb.two{animation:sp-soft-pulse 8s ease-in-out infinite reverse}
+#aiLoading .bubble{position:relative}
+#aiLoading .bubble:after{
+  content:"";display:inline-block;width:18px;height:5px;margin-left:7px;vertical-align:middle;
+  background:radial-gradient(circle,#5b8fd0 1.5px,transparent 2px) 0 50%/6px 5px repeat-x;
+  animation:sp-thinking-dot 1s ease-in-out infinite;
+}
+button:focus-visible,.option:focus-visible,.chapter:focus-visible{
+  outline:3px solid rgba(53,120,212,.42);outline-offset:3px;
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+  }
+}
+
 </style>
 <!-- Render LaTeX maths in AI Tutor and chapter explanations. -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/katex.min.css" crossorigin="anonymous" />
