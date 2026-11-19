@@ -161,6 +161,23 @@ function textDiagramFallback(concept, raw) {
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560"><rect width="900" height="560" fill="#ffffff"/><text x="55" y="75" font-size="30" font-weight="700" fill="#173b70">' + title + '</text><text x="55" y="112" font-size="17" fill="#45617f">Quick visual explanation</text>' + rows + '</svg>';
 }
 
+
+function basicConceptMap(concept) {
+  const title = escapeDiagramText(String(concept || 'Study concept').slice(0, 90));
+  const labels = ['Main idea', 'How it works', 'Remember'];
+  const colors = ['#eaf2ff', '#eef8ff', '#f0f5ff'];
+  const boxes = labels.map((label, i) => {
+    const y = 155 + i * 112;
+    return '<rect x="90" y="' + y + '" width="720" height="78" rx="16" fill="' + colors[i] + '" stroke="#75a6e8" stroke-width="2"/>' +
+      '<text x="450" y="' + (y + 32) + '" text-anchor="middle" font-size="22" font-weight="700" fill="#173b70">' + label + '</text>' +
+      '<text x="450" y="' + (y + 57) + '" text-anchor="middle" font-size="15" fill="#45617f">' +
+      (i === 0 ? 'Start with the definition of ' + title :
+       i === 1 ? 'Break the concept into small steps and connect the ideas' :
+       'Add one example from your lesson or textbook') + '</text>';
+  }).join('');
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560"><rect width="900" height="560" fill="#ffffff"/><text x="450" y="75" text-anchor="middle" font-size="30" font-weight="700" fill="#173b70">' + title + '</text><text x="450" y="112" text-anchor="middle" font-size="17" fill="#45617f">Starter concept map</text>' + boxes + '</svg>';
+}
+
 async function generateConceptDiagram(res, body) {
   const concept = typeof body.concept === 'string' ? body.concept.trim().slice(0, 500) : '';
   if (concept.length < 3) return res.status(400).json({ message: 'Enter a concept to illustrate.' });
@@ -200,13 +217,16 @@ async function generateConceptDiagram(res, body) {
       }
       const candidate = data?.candidates?.[0];
       const raw = candidate?.content?.parts?.map(p => p?.text || '').join('') || '';
-      const svg = cleanDiagramSvg(raw) || textDiagramFallback(concept, raw);
-      if (!svg) {
-        const reason = candidate?.finishReason ? ' (' + candidate.finishReason + ')' : '';
-        lastMessage = 'The AI returned no usable diagram text' + reason + '. Please try again.';
-        continue;
-      }
-      return res.status(200).json({ svg, model, fallback: !cleanDiagramSvg(raw) });
+      const safeSvg = cleanDiagramSvg(raw);
+      const textSvg = safeSvg ? '' : textDiagramFallback(concept, raw);
+      const svg = safeSvg || textSvg || basicConceptMap(concept);
+      const fallback = !safeSvg;
+      if (fallback) console.warn('[StudyPilot Visual] Using safe fallback diagram', {
+        model,
+        finishReason: candidate?.finishReason || 'NO_CANDIDATE',
+        hadText: Boolean(raw && raw.trim())
+      });
+      return res.status(200).json({ svg, model, fallback, note: fallback ? 'Starter concept map shown because the AI diagram was unavailable.' : undefined });
     } catch (error) {
       lastMessage = error?.name === 'AbortError'
         ? 'The diagram request took too long.'
