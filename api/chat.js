@@ -204,12 +204,14 @@ async function generateConceptDiagram(res, body) {
     'Design a polished, colorful, professional educational infographic as a single SVG diagram.',
     'Concept: ' + concept,
     'Identify the correct subject and show the actual parts, stages, components or relationships of this concept. Do not use generic filler labels.',
-    'Composition: 900x560 landscape canvas; a neat title area at the top; a central, clearly recognizable diagram or process in the middle; short labels placed beside the correct parts; a compact key takeaway at the bottom.',
-    'Use a refined bright palette: deep navy text, vivid blue, teal, coral and warm amber accents on a very pale background. Use rounded cards, consistent spacing, thin connector arrows and small simple vector illustrations made from shapes.',
-    'Keep every label readable, aligned and fully inside its card. Avoid overlapping text, clipped objects, excessive decoration and long paragraphs. Put explanations in short, separate callout cards.',
+    'Composition: 900x560 landscape canvas with fixed safe margins. Put the title in a top band, ONE main illustration or connected diagram in the center, and a short takeaway in a bottom band.',
+    'ALIGNMENT IS CRITICAL: arrange related parts together as one coherent, correctly proportioned composition. Keep the main subject centered and large. Align labels in tidy left/right columns or a consistent grid. Use equal spacing, consistent baselines and straight, non-crossing leader lines that end at the exact part being named.',
+    'Do not scatter components around the canvas. Do not place labels far from their parts. Do not let labels, leader lines, arrows, cards or illustrations overlap. Keep every element fully inside the viewBox with generous margins.',
+    'Choose the correct layout for the subject: anatomy uses one unified front/side/cross-section view with organs in their correct relative positions and labels around the outside; a process uses one connected, evenly spaced sequence; a cycle uses a balanced circular arrangement; a comparison uses aligned columns; a graph uses correctly aligned axes and plotted data; a geography concept uses one coherent map.',
+    'Use a refined bright palette: deep navy text, vivid blue, teal, coral and warm amber accents on a very pale background. Keep colors consistent by category and use short labels, not paragraphs.',
     'Use only these SVG elements: svg, g, rect, circle, ellipse, line, path, polygon, polyline, text, tspan.',
     'Use only basic geometry and text. No CSS, style attributes, scripts, links, images, filters, gradients, animation or external resources.',
-    'Return only a complete SVG document with viewBox="0 0 900 560". Include the important parts of the concept, not just a title and three generic boxes.',
+    'Return only a complete SVG document with viewBox="0 0 900 560". Include the actual important parts of the concept, not generic filler cards or a text-only explanation.',
     'Keep the diagram scientifically and mathematically accurate. Do not add unsupported facts.'
   ].join('\n');
 
@@ -217,7 +219,7 @@ async function generateConceptDiagram(res, body) {
   let lastMessage = 'The diagram service is temporarily busy. Please try again shortly.';
   for (const model of models) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 7500);
+    const timeout = setTimeout(() => controller.abort(), 11000);
     try {
       const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
         method: 'POST',
@@ -237,8 +239,9 @@ async function generateConceptDiagram(res, body) {
       const candidate = data?.candidates?.[0];
       const raw = candidate?.content?.parts?.map(p => p?.text || '').join('') || '';
       const safeSvg = cleanDiagramSvg(raw);
-      const textSvg = safeSvg ? '' : textDiagramFallback(concept, raw);
-      const svg = safeSvg || textSvg || basicConceptMap(concept);
+      // Never turn a failed image request into a wall of sentences.
+      // Keep the fallback as a clean, aligned visual layout instead.
+      const svg = safeSvg || basicConceptMap(concept);
       const fallback = !safeSvg;
       if (fallback) console.warn('[StudyPilot Visual] Using safe fallback diagram', {
         model,
