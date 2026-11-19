@@ -1603,7 +1603,7 @@ button:focus-visible,.option:focus-visible,.chapter:focus-visible{
       const bubble=document.createElement('div');bubble.className='bubble';bubble.textContent='Creating your educational diagram…';item.appendChild(bubble);
       messages.appendChild(item);messages.scrollTop=messages.scrollHeight;
       try{
-        const response=await fetch('/api/diagram',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({concept})});
+        const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'concept-diagram',concept})});
         const data=await response.json().catch(()=>({}));
         if(!response.ok)throw new Error(data.message||'Diagram creation failed.');
         const parser=new DOMParser(),doc=parser.parseFromString(data.svg||'','image/svg+xml'),root=doc.documentElement;
