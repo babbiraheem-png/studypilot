@@ -98,18 +98,39 @@ async function generateExamQuestions(res, body) {
 
 function cleanDiagramSvg(raw) {
   const allowedTags = new Set(['svg','g','rect','circle','ellipse','line','path','polygon','polyline','text','tspan']);
-  const allowedAttrs = new Set(['xmlns','viewBox','width','height','x','y','x1','y1','x2','y2','cx','cy','r','rx','ry','d','points','fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','font-size','font-family','font-weight','text-anchor','dominant-baseline','opacity','transform']);
-  let svg = String(raw || '').replace(/```(?:svg|xml)?/gi, '').replace(/```/g, '').trim();
+  const allowedAttrs = new Set([
+    'xmlns','viewBox','width','height','x','y','x1','y1','x2','y2','cx','cy','r','rx','ry',
+    'd','points','fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','stroke-dasharray',
+    'font-size','font-family','font-weight','font-style','text-anchor','dominant-baseline',
+    'letter-spacing','text-decoration','textLength','lengthAdjust','opacity','transform',
+    'fill-rule','clip-rule'
+  ]);
+  let svg = String(raw || '').replace(/\u0060\u0060\u0060(?:svg|xml)?/gi, '').replace(/\u0060\u0060\u0060/g, '').trim();
   const start = svg.indexOf('<svg'), end = svg.lastIndexOf('</svg>');
   if (start < 0 || end < start) return '';
   svg = svg.slice(start, end + 6);
-  if (svg.length > 12000 || /<script|foreignObject|image|use\s|href\s*=|url\s*\(|on\w+\s*=/i.test(svg)) return '';
-  const tags = svg.match(/<\/?[a-zA-Z][^>]*>/g) || [];
-  if (!tags.length || tags.some(tag => !allowedTags.has((tag.match(/^<\/?([a-zA-Z]+)/)||[])[1]))) return '';
-  const attrs = [...svg.matchAll(/\s([a-zA-Z:-]+)\s*=/g)].map(m => m[1]);
-  if (attrs.some(a => !allowedAttrs.has(a))) return '';
+  if (svg.length > 16000 || /<script|foreignObject|<image|<use|href\s*=|url\s*\(|on\w+\s*=/i.test(svg)) return '';
+  svg = svg.replace(/<\/?([a-zA-Z][\w:-]*)\b([^>]*)>/g, (whole, tagName, rawAttrs) => {
+    const tag = tagName.toLowerCase();
+    if (!allowedTags.has(tag)) return '';
+    const closing = whole.startsWith('</');
+    if (closing) return '</' + tag + '>';
+    const attrs = [];
+    const attrPattern = /([a-zA-Z:-]+)\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/g;
+    let match;
+    while ((match = attrPattern.exec(rawAttrs)) !== null) {
+      const name = match[1];
+      let value = match[2].replace(/^['"]|['"]$/g, '');
+      if (!allowedAttrs.has(name) || /[<>]|javascript:|data:|url\s*\(/i.test(value)) continue;
+      value = value.replace(/&(?!(amp|lt|gt|quot|apos|#\d+|#x[\da-f]+);)/gi, '&amp;');
+      attrs.push(name + '="' + value.replace(/"/g, '&quot;') + '"');
+    }
+    return '<' + tag + (attrs.length ? ' ' + attrs.join(' ') : '') + ( /\/\s*$/.test(rawAttrs) ? '/>' : '>');
+  });
+  if (!/<svg\b/i.test(svg) || !/<\/svg>/i.test(svg)) return '';
   return svg;
 }
+
 async function generateConceptDiagram(res, body) {
   const concept = typeof body.concept === 'string' ? body.concept.trim().slice(0, 500) : '';
   if (concept.length < 3) return res.status(400).json({ message: 'Enter a concept to illustrate.' });
