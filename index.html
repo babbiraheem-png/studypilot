@@ -1399,6 +1399,11 @@ button:focus-visible,.option:focus-visible,.chapter:focus-visible{
   }
 }
 
+
+.sp-tutor-diagram{margin-top:12px;background:#fff;border:1px solid #dce8f7;border-radius:12px;padding:10px;overflow:hidden}
+.sp-tutor-diagram svg{display:block;width:100%;height:auto;max-height:430px}
+.sp-tutor-diagram-note{font-size:11px;color:#71839a;margin:8px 0 0}
+@media(max-width:760px){.sp-tutor-diagram{padding:6px}.sp-tutor-diagram svg{max-height:340px}}
 </style>
 <!-- Render LaTeX maths in AI Tutor and chapter explanations. -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/katex.min.css" crossorigin="anonymous" />
@@ -1545,6 +1550,7 @@ button:focus-visible,.option:focus-visible,.chapter:focus-visible{
         </div>
         <div class="chat-input sp-tutor-input">
           <input id="chatInput" type="text" autocomplete="off" placeholder="Ask your tutor anything..."/>
+          <button id="visualChatBtn" class="btn" type="button" title="Create a free educational diagram">✦ Visual</button>
           <button id="sendChatBtn" class="btn primary" type="button">Send ↑</button>
         </div>
       </div>
@@ -1583,8 +1589,47 @@ button:focus-visible,.option:focus-visible,.chapter:focus-visible{
         busy=false;button.disabled=false;button.textContent='Send ↑';input.focus();
       }
     }
+    let visualBusy=false;
+    const safeTags=new Set(['svg','g','rect','circle','ellipse','line','path','polygon','polyline','text','tspan']);
+    const safeAttrs=new Set(['xmlns','viewBox','width','height','x','y','x1','y1','x2','y2','cx','cy','r','rx','ry','d','points','fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','font-size','font-family','font-weight','text-anchor','dominant-baseline','opacity','transform']);
+    async function createTutorVisual(){
+      const input=document.getElementById('chatInput'), button=document.getElementById('visualChatBtn'), messages=document.getElementById('messages');
+      if(!input||!button||!messages||visualBusy)return;
+      const concept=input.value.trim();
+      if(concept.length<3){input.focus();input.placeholder='Type a concept first, e.g. water cycle…';return;}
+      visualBusy=true;button.disabled=true;button.textContent='Creating…';
+      const item=document.createElement('div');item.className='msg';
+      const icon=document.createElement('div');icon.className='bot-icon';icon.textContent='✦';item.appendChild(icon);
+      const bubble=document.createElement('div');bubble.className='bubble';bubble.textContent='Creating your educational diagram…';item.appendChild(bubble);
+      messages.appendChild(item);messages.scrollTop=messages.scrollHeight;
+      try{
+        const response=await fetch('/api/diagram',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({concept})});
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok)throw new Error(data.message||'Diagram creation failed.');
+        const parser=new DOMParser(),doc=parser.parseFromString(data.svg||'','image/svg+xml'),root=doc.documentElement;
+        if(!root||root.localName!=='svg'||doc.querySelector('parsererror'))throw new Error('The diagram was not valid. Please try again.');
+        const clean=node=>{
+          [...node.children].forEach(child=>{
+            if(!safeTags.has(child.localName)){child.remove();return;}
+            [...child.attributes].forEach(attr=>{
+              if(!safeAttrs.has(attr.name)||/javascript:|url\s*\(|expression\s*\(/i.test(attr.value))child.removeAttribute(attr.name);
+            });
+            clean(child);
+          });
+        };
+        clean(root);
+        bubble.textContent='';
+        const title=document.createElement('strong');title.textContent='Visual explanation: '+concept;bubble.appendChild(title);
+        const stage=document.createElement('div');stage.className='sp-tutor-diagram';
+        stage.appendChild(document.importNode(root,true));bubble.appendChild(stage);
+        const note=document.createElement('p');note.className='sp-tutor-diagram-note';note.textContent='AI-created study diagram. Check labels against your textbook.';bubble.appendChild(note);
+        messages.scrollTop=messages.scrollHeight;
+      }catch(error){bubble.textContent='Visual error: '+(error.message||'Please try again.');}
+      finally{visualBusy=false;button.disabled=false;button.textContent='✦ Visual';}
+    }
     document.addEventListener('click',function(event){
       if(event.target.closest('#sendChatBtn')){event.preventDefault();sendStandaloneTutorMessage();}
+      if(event.target.closest('#visualChatBtn')){event.preventDefault();createTutorVisual();}
     });
     document.addEventListener('keydown',function(event){
       if(event.target&&event.target.id==='chatInput'&&event.key==='Enter'){event.preventDefault();sendStandaloneTutorMessage();}
