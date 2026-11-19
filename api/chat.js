@@ -138,44 +138,55 @@ function escapeDiagramText(value) {
 function textDiagramFallback(concept, raw) {
   const plain = String(raw || '')
     .replace(/<[^>]*>/g, ' ')
-    .replace(/\*\*/g, '')
-    .replace(/\s+/g, ' ')
+    .replace(/\\*\\*/g, '')
+    .replace(/\\s+/g, ' ')
     .trim();
   if (plain.length < 12) return '';
   const words = plain.split(' ');
   const lines = [];
   let line = '';
   for (const word of words) {
-    if ((line + ' ' + word).trim().length > 72) {
+    if ((line + ' ' + word).trim().length > 74) {
       if (line) lines.push(line);
       line = word;
     } else line = (line + ' ' + word).trim();
-    if (lines.length >= 6) break;
+    if (lines.length >= 8) break;
   }
-  if (line && lines.length < 7) lines.push(line);
+  if (line && lines.length < 9) lines.push(line);
   const title = escapeDiagramText(concept.slice(0, 90));
-  const rows = lines.map((item, i) =>
-    '<rect x="55" y="' + (145 + i * 54) + '" width="790" height="42" rx="10" fill="#eef5ff" stroke="#8bb8ef"/>' +
-    '<text x="75" y="' + (172 + i * 54) + '" font-size="19" fill="#172b4d">' + escapeDiagramText(item) + '</text>'
-  ).join('');
-  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560"><rect width="900" height="560" fill="#ffffff"/><text x="55" y="75" font-size="30" font-weight="700" fill="#173b70">' + title + '</text><text x="55" y="112" font-size="17" fill="#45617f">Quick visual explanation</text>' + rows + '</svg>';
+  const palette = [
+    { fill: '#e8f4ff', stroke: '#4597e8', dot: '#2878d0' },
+    { fill: '#e9fbf4', stroke: '#36b98a', dot: '#15966a' },
+    { fill: '#fff3e5', stroke: '#f0a34a', dot: '#d97706' },
+    { fill: '#f3edff', stroke: '#9b7bea', dot: '#7952cf' }
+  ];
+  const rows = lines.map((item, i) => {
+    const p = palette[i % palette.length];
+    const y = 155 + i * 43;
+    return '<circle cx="83" cy="' + (y + 15) + '" r="12" fill="' + p.dot + '"/>' +
+      '<text x="83" y="' + (y + 20) + '" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">' + (i + 1) + '</text>' +
+      '<rect x="108" y="' + y + '" width="700" height="34" rx="12" fill="' + p.fill + '" stroke="' + p.stroke + '" stroke-width="1.5"/>' +
+      '<text x="128" y="' + (y + 22) + '" font-size="16" fill="#20334d">' + escapeDiagramText(item) + '</text>';
+  }).join('');
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560"><rect width="900" height="560" rx="24" fill="#f8fbff"/><rect x="28" y="25" width="844" height="105" rx="22" fill="#173b70"/><text x="65" y="72" font-size="29" font-weight="700" fill="#ffffff">' + title + '</text><text x="65" y="103" font-size="16" fill="#cfe4ff">A clear, step-by-step visual guide</text>' + rows + '<text x="65" y="530" font-size="13" fill="#64748b">StudyPilot • Learning visual</text></svg>';
 }
-
 
 function basicConceptMap(concept) {
   const title = escapeDiagramText(String(concept || 'Study concept').slice(0, 90));
-  const labels = ['Main idea', 'How it works', 'Remember'];
-  const colors = ['#eaf2ff', '#eef8ff', '#f0f5ff'];
-  const boxes = labels.map((label, i) => {
-    const y = 155 + i * 112;
-    return '<rect x="90" y="' + y + '" width="720" height="78" rx="16" fill="' + colors[i] + '" stroke="#75a6e8" stroke-width="2"/>' +
-      '<text x="450" y="' + (y + 32) + '" text-anchor="middle" font-size="22" font-weight="700" fill="#173b70">' + label + '</text>' +
-      '<text x="450" y="' + (y + 57) + '" text-anchor="middle" font-size="15" fill="#45617f">' +
-      (i === 0 ? 'Start with the definition of ' + title :
-       i === 1 ? 'Break the concept into small steps and connect the ideas' :
-       'Add one example from your lesson or textbook') + '</text>';
+  const cards = [
+    { n: '01', heading: 'CORE IDEA', detail: 'Understand what the concept means.', fill: '#e7f2ff', edge: '#3988df', ink: '#14569b' },
+    { n: '02', heading: 'HOW IT WORKS', detail: 'Follow the key steps and connections.', fill: '#e6f8f1', edge: '#32ad82', ink: '#087653' },
+    { n: '03', heading: 'KEY TAKEAWAY', detail: 'Connect the idea to a real example.', fill: '#fff1df', edge: '#e99a3b', ink: '#a45a0b' }
+  ];
+  const cardSvg = cards.map((c, i) => {
+    const y = 172 + i * 108;
+    return '<rect x="72" y="' + y + '" width="756" height="82" rx="18" fill="' + c.fill + '" stroke="' + c.edge + '" stroke-width="2"/>' +
+      '<circle cx="116" cy="' + (y + 41) + '" r="23" fill="' + c.edge + '"/>' +
+      '<text x="116" y="' + (y + 46) + '" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">' + c.n + '</text>' +
+      '<text x="158" y="' + (y + 33) + '" font-size="13" font-weight="700" letter-spacing="1" fill="' + c.ink + '">' + c.heading + '</text>' +
+      '<text x="158" y="' + (y + 58) + '" font-size="18" fill="#20334d">' + c.detail + '</text>';
   }).join('');
-  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560"><rect width="900" height="560" fill="#ffffff"/><text x="450" y="75" text-anchor="middle" font-size="30" font-weight="700" fill="#173b70">' + title + '</text><text x="450" y="112" text-anchor="middle" font-size="17" fill="#45617f">Starter concept map</text>' + boxes + '</svg>';
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560"><rect width="900" height="560" rx="26" fill="#f7faff"/><rect x="28" y="25" width="844" height="116" rx="24" fill="#173b70"/><circle cx="815" cy="57" r="22" fill="#48b7e9"/><circle cx="846" cy="103" r="12" fill="#f6b84b"/><text x="66" y="78" font-size="31" font-weight="700" fill="#ffffff">' + title + '</text><text x="66" y="111" font-size="16" fill="#d4e8ff">A simple visual guide to help you learn</text>' + cardSvg + '<text x="66" y="530" font-size="13" fill="#64748b">StudyPilot • Visual learning</text></svg>';
 }
 
 async function generateConceptDiagram(res, body) {
@@ -184,13 +195,15 @@ async function generateConceptDiagram(res, body) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) return res.status(503).json({ message: 'AI diagrams are not configured on the server.' });
   const prompt = [
-    'Create one clear, accurate, student-friendly educational vector diagram as SVG.',
+    'Design a polished, colorful, professional educational infographic as a single SVG diagram.',
     'Concept: ' + concept,
-    'Infer the school subject and explain the concept visually. Use simple labels, arrows and shapes where useful.',
-    'Use a clean white background, dark readable labels and a few blue accents. Keep all content inside a 900 by 560 canvas.',
+    'Identify the correct subject and show the actual parts, stages, components or relationships of this concept. Do not use generic filler labels.',
+    'Composition: 900x560 landscape canvas; a neat title area at the top; a central, clearly recognizable diagram or process in the middle; short labels placed beside the correct parts; a compact key takeaway at the bottom.',
+    'Use a refined bright palette: deep navy text, vivid blue, teal, coral and warm amber accents on a very pale background. Use rounded cards, consistent spacing, thin connector arrows and small simple vector illustrations made from shapes.',
+    'Keep every label readable, aligned and fully inside its card. Avoid overlapping text, clipped objects, excessive decoration and long paragraphs. Put explanations in short, separate callout cards.',
     'Use only these SVG elements: svg, g, rect, circle, ellipse, line, path, polygon, polyline, text, tspan.',
     'Use only basic geometry and text. No CSS, style attributes, scripts, links, images, filters, gradients, animation or external resources.',
-    'Return only a complete SVG document with viewBox="0 0 900 560". Make labels concise and readable.',
+    'Return only a complete SVG document with viewBox="0 0 900 560". Include the important parts of the concept, not just a title and three generic boxes.',
     'Keep the diagram scientifically and mathematically accurate. Do not add unsupported facts.'
   ].join('\n');
 
