@@ -1256,6 +1256,30 @@ button:focus-visible,.option:focus-visible,.chapter:focus-visible{
 .sp-tutor-diagram svg{display:block;width:100%;height:auto;max-height:430px}
 .sp-tutor-diagram-note{font-size:11px;color:#71839a;margin:8px 0 0}
 @media(max-width:760px){.sp-tutor-diagram{padding:6px}.sp-tutor-diagram svg{max-height:340px}}
+
+/* StudyPilot classic white + light-blue theme: restore the original clean palette. */
+:root{
+  --bg:#f4f8ff;--panel:#ffffff;--panel2:#eef5ff;--text:#172b45;--muted:#687b92;
+  --line:#dce8f7;--primary:#3578d4;--primary2:#78b5f2;--green:#238e6c;--orange:#c98225;
+  --red:#cc5268;--shadow:0 18px 50px rgba(53,120,212,.08);--radius:18px;
+}
+body,.access-gate{
+  background:radial-gradient(circle at 8% 0%,rgba(103,167,244,.12),transparent 25%),
+    radial-gradient(circle at 95% 8%,rgba(103,167,244,.08),transparent 28%),
+    linear-gradient(180deg,#ffffff 0%,#f2f7ff 100%);
+  color:#172b45;
+}
+.sidebar{background:rgba(255,255,255,.94);border-color:#dce8f7}
+.card,.profile,.btn,.chat-head,.chat-input,.quick button,.option,.select,.subject,
+.access-card,.info-section{background:#fff;border-color:#dce8f7}
+.hero{background:linear-gradient(135deg,#eaf3ff 0%,#f5faff 58%,#fff 100%);border-color:#d7e7fb}
+.messages{background:linear-gradient(180deg,#fbfdff,#f1f7ff)}
+.chat-window{background:#fff}
+.task{border-color:#e3edf9}
+.subject{background:#fbfdff}
+.progress{background:#e6effb}
+.nav button:hover,.chat-item:hover,.chat-item.active{background:#f0f6ff}
+
 </style>
 <!-- Render LaTeX maths in AI Tutor and chapter explanations. -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/katex.min.css" crossorigin="anonymous" />
