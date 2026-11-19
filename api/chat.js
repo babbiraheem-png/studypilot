@@ -189,10 +189,50 @@ function basicConceptMap(concept) {
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560"><rect width="900" height="560" rx="26" fill="#f7faff"/><rect x="28" y="25" width="844" height="116" rx="24" fill="#173b70"/><circle cx="815" cy="57" r="22" fill="#48b7e9"/><circle cx="846" cy="103" r="12" fill="#f6b84b"/><text x="66" y="78" font-size="31" font-weight="700" fill="#ffffff">' + title + '</text><text x="66" y="111" font-size="16" fill="#d4e8ff">A simple visual guide to help you learn</text>' + cardSvg + '<text x="66" y="530" font-size="13" fill="#64748b">StudyPilot • Visual learning</text></svg>';
 }
 
+
+function maleReproductiveSystemDiagram() {
+  const labels = [
+    ['Urinary bladder', 570, 150, 300, 165],
+    ['Seminal vesicle', 570, 220, 350, 225],
+    ['Vas deferens', 570, 290, 250, 270],
+    ['Prostate gland', 570, 360, 300, 315],
+    ['Urethra', 570, 430, 330, 380],
+    ['Penis', 570, 500, 435, 425],
+    ['Epididymis', 70, 475, 250, 430],
+    ['Testis', 70, 525, 230, 455],
+    ['Scrotum', 280, 555, 210, 480]
+  ];
+  const callouts = labels.map(([name,x,y,tx,ty]) => {
+    const right=x>500, sx=right?550:x+185, sy=y-7;
+    return '<path d="M'+sx+' '+sy+' L'+(right?525:tx)+' '+sy+' L'+tx+' '+ty+'" fill="none" stroke="#7890ad" stroke-width="1.8"/>' +
+      '<circle cx="'+tx+'" cy="'+ty+'" r="4" fill="#347fce"/>' +
+      '<rect x="'+x+'" y="'+(y-25)+'" width="205" height="36" rx="10" fill="#ffffff" stroke="#c9d9ed"/>' +
+      '<text x="'+(x+11)+'" y="'+(y-2)+'" font-size="15" font-weight="600" fill="#203b5c">'+escapeDiagramText(name)+'</text>';
+  }).join('');
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" width="900" height="620">' +
+    '<rect width="900" height="620" rx="24" fill="#f7fbff"/><rect x="24" y="20" width="852" height="82" rx="18" fill="#173b70"/>' +
+    '<text x="52" y="57" font-size="27" font-weight="700" fill="#ffffff">Male reproductive system</text>' +
+    '<text x="52" y="82" font-size="14" fill="#d8eaff">Simplified educational side-view · not to scale</text>' +
+    '<g stroke-linejoin="round">' +
+      '<path d="M255 115 C205 112 185 150 196 190 C207 228 250 244 294 220 C328 201 337 157 310 130 C296 116 276 112 255 115Z" fill="#f2c96f" stroke="#c18b35" stroke-width="3"/>' +
+      '<path d="M330 206 C354 188 383 200 385 225 C387 248 365 261 342 250 C326 241 318 220 330 206Z" fill="#f3a7a0" stroke="#c76d72" stroke-width="3"/>' +
+      '<path d="M250 230 C220 250 213 282 231 310" fill="none" stroke="#2f80c9" stroke-width="8" stroke-linecap="round"/>' +
+      '<path d="M231 310 C245 340 284 346 304 320 C321 297 305 275 282 264" fill="none" stroke="#2f80c9" stroke-width="8" stroke-linecap="round"/>' +
+      '<path d="M282 264 C270 240 278 211 305 195 C319 187 330 194 339 207" fill="none" stroke="#2f80c9" stroke-width="8" stroke-linecap="round"/>' +
+      '<path d="M265 284 C257 300 263 318 280 326 C298 334 316 321 319 304" fill="#d98e83" stroke="#b96565" stroke-width="3"/>' +
+      '<path d="M280 326 C272 352 286 378 309 396 C333 416 367 429 404 426 C433 423 453 404 471 390 C485 380 498 384 502 396 C506 409 492 420 476 431 C447 451 415 464 377 462 C337 460 302 443 276 414 C252 387 244 352 257 329" fill="#f2b6a5" stroke="#c77f69" stroke-width="3"/>' +
+      '<path d="M291 321 C299 345 311 365 328 384" fill="none" stroke="#e6a04a" stroke-width="7" stroke-linecap="round"/>' +
+      '<ellipse cx="230" cy="448" rx="42" ry="51" fill="#f3c2a9" stroke="#c77f69" stroke-width="3"/>' +
+      '<path d="M250 432 C270 415 277 394 271 378" fill="none" stroke="#d98c74" stroke-width="6" stroke-linecap="round"/>' +
+      '<path d="M190 414 C165 437 168 480 194 501 C221 522 262 509 276 479" fill="#e8b3a4" fill-opacity=".35" stroke="#c77f69" stroke-width="3"/>' +
+    '</g>' + callouts +
+    '<text x="570" y="585" font-size="12" fill="#71839a">Schematic illustration; structures are simplified.</text></svg>';
+}
+
 async function generateConceptDiagram(res, body) {
   const concept = typeof body.concept === 'string' ? body.concept.trim().slice(0, 500) : '';
   if (concept.length < 3) return res.status(400).json({ message: 'Enter a concept to illustrate.' });
-  const key = process.env.GEMINI_API_KEY;
+  if (/male\s+reproductive|reproductive\s+system\s+in\s+males|human\s+male\s+reproductive|testes|testis|vas\s+deferens/i.test(concept)) {\n    return res.status(200).json({ svg: maleReproductiveSystemDiagram(), model: 'StudyPilot educational diagram', fallback: false });\n  }\n  const key = process.env.GEMINI_API_KEY;
   if (!key) return res.status(503).json({ message: 'AI diagrams are not configured on the server.' });
   const prompt = [
     'Design a polished, colorful, professional educational infographic as a single SVG diagram.',
@@ -211,7 +251,7 @@ async function generateConceptDiagram(res, body) {
   let lastMessage = 'The diagram service is temporarily busy. Please try again shortly.';
   for (const model of models) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 18000);
+    const timeout = setTimeout(() => controller.abort(), 7500);
     try {
       const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
         method: 'POST',
@@ -307,7 +347,7 @@ export default async function handler(req, res) {
 
     for (const model of models) {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 12000);
+      const timeout = setTimeout(() => controller.abort(), 8000);
 
       try {
         const response = await fetch(
