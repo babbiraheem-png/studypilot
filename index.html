@@ -1419,11 +1419,14 @@ body.sp-dark-blue #sp-display-panel button.sp-theme-choice[aria-pressed=true]{ba
     <button data-view="tools">✦ <span>Study Tools</span></button>
     <a class="nav-visitor-link" href="/qr-visitor.html">▣ <span>Science Fair Visitor</span></a>
   </nav>
-  <div class="side-bottom"><div class="profile" id="accountProfile">
-  <div class="avatar" id="accountAvatar">S</div>
-  <div style="min-width:0;flex:1"><b id="studentName">Guest student</b><div class="small" id="studentStatus">Not signed in</div></div>
-  <button class="btn" id="logoutBtn" style="display:none;padding:7px 9px;font-size:11px" onclick="logout()">Log out</button>
-</div></div>
+  <div class="side-bottom" id="sideBottom"></div>
+  <div hidden aria-hidden="true">
+    <div class="profile" id="accountProfile">
+      <div class="avatar" id="accountAvatar">S</div>
+      <div><b id="studentName">Guest student</b><div id="studentStatus">Not signed in</div></div>
+      <button class="btn" id="logoutBtn" style="display:none" onclick="logout()">Log out</button>
+    </div>
+  </div>
 </aside>
 
 <main>
@@ -3526,7 +3529,8 @@ handleAuthCallback().finally(()=>{
   if(document.getElementById('sp-display-settings'))return;
   const root=document.createElement('div');root.id='sp-display-settings';
   root.innerHTML='<button id="sp-display-toggle" type="button" aria-expanded="false">☼ Display</button><section id="sp-display-panel" aria-label="Display settings"><h3>Display settings</h3><label>Colour theme</label><div class="sp-theme-row"><button type="button" class="sp-theme-choice" data-theme="light" aria-pressed="true">Light blue</button><button type="button" class="sp-theme-choice" data-theme="dark" aria-pressed="false">Dark blue</button></div><label for="sp-brightness">Brightness <span class="sp-setting-value" id="sp-brightness-value">100%</span></label><input id="sp-brightness" type="range" min="70" max="120" value="100"><label for="sp-font-size">Font size <span class="sp-setting-value" id="sp-font-value">100%</span></label><input id="sp-font-size" type="range" min="85" max="125" value="100"></section>';
-  const activityHeading=[...document.querySelectorAll('#dashboard h2')].find(el=>el.textContent.trim()==='Study activity');\n  const activityCard=activityHeading?.closest('.card');\n  if(activityCard?.parentElement)activityCard.parentElement.insertBefore(root,activityCard);else document.body.appendChild(root);
+  const sideBottom=document.getElementById('sideBottom');
+  if(sideBottom)sideBottom.appendChild(root);else document.body.appendChild(root);
   const panel=root.querySelector('#sp-display-panel'),toggle=root.querySelector('#sp-display-toggle'),bright=root.querySelector('#sp-brightness'),font=root.querySelector('#sp-font-size');
   let saved={};try{saved=JSON.parse(localStorage.getItem('studypilotDisplaySettings')||'{}')||{}}catch(e){}
   function applyTheme(theme){document.body.classList.toggle('sp-dark-blue',theme==='dark');root.querySelectorAll('[data-theme]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.theme===theme)));saved.theme=theme;persist()}
