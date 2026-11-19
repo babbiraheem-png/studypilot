@@ -191,42 +191,34 @@ function basicConceptMap(concept) {
 
 
 function maleReproductiveSystemDiagram() {
-  const labels = [
-    ['Urinary bladder', 570, 150, 300, 165],
-    ['Seminal vesicle', 570, 220, 350, 225],
-    ['Vas deferens', 570, 290, 250, 270],
-    ['Prostate gland', 570, 360, 300, 315],
-    ['Urethra', 570, 430, 330, 380],
-    ['Penis', 570, 500, 435, 425],
-    ['Epididymis', 70, 475, 250, 430],
-    ['Testis', 70, 525, 230, 455],
-    ['Scrotum', 280, 555, 210, 480]
-  ];
-  const callouts = labels.map(([name,x,y,tx,ty]) => {
-    const right=x>500, sx=right?550:x+185, sy=y-7;
-    return '<path d="M'+sx+' '+sy+' L'+(right?525:tx)+' '+sy+' L'+tx+' '+ty+'" fill="none" stroke="#7890ad" stroke-width="1.8"/>' +
-      '<circle cx="'+tx+'" cy="'+ty+'" r="4" fill="#347fce"/>' +
-      '<rect x="'+x+'" y="'+(y-25)+'" width="205" height="36" rx="10" fill="#ffffff" stroke="#c9d9ed"/>' +
-      '<text x="'+(x+11)+'" y="'+(y-2)+'" font-size="15" font-weight="600" fill="#203b5c">'+escapeDiagramText(name)+'</text>';
-  }).join('');
-  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" width="900" height="620">' +
-    '<rect width="900" height="620" rx="24" fill="#f7fbff"/><rect x="24" y="20" width="852" height="82" rx="18" fill="#173b70"/>' +
-    '<text x="52" y="57" font-size="27" font-weight="700" fill="#ffffff">Male reproductive system</text>' +
-    '<text x="52" y="82" font-size="14" fill="#d8eaff">Simplified educational side-view · not to scale</text>' +
-    '<g stroke-linejoin="round">' +
-      '<path d="M255 115 C205 112 185 150 196 190 C207 228 250 244 294 220 C328 201 337 157 310 130 C296 116 276 112 255 115Z" fill="#f2c96f" stroke="#c18b35" stroke-width="3"/>' +
-      '<path d="M330 206 C354 188 383 200 385 225 C387 248 365 261 342 250 C326 241 318 220 330 206Z" fill="#f3a7a0" stroke="#c76d72" stroke-width="3"/>' +
-      '<path d="M250 230 C220 250 213 282 231 310" fill="none" stroke="#2f80c9" stroke-width="8" stroke-linecap="round"/>' +
-      '<path d="M231 310 C245 340 284 346 304 320 C321 297 305 275 282 264" fill="none" stroke="#2f80c9" stroke-width="8" stroke-linecap="round"/>' +
-      '<path d="M282 264 C270 240 278 211 305 195 C319 187 330 194 339 207" fill="none" stroke="#2f80c9" stroke-width="8" stroke-linecap="round"/>' +
-      '<path d="M265 284 C257 300 263 318 280 326 C298 334 316 321 319 304" fill="#d98e83" stroke="#b96565" stroke-width="3"/>' +
-      '<path d="M280 326 C272 352 286 378 309 396 C333 416 367 429 404 426 C433 423 453 404 471 390 C485 380 498 384 502 396 C506 409 492 420 476 431 C447 451 415 464 377 462 C337 460 302 443 276 414 C252 387 244 352 257 329" fill="#f2b6a5" stroke="#c77f69" stroke-width="3"/>' +
-      '<path d="M291 321 C299 345 311 365 328 384" fill="none" stroke="#e6a04a" stroke-width="7" stroke-linecap="round"/>' +
-      '<ellipse cx="230" cy="448" rx="42" ry="51" fill="#f3c2a9" stroke="#c77f69" stroke-width="3"/>' +
-      '<path d="M250 432 C270 415 277 394 271 378" fill="none" stroke="#d98c74" stroke-width="6" stroke-linecap="round"/>' +
-      '<path d="M190 414 C165 437 168 480 194 501 C221 522 262 509 276 479" fill="#e8b3a4" fill-opacity=".35" stroke="#c77f69" stroke-width="3"/>' +
-    '</g>' + callouts +
-    '<text x="570" y="585" font-size="12" fill="#71839a">Schematic illustration; structures are simplified.</text></svg>';
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 650" width="1000" height="650">' +
+    '<defs><linearGradient id="bg" x2="0" y2="1"><stop stop-color="#ffffff"/><stop offset="1" stop-color="#edf5fc"/></linearGradient><linearGradient id="tissue" x2="1" y2="1"><stop stop-color="#f8d3c4"/><stop offset=".55" stop-color="#e8a99a"/><stop offset="1" stop-color="#c77f78"/></linearGradient><linearGradient id="gold" x2="1" y2="1"><stop stop-color="#f8dfa0"/><stop offset="1" stop-color="#d6a454"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#264766" flood-opacity=".15"/></filter></defs>' +
+    '<rect width="1000" height="650" rx="24" fill="url(#bg)"/><rect x="28" y="24" width="944" height="86" rx="18" fill="#173b70"/>' +
+    '<text x="58" y="61" font-family="Arial,sans-serif" font-size="29" font-weight="700" fill="#fff">Male reproductive system</text><text x="58" y="88" font-family="Arial,sans-serif" font-size="15" fill="#d8eaff">Detailed school biology illustration · side view · simplified, not to scale</text>' +
+    '<rect x="315" y="132" width="370" height="475" rx="22" fill="#fff" stroke="#d8e5f2" filter="url(#shadow)"/>' +
+    '<path d="M460 188 C442 153 469 145 500 145 C540 145 560 165 546 198 C537 220 515 231 491 225 C473 221 464 207 460 188Z" fill="url(#gold)" stroke="#bd8c48" stroke-width="3"/>' +
+    '<path d="M535 247 C555 224 583 235 585 256 C587 276 563 291 544 279 C531 271 526 257 535 247Z" fill="#c88a99" stroke="#985d75" stroke-width="3"/>' +
+    '<path d="M463 284 C480 263 548 264 565 283 C580 301 570 331 548 340 C520 352 480 340 465 322 C455 310 455 296 463 284Z" fill="#c77e83" stroke="#98545e" stroke-width="3"/>' +
+    '<path d="M500 225 C501 254 500 278 501 302 C502 333 507 365 540 390 C568 411 612 417 650 402 C669 395 683 408 675 425 C666 446 629 452 592 444 C536 432 490 406 474 366" fill="none" stroke="url(#tissue)" stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<path d="M500 225 C501 254 500 278 501 302 C502 333 507 365 540 390" fill="none" stroke="#f7e6ac" stroke-width="7" stroke-linecap="round"/>' +
+    '<path d="M430 470 C409 439 409 398 425 355 C441 314 455 285 450 250 C447 224 458 211 478 207" fill="none" stroke="#d7a451" stroke-width="10" stroke-linecap="round"/>' +
+    '<path d="M390 478 C389 442 414 420 447 427 C479 434 497 465 488 502 C480 538 452 563 421 555 C396 548 385 514 390 478Z" fill="url(#tissue)" stroke="#b87570" stroke-width="3"/>' +
+    '<ellipse cx="438" cy="495" rx="25" ry="37" transform="rotate(12 438 495)" fill="url(#gold)" stroke="#b78060" stroke-width="3"/>' +
+    '<path d="M462 459 C481 470 480 490 469 506 C460 520 461 536 447 545" fill="none" stroke="#b76e56" stroke-width="8" stroke-linecap="round"/>' +
+    '<path d="M682 186 C704 225 698 265 683 300 C671 334 675 366 696 394" fill="none" stroke="#d58f91" stroke-width="17" stroke-linecap="round" opacity=".55"/>' +
+    '<g font-family="Arial,sans-serif" font-size="15" fill="#203b5c" stroke="#7890aa" stroke-width="1.7">' +
+    '<path d="M465 181 L365 181" fill="none"/><circle cx="465" cy="181" r="4" fill="#347fce" stroke="none"/><text x="354" y="186" text-anchor="end" stroke="none" font-weight="600">Urinary bladder</text>' +
+    '<path d="M575 256 L738 256" fill="none"/><circle cx="575" cy="256" r="4" fill="#347fce" stroke="none"/><text x="750" y="261" stroke="none" font-weight="600">Seminal vesicle</text>' +
+    '<path d="M450 280 L365 280" fill="none"/><circle cx="450" cy="280" r="4" fill="#347fce" stroke="none"/><text x="354" y="285" text-anchor="end" stroke="none" font-weight="600">Vas deferens</text>' +
+    '<path d="M564 311 L738 311" fill="none"/><circle cx="564" cy="311" r="4" fill="#347fce" stroke="none"/><text x="750" y="316" stroke="none" font-weight="600">Prostate gland</text>' +
+    '<path d="M503 352 L365 352" fill="none"/><circle cx="503" cy="352" r="4" fill="#347fce" stroke="none"/><text x="354" y="357" text-anchor="end" stroke="none" font-weight="600">Urethra</text>' +
+    '<path d="M650 418 L738 418" fill="none"/><circle cx="650" cy="418" r="4" fill="#347fce" stroke="none"/><text x="750" y="423" stroke="none" font-weight="600">Penis</text>' +
+    '<path d="M469 485 L365 485" fill="none"/><circle cx="469" cy="485" r="4" fill="#347fce" stroke="none"/><text x="354" y="490" text-anchor="end" stroke="none" font-weight="600">Epididymis</text>' +
+    '<path d="M438 505 L365 535" fill="none"/><circle cx="438" cy="505" r="4" fill="#347fce" stroke="none"/><text x="354" y="541" text-anchor="end" stroke="none" font-weight="600">Testis</text>' +
+    '<path d="M397 535 L365 572" fill="none"/><circle cx="397" cy="535" r="4" fill="#347fce" stroke="none"/><text x="354" y="578" text-anchor="end" stroke="none" font-weight="600">Scrotum</text>' +
+    '<path d="M686 300 L738 350" fill="none"/><circle cx="686" cy="300" r="4" fill="#347fce" stroke="none"/><text x="750" y="357" stroke="none" font-weight="600">Rectum</text></g>' +
+    '<text x="500" y="632" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#627991">Illustrative educational anatomy; proportions are simplified.</text></svg>';
+  return svg;
 }
 
 async function generateConceptDiagram(res, body) {
